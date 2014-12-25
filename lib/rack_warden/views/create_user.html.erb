@@ -1,0 +1,7 @@
+<% @section_title = "Create Account" %>
+<form action="/auth/create" method="post">
+  <p>Username: <input type="text" name="user[username]" /></p>
+  <p>Password: <input type="password" name="user[password]" /></p>
+  <div class="g-recaptcha control text-control" data-sitekey="6LdG4v4SAAAAAGn0ZYauCpycY3s6I5pczqRtWZuH"></div>
+  <input type="submit" value="Create" />
+</form>

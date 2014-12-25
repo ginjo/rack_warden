@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rack Warden</title>
+
+    <style>
+    body {
+      margin: 10px auto;
+      width: 800px;
+    }
+    </style>
+    
+    <script src='https://www.google.com/recaptcha/api.js'></script>
+  </head>
+  <body>
+    <h1>Rack Warden</h1>
+
+    <p><a href="/auth/login">Log In</a> | <a href="/auth/protected">Protected Page</a> | <a href="/auth/logout">Log Out</a></p>
+
+    <% if flash(:rwarden)[:success] %>
+    <div style="color:green;">
+      <%= flash(:rwarden)[:success] %>
+    </div>
+    <% end %>
+
+    <% if flash(:rwarden)[:error] %>
+    <div style="color:red;">
+      <%= flash(:rwarden)[:error] %>
+    </div>
+    <% end %>
+
+    <%= yield %>
+  </body>
+</html>
