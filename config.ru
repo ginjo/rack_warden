@@ -2,6 +2,7 @@ require 'bundler'
 
 Bundler.require
 
-require 'rack_warden'
+
+require File.join(File.dirname(__FILE__), 'rack_warden')
 
 run RackWarden

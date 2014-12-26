@@ -209,7 +209,7 @@ class RackWarden < Sinatra::Base
 	    redirect session[:return_to] || settings.default_route
 	  else
 	  	flash(:rwarden)[:error] = warden.message || "Could not create account"
-	  	redirect url('/auth/create')
+	  	redirect url('/auth/create', false)
 	  end
   end
 
@@ -219,7 +219,7 @@ class RackWarden < Sinatra::Base
     puts "WARDEN ATTEMPTED PATH: #{env['warden.options'][:attempted_path]}"
     puts warden
     flash(:rwarden)[:error] = warden.message || "Please login to continue"
-    redirect url('/auth/login')
+    redirect url('/auth/login', false)
   end
 
   get '/auth/protected' do
