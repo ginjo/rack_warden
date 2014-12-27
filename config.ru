@@ -1,8 +1,11 @@
+::RACK_WARDEN_STANDALONE = true
+
 require 'bundler'
 
 Bundler.require
 
+require File.expand_path('../lib/rack_warden', __FILE__)
 
-require File.join(File.dirname(__FILE__), 'rack_warden')
-
-run RackWarden
+map ENV['BASE_URI'] || '/' do
+	run RackWarden
+end

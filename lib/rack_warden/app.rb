@@ -43,8 +43,8 @@ class RackWarden < Sinatra::Base
 	
 	def setup_parent_app(parent_app, args, opts)
 		puts "RACKWARDEN initializing parent app: #{parent_app}"
-		puts "RACKWARDEN parent app parents: #{parent_app.class.parents}"
-		puts "RACKWARDEN parent app ancestors: #{parent_app.class.ancestors}"
+		#puts "RACKWARDEN parent app parents: #{parent_app.class.parents}"
+		#puts "RACKWARDEN parent app ancestors: #{parent_app.class.ancestors}"
 		klass = self.class
 		case
 		when parent_app.class.ancestors.find{|x| x.to_s=='Sinatra::Base'}
@@ -165,14 +165,22 @@ class RackWarden < Sinatra::Base
 	    	redirect back 
 	    end
 	  end
+	  
+	  def default_page
+	  	erb "Warden authentication for any rack based app", :layout=>settings.layout
+	  end
 		
   end # RackWardenHelpers
   helpers RackWardenHelpers
   
-
-	# WBR. I disabled this so upstream apps would work.
-  get '/auth' do
-    erb "Warden authentication for any rack based app", :layout=>settings.layout
+	if defined? ::RACK_WARDEN_STANDALONE
+		get '/?' do
+			default_page
+		end
+	end
+	
+  get '/auth/?' do
+    default_page
   end
 
   get '/auth/login' do
@@ -186,7 +194,7 @@ class RackWarden < Sinatra::Base
 
 		puts "RETURN_TO #{session[:return_to]}"
     if session[:return_to].nil?
-      redirect settings.default_route
+      redirect url(settings.default_route, false)
     else
       redirect session[:return_to]
     end
@@ -196,7 +204,7 @@ class RackWarden < Sinatra::Base
     warden.raw_session.inspect
     warden.logout
     flash(:rwarden)[:success] = 'You have been logged out'
-    redirect settings.default_route
+    redirect url(settings.default_route, false)
   end
 
 	get '/auth/create' do
@@ -206,7 +214,7 @@ class RackWarden < Sinatra::Base
   post '/auth/create' do
     if create_user
     	flash(:rwarden)[:success] = warden.message || "Account created"
-	    redirect session[:return_to] || settings.default_route
+	    redirect session[:return_to] || url(settings.default_route, false)
 	  else
 	  	flash(:rwarden)[:error] = warden.message || "Could not create account"
 	  	redirect url('/auth/create', false)
