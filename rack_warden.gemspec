@@ -1,7 +1,8 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'sinatra/base'
+# This breaks bundle-install
+#require 'sinatra/base'
 require 'rack_warden/version'
 
 Gem::Specification.new do |spec|
@@ -9,8 +10,8 @@ Gem::Specification.new do |spec|
   spec.version       = RackWarden::VERSION
   spec.authors       = ["William Richardson"]
   spec.email         = ["wbr@mac.com"]
-  spec.summary       = %q{A warden/sinatra micro-app providing authentication and user management to any rack-based app}
-  spec.description   = %q{A warden/sinatra micro-app providing authentication and user management to any rack-based app.}
+  spec.summary       = %q{A warden/sinatra mini-app providing authentication and user management for any rack-based app}
+  spec.description   = %q{A warden/sinatra mini-app providing authentication and user management for any rack-based app.}
   spec.homepage      = ""
   spec.license       = "MIT"
 

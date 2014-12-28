@@ -13,6 +13,6 @@ require "rack_warden/app"
 require "rack_warden/model"
 require "rack_warden/version"
 
-# module RackWarden
-#   # Your code goes here...
-# end
+module RackWarden
+  # Your code goes here...
+end

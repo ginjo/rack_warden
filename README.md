@@ -29,7 +29,7 @@ A few simple steps will have your entire app protected.
 ### Sinatra
 
 		class MySinatraApp < Sinatra::Base
-			use RackWarden
+			use RackWarden::App
 			
 			before do
 				require_login
@@ -44,7 +44,7 @@ A few simple steps will have your entire app protected.
 
 application.rb or environment.rb
 
-		config.middleware.use RackWarden
+		config.middleware.use RackWarden::App
 		
 application-controller.rb
 

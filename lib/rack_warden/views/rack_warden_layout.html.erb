@@ -15,7 +15,11 @@
   <body>
     <h1>Rack Warden</h1>
 
-    <p><a href="<%=url('/auth/login', false)%>">Log In</a> | <a href="<%=url('/auth/protected', false)%>">Protected Page</a> | <a href="<%=url('/auth/logout', false)%>">Log Out</a></p>
+    <p>
+			<a href="<%=url('/auth/login', false)%>">Log In</a> |
+			<a href="<%=url('/', false)%>">Home</a> |
+			<a href="<%=url('/auth/protected', false)%>">Protected Page</a> |
+			<a href="<%=url('/auth/logout', false)%>">Log Out</a></p>
 
     <% if flash(:rwarden)[:success] %>
     <div style="color:green;">

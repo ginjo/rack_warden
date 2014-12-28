@@ -1,5 +1,5 @@
 #require 'bcrypt'
-DataMapper.setup(:default, RackWarden.database)
+DataMapper.setup(:default, RackWarden::App.database)
 
 class User
   include DataMapper::Resource
