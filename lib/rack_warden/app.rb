@@ -5,7 +5,7 @@ module RackWarden
   class App < Sinatra::Base
     enable :sessions
     register Sinatra::Flash
-    set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'rack_warden.yaml'].compact.uniq
+    set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
     set :layout, :'rack_warden_layout.html'
     set :default_route, '/'
     set :database, "sqlite://#{Dir.pwd}/rack_warden.sqlite.db"
@@ -154,7 +154,7 @@ module RackWarden
   	  # TODO: This doesn't work.
   		def create_user
 		
-  			recaptcha
+  			verify_recaptcha if recaptcha[:secret]
 		
   			return unless valid_user_input?
   			user = User.create(username: params['user']['username'])
@@ -162,14 +162,14 @@ module RackWarden
   			user.save && warden.set_user(user)
   		end
 		
-   		# reCAPTCHA. See https://www.google.com/recaptcha/admin#site/318693958?setup
-   		def recaptcha(skip_redirect=false)
-  	 		_recaptcha = ActiveSupport::JSON.decode(open("https://www.google.com/recaptcha/api/siteverify?secret=6LdG4v4SAAAAAJxwcS8pZRG371ZucyYg5yVUji_V&response=#{params['g-recaptcha-response']}&remoteip=#{request.ip}").read)
+   		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])
+   		  secret = settings.recaptcha[:secret]
+  	 		_recaptcha = ActiveSupport::JSON.decode(open("https://www.google.com/recaptcha/api/siteverify?secret=#{secret}&response=#{response}&remoteip=#{ip}").read)
   	    puts "RECAPTCHA", _recaptcha
-  	    #(render action and return) unless recaptcha['success']
-  	    unless _recaptcha['success'] || skip_redirect
-  	    	flash(:rwarden)[:error] = "Please confirm you are human."
-  	    	redirect back 
+  	    unless _recaptcha['success']
+  	    	flash(:rwarden)[:error] = "Please confirm you are human"
+  	    	redirect back unless skip_redirect
+  	    	Halt "You appear to be a robot."
   	    end
   	  end
 	  
