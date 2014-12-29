@@ -9,6 +9,7 @@ module RackWarden
     set :layout, :'rack_warden_layout.html'
     set :default_route, '/'
     set :database, "sqlite://#{Dir.pwd}/rack_warden.sqlite.db"
+    set :recaptcha, Hash.new
     
     # Load config from file, if any exist.
     Hash.new.tap do |hash|
@@ -151,10 +152,9 @@ module RackWarden
   	    params['user'] && params['user']['username'] && params['user']['password']
   	  end
 	  
-  	  # TODO: This doesn't work.
   		def create_user
 		
-  			verify_recaptcha if recaptcha[:secret]
+  			verify_recaptcha if settings.recaptcha[:secret]
 		
   			return unless valid_user_input?
   			user = User.create(username: params['user']['username'])
@@ -215,7 +215,7 @@ module RackWarden
     end
 
   	get '/auth/create' do
-      erb :'create_user.html', :layout=>settings.layout
+      erb :'create_user.html', :layout=>settings.layout, :locals=>{:recaptcha_sitekey=>settings.recaptcha[:sitekey]}
     end
 
     post '/auth/create' do

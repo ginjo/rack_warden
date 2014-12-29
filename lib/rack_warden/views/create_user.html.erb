@@ -2,8 +2,8 @@
 <form action="<%=url('/auth/create', false)%>" method="post">
   <p>Username: <input type="text" name="user[username]" /></p>
   <p>Password: <input type="password" name="user[password]" /></p>
-  <% if @recaptcha_sitekey %>
-	  <div class="g-recaptcha control text-control" data-sitekey="<%=@recaptcha_sitekey%>"></div>
+  <% if recaptcha_sitekey %>
+	  <div class="g-recaptcha control text-control" data-sitekey="<%=recaptcha_sitekey%>"></div>
   <% end %>
   <input type="submit" value="Create" />
 </form>
