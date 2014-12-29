@@ -54,7 +54,7 @@ application-controller.rb
 
 ## Configuration
 
-Pass configuration settings to RackWarden through your ``use`` method. The params hash will be translated directly to the app's settings. You can currently specify :database, :views, and :default_route. You can also specify any of the standard Sinatra settings, like :views.
+Pass configuration settings to RackWarden through your ``use`` method. The params hash will be translated directly to the app's settings. You can currently specify :layout, :database, :default_route, and :recaptcha. You can also specify any of the standard Sinatra settings, like :views.
 
 If you pass a block with the ``use`` method, the block will be evaluated in the context of the RackWarden::App class. Anything you do in that block is just as if you were writing code in the app class itself. While in the block, you also have access to two relevant objects.
 
@@ -62,6 +62,36 @@ If you pass a block with the ``use`` method, the block will be evaluated in the 
 			set :somesetting, 'some_value'
 		end
 
+### Configuration Options
+
+Current list of settings specific to rack_warden, with defaults.
+
+#### :layout
+
+A symbol representing a layout file in any of the view paths.
+		
+		:layout => :'rack_warden_layout.html'
+		
+#### :default_route
+
+A Sinatra route to fall back on after logout, errors, or any action that has no specified route.
+
+		:default_route => '/'
+		
+#### :database
+
+A DataMapper database specification
+
+		:database => "sqlite:///Absolute/path/to/your/project/rack_warden.sqlite.db"
+		
+#### :recaptcha
+
+Settings for Google's recaptcha service
+
+		:recaptcha => {
+			:sitekey => '',
+			:secret  => ''
+		}
 
 ## Customization
 
