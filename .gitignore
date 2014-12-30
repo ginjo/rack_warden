@@ -19,4 +19,4 @@ todo.txt
 *.bak
 *.gem
 rack_warden.y*ml
-
+.DS_Store

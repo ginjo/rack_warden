@@ -1,5 +1,7 @@
 #require 'bcrypt'
-DataMapper.setup(:default, RackWarden::App.database)
+DataMapper.setup(:default, RackWarden::App.database_config)
+
+# Do DataMapper.repository.adapter to get connection info for this connection.
 
 class User
   include DataMapper::Resource

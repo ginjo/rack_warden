@@ -10,8 +10,9 @@ require 'open-uri'
 # gem 'warden'
 
 require "rack_warden/app"
-require "rack_warden/model"
 require "rack_warden/version"
+autoload :User, "rack_warden/model"
+
 
 module RackWarden
   # Your code goes here...

@@ -8,7 +8,7 @@ module RackWarden
     set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
     set :layout, :'rack_warden_layout.html'
     set :default_route, '/'
-    set :database, "sqlite://#{Dir.pwd}/rack_warden.sqlite.db"
+    set :database_config, "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
     set :recaptcha, Hash.new
     
     # Load config from file, if any exist.
@@ -29,7 +29,7 @@ module RackWarden
   	#	end
   	#
   	def initialize(parent_app=nil, *args, &block)
-  		#puts "INITIALIZE RackWarden::App INSTANCE [parent_app, self, args, block]: #{[parent_app, self, args, block]}"
+  		puts "INITIALIZE RackWarden::App INSTANCE [parent_app, self, args, block]: #{[parent_app, self, args, block]}"
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		klass = self.class
