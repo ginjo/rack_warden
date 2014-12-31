@@ -66,37 +66,72 @@ If you pass a block with the ``use`` method, the block will be evaluated in the 
 
 ### Configuration Options
 
-Current list of settings specific to rack_warden, with defaults.
+Current list of settings specific to rack\_warden, with defaults.
 
 #### :layout
 
 A symbol representing a layout file in any of the view paths.
     
-    :layout => :'rack_warden_layout.html'
+    layout: :'rack_warden_layout.html'
     
-#### :default_route
+#### :default\_route
 
 A Sinatra route to fall back on after logout, errors, or any action that has no specified route.
 
-    :default_route => '/'
+    default_route: '/'
     
-#### :database_config
+#### :database\_config
 
 A database specification hash or or url string.
 
-    :database_config => "sqlite:///Absolute/path/to/your/rack_warden.sqlite3.db"
+    database_config: "sqlite:///Absolute/path/to/your/rack_warden.sqlite3.db"
     
     # or
     
-    :database_config => {
-      adapter: mysql2,
-      encoding: utf8,
-      database: my_db_name,
-      username: root,
-      password: my_password,
-      host: 127.0.0.1,
+    database_config: 
+      adapter: mysql2
+      encoding: utf8
+      database: my_db_name
+      username: root
+      password: my_password
+      host: 127.0.0.1
       port: 3306
-    }
+
+#### :require\_login
+
+Parameters to pass to the before/before\_filter for require\_login.
+So if you're main app is Sinatra,
+
+    require_login: /^\/.+/
+    
+is the same as
+
+    class MySinatraApp
+      require_login /^\/.+/
+    end
+    
+which is the same as
+
+    class MySinatraApp
+      before /^\/.+/ do
+        require_login
+      end
+    end
+    
+For Rails, you would be passing a hash of :only or :except keys.
+
+    require_login:
+      except: :index
+    
+The default for :require\_login is nil, which means require login on every route or action.
+To disable automatic activation of require\_login, pass it ``false``.
+
+#### :allow\_public\_signup
+
+Allows public access to the account creation view & action.
+
+    allow_public_signup: false
+    
     
 #### :recaptcha
 
