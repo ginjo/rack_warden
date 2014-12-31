@@ -9,7 +9,7 @@
 	<tbody>
 		<% User.all(:limit=>100).each do |user| %>
 			<tr>
-				<td>Email</td>
+				<td><%=user.email%></td>
 				<td><%=user.username%></td>
 				<td><%=user.id%></td>
 			</tr>

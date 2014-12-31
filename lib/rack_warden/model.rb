@@ -9,7 +9,8 @@ class User
   include BCrypt
 
   property :id, Serial, key: true
-  property :username, String, length: 128
+  property :username, String, length: 128, required: true, unique: true, default: lambda {|r,v| r.instance_variable_get :@email}
+  property :email, String, length: 128, required: true, unique: true, default: 'error'
 
   property :password, BCryptHash
 

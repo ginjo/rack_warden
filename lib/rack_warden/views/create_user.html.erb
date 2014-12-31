@@ -1,9 +1,11 @@
 <% @section_title = "Create Account" %>
 <form action="<%=url('/auth/create', false)%>" method="post">
+	<p>Email: <input type="text" name="user[email]" /></p>
   <p>Username: <input type="text" name="user[username]" /></p>
   <p>Password: <input type="password" name="user[password]" /></p>
   <% if recaptcha_sitekey && User.count > 0 %>
 	  <div class="g-recaptcha control text-control" data-sitekey="<%=recaptcha_sitekey%>"></div>
   <% end %>
   <input type="submit" value="Create" />
+	<p><%= @user.errors.to_yaml if @user && @user.errors %></p>
 </form>

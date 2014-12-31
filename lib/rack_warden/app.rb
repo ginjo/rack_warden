@@ -171,7 +171,7 @@ module RackWarden
   	  # TODO: Shouldn't these be in warden block above? But they don't work there for some reason.
 	  
   	  def valid_user_input?
-  	    params['user'] && params['user']['username'] && params['user']['password']
+  	    params['user'] && params['user']['email'] && params['user']['password']
   	  end
 	  
   		def create_user
@@ -179,9 +179,10 @@ module RackWarden
   			verify_recaptcha if settings.recaptcha[:secret]
 		
   			return unless valid_user_input?
-  			user = User.create(username: params['user']['username'])
-  			user.password = params['user']['password']
-  			user.save && warden.set_user(user)
+        #user = User.create(username: params['user']['username'])
+        @user = User.new(params['user'])
+  			#user.password = params['user']['password']
+  			@user.save && warden.set_user(@user)
   		end
 		
    		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])
@@ -247,7 +248,7 @@ module RackWarden
   	    redirect session[:return_to] || url(settings.default_route, false)
   	  else
   	  	flash(:rwarden)[:error] = warden.message || "Could not create account"
-  	  	redirect url('/auth/create', false)
+  	  	redirect back #url('/auth/new', false)
   	  end
     end
 
