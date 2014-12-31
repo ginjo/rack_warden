@@ -10,6 +10,8 @@ module RackWarden
     set :default_route, '/'
     set :database_config, "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
     set :recaptcha, Hash.new
+    set :require_login, nil
+    #set :allow_public_creation, false
     
     # Load config from file, if any exist.
     Hash.new.tap do |hash|
@@ -58,9 +60,29 @@ module RackWarden
   		when parent_app.class.ancestors.find{|x| x.to_s=='Sinatra::Base'}
   			parent_app.class.helpers(RackWardenHelpers)
   			default_parent_views = File.join(Dir.pwd,"views")
+  			
+  			parent_app.class.instance_eval do
+  			  def self.require_login(*args)
+    			  #options = args.last.is_a?(Hash) ? args.pop : Hash.new
+  			    before(*args) do
+  			      require_login
+  			    end
+  			  end
+			  end
+  			parent_app.class.require_login(klass.require_login) if klass.require_login != false
   		when parent_app.class.parents.find{|x| x.to_s=='ActionDispatch'}
   			ApplicationController.send(:include, RackWardenHelpers)
   			default_parent_views = File.join(Dir.pwd, "app/views")
+  			
+  			parent_app.class.instance_eval do
+  			  def self.require_login(*args)
+    			  #options = args.last.is_a?(Hash) ? args.pop : Hash.new
+  			    before_filter(:require_login, *args) do
+  			      require_login
+  			    end
+  			  end
+			  end
+  			(ApplicationController.before_filter :require_login, *Array(klass.require_login).flatten) if klass.require_login != false
   		end
 		
   		new_views = []
