@@ -237,8 +237,8 @@ module RackWarden
     end
 
   	get '/auth/new' do
-  	  halt 403 unless settings.allow_public_signup
-      erb :'create_user.html', :layout=>settings.layout, :locals=>{:recaptcha_sitekey=>settings.recaptcha[:sitekey]}
+  	  halt 403 unless settings.allow_public_signup or !(User.count > 0)
+      erb :'create_user.html', :layout=>settings.layout, :locals=>{:recaptcha_sitekey=>settings.recaptcha['sitekey']}
     end
 
     post '/auth/create' do
@@ -256,8 +256,13 @@ module RackWarden
       session[:return_to] = env['warden.options'][:attempted_path] if !request.xhr? && !env['warden.options'][:attempted_path][/login/]
       puts "WARDEN ATTEMPTED PATH: #{env['warden.options'][:attempted_path]}"
       puts warden
-      flash(:rwarden)[:error] = warden.message || "Please login to continue"
-      redirect url('/auth/login', false)
+      if User.count > 0
+        flash(:rwarden)[:error] = warden.message || "Please login to continue"
+        redirect url('/auth/login', false)
+      else
+        flash(:rwarden)[:error] = warden.message || "Please create an admin account"
+        redirect url('/auth/new', false)
+      end
     end
 
     get '/auth/protected' do
@@ -266,10 +271,10 @@ module RackWarden
       erb :'rack_warden_protected.html', :layout=>settings.layout
     end
     
-    # get '/auth/admin'
-    #   warden.authenticate!
-    #   erb :''
-    # end
+    get '/auth/admin' do
+      warden.authenticate!
+      erb :'rw_admin.html', :layout=>settings.layout
+    end
 
   end # App 
 end # RackWarden

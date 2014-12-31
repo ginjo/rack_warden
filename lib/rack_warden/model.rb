@@ -1,4 +1,5 @@
 #require 'bcrypt'
+DataMapper::Logger.new(File.join(Dir.pwd, 'log', 'rack_warden.log'))
 DataMapper.setup(:default, RackWarden::App.database_config)
 
 # Do DataMapper.repository.adapter to get connection info for this connection.
