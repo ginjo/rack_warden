@@ -11,7 +11,7 @@ module RackWarden
     set :database_config, "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
     set :recaptcha, Hash.new
     set :require_login, nil
-    #set :allow_public_creation, false
+    set :allow_public_signup, false
     
     # Load config from file, if any exist.
     Hash.new.tap do |hash|
@@ -236,7 +236,8 @@ module RackWarden
       redirect url(settings.default_route, false)
     end
 
-  	get '/auth/create' do
+  	get '/auth/new' do
+  	  halt 403 unless settings.allow_public_signup
       erb :'create_user.html', :layout=>settings.layout, :locals=>{:recaptcha_sitekey=>settings.recaptcha[:sitekey]}
     end
 
@@ -264,6 +265,11 @@ module RackWarden
 
       erb :'rack_warden_protected.html', :layout=>settings.layout
     end
+    
+    # get '/auth/admin'
+    #   warden.authenticate!
+    #   erb :''
+    # end
 
   end # App 
 end # RackWarden
