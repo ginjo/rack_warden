@@ -30,69 +30,52 @@ module RackWarden
   	# 	set :myvar, 'something'
   	#	end
   	#
-  	def initialize(parent_app=nil, *args, &block)
-  		puts "INITIALIZE RackWarden::App INSTANCE [parent_app, self, args, block]: #{[parent_app, self, args, block]}"
+  	def initialize(parent_app_instance=nil, *args, &block)
+  		puts "INITIALIZE RackWarden::App INSTANCE [parent_app_instance, self, args, block]: #{[parent_app_instance, self, args, block]}"
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
-  		klass = self.class
-  		if parent_app
+  		rack_warden_app_class = self.class
+  		if parent_app_instance
   			# append views from opts.
-  			klass.set(:original_views, opts.has_key?(:views) ? klass.views : nil)
-  			#klass.set(:views => [Array(klass.views), opts.delete(:views)].flatten) if opts[:views]
+  			rack_warden_app_class.set(:original_views, opts.has_key?(:views) ? rack_warden_app_class.views : nil)
+  			#rack_warden_app_class.set(:views => [Array(rack_warden_app_class.views), opts.delete(:views)].flatten) if opts[:views]
   			# set app settings with remainder of opts.
-  			klass.set opts if opts.any?
+  			rack_warden_app_class.set opts if opts.any?
   			# eval the use-block from the parent app, in context of this app.
-  			klass.instance_exec(self, parent_instance, &block) if block_given?
-  			# do parent_app setup.
-  			setup_parent_app(parent_app, args, opts)
+  			rack_warden_app_class.instance_exec(self, parent_instance, &block) if block_given?
+  			# do framework setup.
+  			select_framework(parent_app_instance, args, opts)
   			#parent_app.class.helpers(RackWardenHelpers) rescue ApplicationController.send(:include, RackWardenHelpers)
   		end
   		# finally, send parent app to super, but don't send the use-block (thus the empty proc)
-  		super(parent_app, &Proc.new{})
+  		super(parent_app_instance, &Proc.new{})
   	end
 	
-  	def setup_parent_app(parent_app, args, opts)
-  		puts "RACKWARDEN initializing parent app: #{parent_app}"
-  		#puts "RACKWARDEN parent app parents: #{parent_app.class.parents}"
-  		#puts "RACKWARDEN parent app ancestors: #{parent_app.class.ancestors}"
-  		klass = self.class
-  		case
-  		when parent_app.class.ancestors.find{|x| x.to_s=='Sinatra::Base'}
-  			parent_app.class.helpers(RackWardenHelpers)
-  			default_parent_views = File.join(Dir.pwd,"views")
-  			
-  			parent_app.class.instance_eval do
-  			  def self.require_login(*args)
-    			  #options = args.last.is_a?(Hash) ? args.pop : Hash.new
-  			    before(*args) do
-  			      require_login
-  			    end
-  			  end
-			  end
-  			parent_app.class.require_login(klass.require_login) if klass.require_login != false
-  		when parent_app.class.parents.find{|x| x.to_s=='ActionDispatch'}
-  			ApplicationController.send(:include, RackWardenHelpers)
-  			default_parent_views = File.join(Dir.pwd, "app/views")
-  			
-  			parent_app.class.instance_eval do
-  			  def self.require_login(*args)
-    			  #options = args.last.is_a?(Hash) ? args.pop : Hash.new
-  			    before_filter(:require_login, *args) do
-  			      require_login
-  			    end
-  			  end
-			  end
-  			(ApplicationController.before_filter :require_login, *Array(klass.require_login).flatten) if klass.require_login != false
-  		end
+  	def select_framework(parent_app_instance, args, opts)
+  		puts "RACKWARDEN initializing parent app: #{parent_app_instance}"
+  		
+  		require 'rack_warden/frameworks/sinatra'
+  		self.class.include Frameworks::Sinatra.select_framework(parent_app_instance, args, opts.merge({:parent_app_instance=>parent_app_instance, :rack_warden_app_class=>self.class}))
+      self.class.extend Frameworks::Base
+      setup_framework(parent_app_instance, args, opts.merge({:parent_app_instance=>parent_app_instance, :rack_warden_app_class=>self.class}))
+      
+      
+      # TODO:
+      # Redo all of this to keep all this selction & setup code in the framework module - dont include it into the rackwarden app.
+      #
+      # collect framework modules
+      # send each the select_framework method, exiting after successful selection
+      # note that default_parent_views will now be taken from framework module views_path module method.
 		
   		new_views = []
-  		original_views = klass.original_views
+  		original_views = self.class.original_views
   		# append parent rails views folder unless opts.has_key?(:views)
-  		new_views << default_parent_views unless opts.has_key?(:views)
+  		#new_views << default_parent_views unless opts.has_key?(:views)
+  		new_views << self.class.views_path unless opts.has_key?(:views)
   		# append original_views, if original_views
   		new_views << original_views if original_views
-  		klass.set(:views => [Array(klass.views), new_views].flatten.compact.uniq) if new_views.any?
-  		puts "RACKWARDEN views: #{klass.views}"
+  		self.class.set(:views => [Array(self.class.views), new_views].flatten.compact.uniq) if new_views.any?
+  		puts "RACKWARDEN views: #{self.class.views}"
   	end
 	
     use Warden::Manager do |config|
