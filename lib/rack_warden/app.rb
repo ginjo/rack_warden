@@ -31,52 +31,42 @@ module RackWarden
   	#	end
   	#
   	def initialize(parent_app_instance=nil, *args, &block)
+  	  initialization_args = args.dup
   		puts "INITIALIZE RackWarden::App INSTANCE [parent_app_instance, self, args, block]: #{[parent_app_instance, self, args, block]}"
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		rack_warden_app_class = self.class
   		if parent_app_instance
-  			# append views from opts.
+  			# Append views from opts.
   			rack_warden_app_class.set(:original_views, opts.has_key?(:views) ? rack_warden_app_class.views : nil)
   			#rack_warden_app_class.set(:views => [Array(rack_warden_app_class.views), opts.delete(:views)].flatten) if opts[:views]
-  			# set app settings with remainder of opts.
+  			# Set app settings with remainder of opts.
   			rack_warden_app_class.set opts if opts.any?
-  			# eval the use-block from the parent app, in context of this app.
+  			# Eval the use-block from the parent app, in context of this app.
   			rack_warden_app_class.instance_exec(self, parent_instance, &block) if block_given?
-  			# do framework setup.
-  			select_framework(parent_app_instance, args, opts)
-  			#parent_app.class.helpers(RackWardenHelpers) rescue ApplicationController.send(:include, RackWardenHelpers)
+  			
+  			# Do framework setup.
+  			framework_module = select_framework(binding)
+    		framework_module.setup_framework
+        
+        # Manipulate views
+    		new_views = []
+    		original_views = self.class.original_views
+    		# append parent rails views folder unless opts.has_key?(:views)
+    		#new_views << default_parent_views unless opts.has_key?(:views)
+    		new_views << framework_module.views_path unless opts.has_key?(:views)
+    		# append original_views, if original_views
+    		new_views << original_views if original_views
+    		self.class.set(:views => [Array(self.class.views), new_views].flatten.compact.uniq) if new_views.any?
+    		puts "RACKWARDEN views: #{self.class.views}"
   		end
   		# finally, send parent app to super, but don't send the use-block (thus the empty proc)
   		super(parent_app_instance, &Proc.new{})
   	end
 	
-  	def select_framework(parent_app_instance, args, opts)
-  		puts "RACKWARDEN initializing parent app: #{parent_app_instance}"
-  		
-  		require 'rack_warden/frameworks/sinatra'
-  		self.class.include Frameworks::Sinatra.select_framework(parent_app_instance, args, opts.merge({:parent_app_instance=>parent_app_instance, :rack_warden_app_class=>self.class}))
-      self.class.extend Frameworks::Base
-      setup_framework(parent_app_instance, args, opts.merge({:parent_app_instance=>parent_app_instance, :rack_warden_app_class=>self.class}))
-      
-      
-      # TODO:
-      # Redo all of this to keep all this selction & setup code in the framework module - dont include it into the rackwarden app.
-      #
-      # collect framework modules
-      # send each the select_framework method, exiting after successful selection
-      # note that default_parent_views will now be taken from framework module views_path module method.
-		
-  		new_views = []
-  		original_views = self.class.original_views
-  		# append parent rails views folder unless opts.has_key?(:views)
-  		#new_views << default_parent_views unless opts.has_key?(:views)
-  		new_views << self.class.views_path unless opts.has_key?(:views)
-  		# append original_views, if original_views
-  		new_views << original_views if original_views
-  		self.class.set(:views => [Array(self.class.views), new_views].flatten.compact.uniq) if new_views.any?
-  		puts "RACKWARDEN views: #{self.class.views}"
-  	end
+  	def select_framework(env)
+  	  Frameworks::Base.select_framework(env)
+	  end
 	
     use Warden::Manager do |config|
       # Tell Warden how to save our User info into a session.
