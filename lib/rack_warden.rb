@@ -9,18 +9,16 @@ require 'open-uri'
 # gem 'dm-sqlite-adapter'
 # gem 'warden'
 
-require "rack_warden/app"
-require "rack_warden/version"
-
-autoload :User, "rack_warden/model"
-
-module RackWarden::Frameworks
-autoload :Base, 'rack_warden/framework_base'
-autoload :Sinatra, 'rack_warden/frameworks/sinatra'
-autoload :Rails, 'rack_warden/frameworks/rails'
-end
-
+# require "rack_warden/app"
+# require "rack_warden/version"
 
 module RackWarden
-  # Your code goes here...
+  autoload :App, 'rack_warden/app'
+  autoload :User, "rack_warden/model"
+  autoload :VERSION, "rack_warden/version"
+  module Frameworks
+    autoload :Base, 'rack_warden/framework_base'
+    autoload :Sinatra, 'rack_warden/frameworks/sinatra'
+    autoload :Rails, 'rack_warden/frameworks/rails'
+  end
 end

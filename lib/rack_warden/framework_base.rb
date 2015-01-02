@@ -11,6 +11,7 @@ module RackWarden
             r = Frameworks.const_get(c).framework_selector(env) rescue nil
             return r if r
           end
+          nil
         end
       end
       
@@ -23,7 +24,7 @@ module RackWarden
       # and runs the framework selector logic.
       # Returns the framework module or nil.
       def framework_selector(env)
-        puts "BASE.select_framework env: #{env.eval 'self'} locals: #{env.eval 'local_variables'}"
+        puts "BASE.framework_selector #{self} env: #{env.eval 'self'} locals: #{env.eval 'local_variables'}"
         @initialization_args = env.eval 'initialization_args'
         @parent_app_instance = env.eval 'parent_app_instance'
         @parent_app_class = @parent_app_instance.class

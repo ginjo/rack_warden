@@ -5,7 +5,8 @@ module RackWarden
       
       
       def selector
-        parent_app_instance.class.ancestors.find{|x| x.to_s=='Sinatra::Base'}
+        puts "SINATRA.selector parent_app_class.ancestors: #{parent_app_class.ancestors}"
+        parent_app_class.ancestors.find{|x| x.to_s=='Sinatra::Base'}
       end
       
       def views_path

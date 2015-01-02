@@ -4,7 +4,8 @@ module RackWarden
       extend Base
 
       def selector
-        parent_app_instance.class.parents.find{|x| x.to_s=='ActionDispatch'}
+        puts "SINATRA.selector parent_app_class.parents: #{parent_app_class.parents}"
+        parent_app_class.parents.find{|x| x.to_s=='ActionDispatch'}
       end
       
       def views_path

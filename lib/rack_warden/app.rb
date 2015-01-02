@@ -47,18 +47,20 @@ module RackWarden
   			
   			# Do framework setup.
   			framework_module = select_framework(binding)
-    		framework_module.setup_framework
+    		if framework_module
+      		framework_module.setup_framework
         
-        # Manipulate views
-    		new_views = []
-    		original_views = self.class.original_views
-    		# append parent rails views folder unless opts.has_key?(:views)
-    		#new_views << default_parent_views unless opts.has_key?(:views)
-    		new_views << framework_module.views_path unless opts.has_key?(:views)
-    		# append original_views, if original_views
-    		new_views << original_views if original_views
-    		self.class.set(:views => [Array(self.class.views), new_views].flatten.compact.uniq) if new_views.any?
-    		puts "RACKWARDEN views: #{self.class.views}"
+          # Manipulate views
+      		new_views = []
+      		original_views = self.class.original_views
+      		# append parent rails views folder unless opts.has_key?(:views)
+      		#new_views << default_parent_views unless opts.has_key?(:views)
+      		new_views << framework_module.views_path unless opts.has_key?(:views)
+      		# append original_views, if original_views
+      		new_views << original_views if original_views
+      		self.class.set(:views => [Array(self.class.views), new_views].flatten.compact.uniq) if new_views.any?
+      		puts "RACKWARDEN views: #{self.class.views}"
+    		end
   		end
   		# finally, send parent app to super, but don't send the use-block (thus the empty proc)
   		super(parent_app_instance, &Proc.new{})

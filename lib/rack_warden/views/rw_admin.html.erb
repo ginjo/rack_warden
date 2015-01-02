@@ -7,7 +7,7 @@
 			<th>Id</th>
 		</tr>
 	<tbody>
-		<% User.all(:limit=>100).each do |user| %>
+		<% RackWarden::User.all(:limit=>100).each do |user| %>
 			<tr>
 				<td><%=user.email%></td>
 				<td><%=user.username%></td>
