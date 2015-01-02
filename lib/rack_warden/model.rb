@@ -3,6 +3,7 @@
 module RackWarden
   DataMapper::Logger.new(File.join(Dir.pwd, 'log', 'rack_warden.log'))
   DataMapper.setup(:default, App.database_config)
+  puts "RACKWARDEN using database #{App.database_config}"
 
   # Do DataMapper.repository.adapter to get connection info for this connection.
 

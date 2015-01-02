@@ -5,7 +5,7 @@ module RackWarden
       extend Base
             
       def selector
-        puts "SINATRA.selector parent_app_class.ancestors: #{parent_app_class.ancestors}"
+        puts "SINATRA.selector"
         parent_app_class.ancestors.find{|x| x.to_s=='Sinatra::Base'}
       end
       
@@ -14,6 +14,7 @@ module RackWarden
       end
       
       def setup_framework
+        puts "SINATRA.setup_framework parent_app_class #{parent_app_class}"
   			parent_app_class.helpers(RackWarden::App::RackWardenHelpers)
   			#default_parent_views = File.join(Dir.pwd,"views")
 

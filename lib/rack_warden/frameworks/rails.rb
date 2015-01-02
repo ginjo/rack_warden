@@ -5,7 +5,7 @@ module RackWarden
       extend Base
 
       def selector
-        puts "SINATRA.selector parent_app_class.parents: #{parent_app_class.parents}"
+        puts "RAILS.selector"
         parent_app_class.parents.find{|x| x.to_s=='ActionDispatch'}
       end
       
@@ -14,8 +14,10 @@ module RackWarden
       end
       
       def setup_framework
+        puts "RAILS.setup_framework parent_app_class #{parent_app_class}"
     		ApplicationController.send(:include, RackWarden::App::RackWardenHelpers)
-	
+	      
+	      # Should this be ApplicationController ?
     		parent_app_class.instance_eval do
     		  def self.require_login(*args)
     		    before_filter(:require_login, *args) do
