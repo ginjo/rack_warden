@@ -1,9 +1,9 @@
 module RackWarden
   module Frameworks
     module Sinatra
+      
       extend Base
-      
-      
+            
       def selector
         puts "SINATRA.selector parent_app_class.ancestors: #{parent_app_class.ancestors}"
         parent_app_class.ancestors.find{|x| x.to_s=='Sinatra::Base'}
@@ -28,9 +28,6 @@ module RackWarden
 			  end
   			parent_app_class.require_login(rack_warden_app_class.require_login) if rack_warden_app_class.require_login != false
     	end
-    	
-    	
-    	extend self
     	
     end # Sinatra
   end # Frameworks

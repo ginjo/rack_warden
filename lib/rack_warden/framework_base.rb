@@ -7,11 +7,15 @@ module RackWarden
         # Select the framework of the parent app.
         def select_framework(env)
           puts "FRAMEWORK CONSTANTS: #{Frameworks.constants}"
-          Frameworks.constants.each do |c|
-            r = Frameworks.const_get(c).framework_selector(env) rescue nil
+          Frameworks.constants.dup.tap{|_constants| _constants.delete(Base)}.each do |c|
+            r = Frameworks.const_get(c).framework_selector(env) #rescue nil
             return r if r
           end
           nil
+        end
+        
+        def extended(target)
+          target.extend target
         end
       end
       

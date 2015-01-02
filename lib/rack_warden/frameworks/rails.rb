@@ -1,6 +1,7 @@
 module RackWarden
   module Frameworks
     module Rails
+      
       extend Base
 
       def selector
@@ -13,7 +14,7 @@ module RackWarden
       end
       
       def setup_framework
-    		ApplicationController.send(:include, RackWardenHelpers)
+    		ApplicationController.send(:include, RackWarden::App::RackWardenHelpers)
 	
     		parent_app_class.instance_eval do
     		  def self.require_login(*args)
@@ -24,7 +25,7 @@ module RackWarden
     	  end
     		(ApplicationController.before_filter :require_login, *Array(rack_warden_app_class.require_login).flatten) if rack_warden_app_class.require_login != false
       end
-
+            
     end
   end
 end
