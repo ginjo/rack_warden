@@ -16,9 +16,12 @@ module RackWarden
       def setup_framework
         puts "RAILS.setup_framework parent_app_class #{parent_app_class}"
     		ApplicationController.send(:include, RackWarden::App::RackWardenHelpers)
+    		
+    		RackWarden::App.set :database_config, get_database_config
 	      
-	      # Should this be ApplicationController ?
-    		parent_app_class.instance_eval do
+	      # Define class method 'require_login' on framework controller.
+    		#parent_app_class.instance_eval do        #This seems to work too.
+    		ApplicationController.instance_eval do
     		  def self.require_login(*args)
     		    before_filter(:require_login, *args) do
     		      require_login

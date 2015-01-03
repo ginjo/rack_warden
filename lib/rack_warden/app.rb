@@ -37,11 +37,12 @@ module RackWarden
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		rack_warden_app_class = self.class
   		if parent_app_instance
-  			# Append views from opts.
+  			# Save original views from opts.
   			rack_warden_app_class.set(:original_views, opts.has_key?(:views) ? rack_warden_app_class.views : nil)
-  			#rack_warden_app_class.set(:views => [Array(rack_warden_app_class.views), opts.delete(:views)].flatten) if opts[:views]
+
   			# Set app settings with remainder of opts.
   			rack_warden_app_class.set opts if opts.any?
+  			
   			# Eval the use-block from the parent app, in context of this app.
   			rack_warden_app_class.instance_exec(self, parent_instance, &block) if block_given?
   			

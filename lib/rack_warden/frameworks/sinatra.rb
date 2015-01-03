@@ -16,12 +16,12 @@ module RackWarden
       def setup_framework
         puts "SINATRA.setup_framework parent_app_class #{parent_app_class}"
   			parent_app_class.helpers(RackWarden::App::RackWardenHelpers)
-  			#default_parent_views = File.join(Dir.pwd,"views")
-
-        # TODO: Move some of this to Frameworks::Base
+  			
+  			RackWarden::App.set :database_config, get_database_config
+  			
+        # Define class method 'require_login' on framework controller.
   			parent_app_class.instance_eval do
   			  def self.require_login(*args)
-    			  #options = args.last.is_a?(Hash) ? args.pop : Hash.new
   			    before(*args) do
   			      require_login
   			    end

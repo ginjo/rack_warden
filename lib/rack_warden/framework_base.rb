@@ -14,6 +14,7 @@ module RackWarden
           nil
         end
         
+        # Extend target with target (like saying 'extend self').
         def extended(target)
           target.extend target
         end
@@ -35,6 +36,12 @@ module RackWarden
         @rack_warden_app_instance = env.eval 'self'
         @rack_warden_app_class = @rack_warden_app_instance.class
         selector && self
+      end
+      
+      # Best guess at framework database settings.
+      def get_database_config
+        ActiveRecord::Base.connection_config rescue nil ||
+        DataMapper.repository(:default).adapter[:options] rescue nil
       end
 
       ###  End methods extended into framework module  ###
