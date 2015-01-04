@@ -27,11 +27,11 @@ module RackWarden
     end
   end
   
-  # Tell DataMapper the models are done being defined
-  DataMapper.finalize
-
-  # Update the database to match the properties of User.
-  DataMapper.auto_upgrade!
+  # # Tell DataMapper the models are done being defined
+  # DataMapper.finalize
+  # 
+  # # Update the database to match the properties of User.
+  # DataMapper.auto_upgrade!
   
 
   # # Create a test User
