@@ -1,21 +1,22 @@
-#require 'bcrypt'
 
 module RackWarden
-  DataMapper::Logger.new(App.log_path)
-  DataMapper.setup(:default, App.database_config)
-  puts "RACKWARDEN using database #{App.database_config}"
-
-  # Do DataMapper.repository.adapter to get connection info for this connection.
 
   class User
     include DataMapper::Resource
     include BCrypt
 
     property :id, Serial, key: true
-    property :username, String, length: 128, unique: true, default: lambda {|r,v| r.instance_variable_get :@email}  #,required: true
-    property :email, String, length: 128, required: true, unique: true, default: 'error'
+    property :username, String, length: 128, unique: true, required: true   #, default: lambda {|r,v| r.instance_variable_get :@email}
+    property :email, String, length: 128, required: true, unique: true #, default: 'error'
 
     property :password, BCryptHash
+    
+    before :valid?, :set_username
+    before :save, :set_username
+    
+    def set_username
+      @username = @email unless @username
+    end
 
     def authenticate(attempted_password)
       if self.password == attempted_password
@@ -25,12 +26,13 @@ module RackWarden
       end
     end
   end
-
+  
   # Tell DataMapper the models are done being defined
   DataMapper.finalize
 
   # Update the database to match the properties of User.
   DataMapper.auto_upgrade!
+  
 
   # # Create a test User
   # if User.count == 0

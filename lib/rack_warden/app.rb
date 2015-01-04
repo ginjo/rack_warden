@@ -151,15 +151,15 @@ module RackWarden
   	    params['user'] && params['user']['email'] && params['user']['password']
   	  end
 	  
-  		def create_user
-		
-  			verify_recaptcha if settings.recaptcha[:secret]
-		
-  			#return unless valid_user_input?
-        
-        @user = User.new(params['user'])
-  			@user.save #&& warden.set_user(@user)
-  		end
+      # def create_user
+      #     
+      #   verify_recaptcha if settings.recaptcha[:secret]
+      #     
+      #   #return unless valid_user_input?
+      #         
+      #         @user = User.new(params['user'])
+      #   @user.save #&& warden.set_user(@user)
+      # end
 		
    		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])
    		  secret = settings.recaptcha[:secret]
@@ -224,7 +224,9 @@ module RackWarden
     end
 
     post '/auth/create' do
-      if create_user
+      verify_recaptcha if settings.recaptcha[:secret]
+      @user = User.create(params['user'])
+      if @user
         warden.set_user(@user)
         puts @user.to_yaml
       	flash(:rwarden)[:success] = warden.message || "Account created"
