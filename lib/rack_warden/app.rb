@@ -6,12 +6,13 @@ module RackWarden
     enable :sessions
     register Sinatra::Flash
     set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
-    set :layout, :'rack_warden_layout.html'
+    set :layout, :'rw_layout.html'
     set :default_route, '/'
     set :database_config, "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
     set :recaptcha, Hash.new
     set :require_login, nil
     set :allow_public_signup, false
+    set :log_path, File.join(Dir.pwd, 'log', 'rack_warden.log')
     
     # Load config from file, if any exist.
     Hash.new.tap do |hash|
@@ -103,7 +104,7 @@ module RackWarden
       end
 
       def authenticate!
-        user = User.first(username: params['user']['username'])
+        user = User.first(['username = ? or email = ?', params['user']['username'], params['user']['username']])  #(username: params['user']['username'])
 
         if user.nil?
           fail!("The username you entered does not exist.")
@@ -154,11 +155,10 @@ module RackWarden
 		
   			verify_recaptcha if settings.recaptcha[:secret]
 		
-  			return unless valid_user_input?
-        #user = User.create(username: params['user']['username'])
+  			#return unless valid_user_input?
+        
         @user = User.new(params['user'])
-  			#user.password = params['user']['password']
-  			@user.save && warden.set_user(@user)
+  			@user.save #&& warden.set_user(@user)
   		end
 		
    		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])
@@ -173,7 +173,7 @@ module RackWarden
   	  end
 	  
   	  def default_page
-  	  	erb :'rack_warden_index.html', :layout=>settings.layout
+  	  	erb :'rw_index.html', :layout=>settings.layout
   	  end
 		
     end # RackWardenHelpers
@@ -190,7 +190,12 @@ module RackWarden
     end
 
     get '/auth/login' do
-      erb :'login_user.html', :layout=>settings.layout
+      if User.count > 0
+        erb :'rw_login.html', :layout=>settings.layout
+      else
+        flash(:rwarden)[:error] = warden.message || "Please create an admin account"
+        redirect url('/auth/new', false)
+      end
     end
 
     post '/auth/login' do
@@ -215,11 +220,13 @@ module RackWarden
 
   	get '/auth/new' do
   	  halt 403 unless settings.allow_public_signup or !(User.count > 0)
-      erb :'create_user.html', :layout=>settings.layout, :locals=>{:recaptcha_sitekey=>settings.recaptcha['sitekey']}
+      erb :'rw_new_user.html', :layout=>settings.layout, :locals=>{:recaptcha_sitekey=>settings.recaptcha['sitekey']}
     end
 
     post '/auth/create' do
       if create_user
+        warden.set_user(@user)
+        puts @user.to_yaml
       	flash(:rwarden)[:success] = warden.message || "Account created"
   	    redirect session[:return_to] || url(settings.default_route, false)
   	  else
@@ -230,22 +237,22 @@ module RackWarden
 
     post '/auth/unauthenticated' do
     	# I had to remove the condition, since it was not updating return path when it should have.
-      session[:return_to] = env['warden.options'][:attempted_path] if !request.xhr? && !env['warden.options'][:attempted_path][/login/]
+      session[:return_to] = env['warden.options'][:attempted_path] if !request.xhr? && !env['warden.options'][:attempted_path][/login|new|create/]
       puts "WARDEN ATTEMPTED PATH: #{env['warden.options'][:attempted_path]}"
       puts warden
-      if User.count > 0
+      # if User.count > 0
         flash(:rwarden)[:error] = warden.message || "Please login to continue"
         redirect url('/auth/login', false)
-      else
-        flash(:rwarden)[:error] = warden.message || "Please create an admin account"
-        redirect url('/auth/new', false)
-      end
+      # else
+      #   flash(:rwarden)[:error] = warden.message || "Please create an admin account"
+      #   redirect url('/auth/new', false)
+      # end
     end
 
     get '/auth/protected' do
       warden.authenticate!
 
-      erb :'rack_warden_protected.html', :layout=>settings.layout
+      erb :'rw_protected.html', :layout=>settings.layout
     end
     
     get '/auth/admin' do

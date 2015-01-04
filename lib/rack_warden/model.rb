@@ -1,7 +1,7 @@
 #require 'bcrypt'
 
 module RackWarden
-  DataMapper::Logger.new(File.join(Dir.pwd, 'log', 'rack_warden.log'))
+  DataMapper::Logger.new(App.log_path)
   DataMapper.setup(:default, App.database_config)
   puts "RACKWARDEN using database #{App.database_config}"
 
@@ -12,7 +12,7 @@ module RackWarden
     include BCrypt
 
     property :id, Serial, key: true
-    property :username, String, length: 128, required: true, unique: true, default: lambda {|r,v| r.instance_variable_get :@email}
+    property :username, String, length: 128, unique: true, default: lambda {|r,v| r.instance_variable_get :@email}  #,required: true
     property :email, String, length: 128, required: true, unique: true, default: 'error'
 
     property :password, BCryptHash

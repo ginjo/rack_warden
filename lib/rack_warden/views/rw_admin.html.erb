@@ -1,18 +1,20 @@
 <% @section_title = "RackWarden Admin" %>
-<table>
-	<thead>
-		<tr>
-			<th>Email</th>
-			<th>User</th>
-			<th>Id</th>
-		</tr>
-	<tbody>
-		<% RackWarden::User.all(:limit=>100).each do |user| %>
+<p>
+	<table>
+		<thead>
 			<tr>
-				<td><%=user.email%></td>
-				<td><%=user.username%></td>
-				<td><%=user.id%></td>
+				<th>Email</th>
+				<th>User</th>
+				<th>Id</th>
 			</tr>
-		<% end %>
-	</tbody>
-</table>
+		<tbody>
+			<% RackWarden::User.all(:limit=>100).each do |user| %>
+				<tr>
+					<td><%=user.email%></td>
+					<td><%=user.username%></td>
+					<td><%=user.id%></td>
+				</tr>
+			<% end %>
+		</tbody>
+	</table>
+</p>
