@@ -10,7 +10,7 @@ module RackWarden
       end
       
       def views_path
-        [File.join(Dir.pwd, "views/rack_warden"), File.join(Dir.pwd,"views")
+        [File.join(Dir.pwd, "views/rack_warden"), File.join(Dir.pwd,"views")]
       end
       
       def setup_framework
