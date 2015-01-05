@@ -17,7 +17,7 @@ module RackWarden
         puts "SINATRA.setup_framework parent_app_class #{parent_app_class}"
   			parent_app_class.helpers(RackWarden::App::RackWardenHelpers)
   			
-  			RackWarden::App.set :database_config, get_database_config
+  			#RackWarden::App.set :database_config, get_database_config
   			
         # Define class method 'require_login' on framework controller.
   			parent_app_class.instance_eval do
