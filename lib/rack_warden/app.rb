@@ -33,11 +33,13 @@ module RackWarden
   	#
   	def initialize(parent_app_instance=nil, *args, &block)
   	  initialization_args = args.dup
-  		puts "INITIALIZE RackWarden::App INSTANCE [parent_app_instance, self, args, block]: #{[parent_app_instance, self, args, block]}"
+  		puts "INITIALIZE middleware instance [parent_app_instance, self, args, block]: #{[parent_app_instance, self, args, block]}"
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		rack_warden_app_class = self.class
   		if parent_app_instance
+  		  puts "RACKWARDEN has parent: #{parent_app_instance}"
+  		  
   			# Save original views from opts.
   			rack_warden_app_class.set(:original_views, opts.has_key?(:views) ? rack_warden_app_class.views : nil)
 
@@ -61,9 +63,15 @@ module RackWarden
       		# append original_views, if original_views
       		new_views << original_views if original_views
       		self.class.set(:views => [Array(self.class.views), new_views].flatten.compact.uniq) if new_views.any?
-      		puts "RACKWARDEN views: #{self.class.views}"
+      		#puts "RACKWARDEN views: #{self.class.views}"
     		end
+        # puts "RACKWARDEN DataMapper.setup #{App.database_config}"
+        # DataMapper.setup(:default, App.database_config)
+        # puts "RACKWARDEN DataMapper.auto_updgrade!"
+        # DataMapper.auto_upgrade!
+        # puts "RACKWARDEN DataMapper repository switched to #{DataMapper.repository.adapter.to_yaml}"
   		end
+  		
   		# finally, send parent app to super, but don't send the use-block (thus the empty proc)
   		super(parent_app_instance, &Proc.new{})
   	end
@@ -226,9 +234,9 @@ module RackWarden
     post '/auth/create' do
       verify_recaptcha if settings.recaptcha[:secret]
       @user = User.create(params['user'])
-      if @user
+      puts "RACKWARDEN /auth/create @user.errors #{@user.errors[:errors].to_yaml}"
+      if @user.valid?
         warden.set_user(@user)
-        puts @user.to_yaml
       	flash(:rwarden)[:success] = warden.message || "Account created"
   	    redirect session[:return_to] || url(settings.default_route, false)
   	  else
@@ -264,4 +272,7 @@ module RackWarden
 
   end # App 
 end # RackWarden
+
+# puts "RACKWARDEN requiring models"
+# require 'rack_warden/models'
 
