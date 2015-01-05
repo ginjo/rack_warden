@@ -10,6 +10,7 @@ module RackWarden
     set :layout, :'rw_layout.html'
     set :default_route, '/'
     set :database_config => nil  #, "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
+    set :database_default => "sqlite3::memory:"   #"sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
     set :recaptcha, Hash.new
     set :require_login, nil
     set :allow_public_signup, false
