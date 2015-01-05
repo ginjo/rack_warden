@@ -233,14 +233,16 @@ module RackWarden
 
     post '/auth/create' do
       verify_recaptcha if settings.recaptcha[:secret]
-      @user = User.create(params['user'])
-      puts "RACKWARDEN /auth/create @user.errors #{@user.errors[:errors].to_yaml}"
-      if @user.valid?
+      Halt "Could not create account", :layout=>settings.layout unless params[:user]
+      params[:user].delete_if {|k,v| v.nil? || v==''}
+      @user = User.new(params['user'])
+      if @user.save
         warden.set_user(@user)
       	flash(:rwarden)[:success] = warden.message || "Account created"
   	    redirect session[:return_to] || url(settings.default_route, false)
   	  else
-  	  	flash(:rwarden)[:error] = warden.message || "Could not create account"
+  	  	flash(:rwarden)[:error] = "#{warden.message} => #{@user.errors.entries.join('. ')}"
+  	  	puts "RACKWARDEN /auth/create #{@user.errors.entries}"
   	  	redirect back #url('/auth/new', false)
   	  end
     end
