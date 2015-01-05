@@ -4,6 +4,7 @@ module RackWarden
   # Best guess at framework database settings.
   def self.get_database_config
     App.database_config ||
+    (App.database_config == false && "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db") ||
     (ActiveRecord::Base.connection_config rescue nil) ||
     (DataMapper.repository(:default).adapter[:options] rescue nil) ||
     "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
