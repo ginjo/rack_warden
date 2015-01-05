@@ -3,7 +3,7 @@
 </p>
 
 <p>
-	<%= RackWarden::User.repository.to_yaml.gsub(/\n|\r/, '<br>') %>
-	<%= DataMapper.repository.adapter.select('select * from SQLITE_MASTER').to_yaml.gsub(/\n|\r/, '<br>') %>
+	<%= DataMapper.repository.adapter.to_yaml.gsub(/\n|\r/, '<br>') %>
+	<%= DataMapper.repository.adapter.select('select * from SQLITE_MASTER').to_yaml.gsub(/\n|\r/, '<br>').gsub(/  /, '&nbsp;&nbsp;') %>
 	
 </p>

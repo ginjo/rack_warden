@@ -15,6 +15,7 @@ module RackWarden
     set :require_login, nil
     set :allow_public_signup, false
     set :log_path, File.join(Dir.pwd, 'log', 'rack_warden.log')
+    set :user_table_name, nil
     
     # Load config from file, if any exist.
     Hash.new.tap do |hash|

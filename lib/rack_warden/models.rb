@@ -3,11 +3,14 @@ module RackWarden
   
   # Best guess at framework database settings.
   def self.get_database_config
-    App.database_config ||
-    (App.database_config == false &&  App.database_default) ||
-    (ActiveRecord::Base.connection_config rescue nil) ||
-    (DataMapper.repository(:default).adapter[:options] rescue nil) ||
-    App.database_default
+    case
+    when App.database_config.to_s.downcase == 'auto';
+	    (ActiveRecord::Base.connection_config rescue nil) ||
+	    (DataMapper.repository(:default).adapter[:options] rescue nil) ||
+    	App.database_default
+    when App.database_config; App.database_config
+    else App.database_default
+    end
   end
   
   puts "RW DataMapper using log_path #{App.log_path}"
