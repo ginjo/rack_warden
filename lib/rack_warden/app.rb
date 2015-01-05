@@ -39,7 +39,7 @@ module RackWarden
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		rack_warden_app_class = self.class
   		if parent_app_instance
-  		  puts "RACKWARDEN has parent: #{parent_app_instance}"
+  		  puts "RW has parent: #{parent_app_instance}"
   		  
   			# Save original views from opts.
   			rack_warden_app_class.set(:original_views, opts.has_key?(:views) ? rack_warden_app_class.views : nil)
@@ -63,8 +63,8 @@ module RackWarden
       		new_views << framework_module.views_path unless opts.has_key?(:views)
       		# append original_views, if original_views
       		new_views << original_views if original_views
-      		self.class.set(:views => [Array(self.class.views), new_views].flatten.compact.uniq) if new_views.any?
-      		#puts "RACKWARDEN views: #{self.class.views}"
+      		self.class.set(:views => [new_views, Array(self.class.views)].flatten.compact.uniq) if new_views.any?
+      		puts "RW views: #{self.class.views}"
     		end
   		end
   		# finally, send parent app to super, but don't send the use-block (thus the empty proc)
@@ -233,7 +233,7 @@ module RackWarden
   	    redirect session[:return_to] || url(settings.default_route, false)
   	  else
   	  	flash(:rwarden)[:error] = "#{warden.message} => #{@user.errors.entries.join('. ')}"
-  	  	puts "RACKWARDEN /auth/create #{@user.errors.entries}"
+  	  	puts "RW /auth/create #{@user.errors.entries}"
   	  	redirect back #url('/auth/new', false)
   	  end
     end

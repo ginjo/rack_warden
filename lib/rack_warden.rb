@@ -1,7 +1,7 @@
 module RackWarden
   # Incase you are using this library without the gem loaded.
   PATH = File.expand_path(File.dirname(__FILE__))
-  puts "RACKWARDEN PATH #{PATH}"
+  puts "RW PATH #{PATH}"
   $LOAD_PATH.unshift(PATH) unless $LOAD_PATH.include?(PATH)
 end
 

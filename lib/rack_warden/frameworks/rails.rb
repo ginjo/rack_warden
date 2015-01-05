@@ -5,20 +5,18 @@ module RackWarden
       extend Base
 
       def selector
-        puts "RAILS.selector"
+        puts "RW Rails.selector"
         parent_app_class.parents.find{|x| x.to_s=='ActionDispatch'}
       end
       
       def views_path
-        File.join(Dir.pwd, "app/views")
+        [File.join(Dir.pwd, "app/views/rack_warden"), File.join(Dir.pwd, "app/views")]
       end
       
       def setup_framework
-        puts "RAILS.setup_framework parent_app_class #{parent_app_class}"
+        puts "RW Rails.setup_framework parent_app_class #{parent_app_class}"
     		ApplicationController.send(:include, RackWarden::App::RackWardenHelpers)
-    		
-    		#RackWarden::App.set :database_config, get_database_config
-	      
+    			      
 	      # Define class method 'require_login' on framework controller.
     		#parent_app_class.instance_eval do        #This seems to work too.
     		ApplicationController.instance_eval do
