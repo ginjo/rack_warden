@@ -1,4 +1,4 @@
-
+# Setup the database connection, schema, etc.
 module RackWarden
   
   # Best guess at framework database settings.
