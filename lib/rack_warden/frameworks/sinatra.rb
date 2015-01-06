@@ -20,7 +20,9 @@ module RackWarden
         # Define class method 'require_login' on framework controller.
   			parent_app.instance_eval do
   			  def self.require_login(*args)
+  			  	puts "RW class #{self}.require_login #{args}"
   			    before(*args) do
+	  			    puts "RW instance #{self}.require_login #{request.path_info}"
   			      require_login
   			    end
   			  end
