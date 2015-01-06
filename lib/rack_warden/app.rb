@@ -36,7 +36,7 @@ module RackWarden
   	#
   	def initialize(parent_app_instance=nil, *args, &block)
   	  initialization_args = args.dup
-  		puts "INITIALIZE middleware instance [parent_app_instance, self, args, block]: #{[parent_app_instance, self, args, block]}"
+  		puts "RW INITIALIZE middleware instance [parent_app_instance, self, args, block]: #{[parent_app_instance, self, args, block]}"
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		rack_warden_app_class = self.class
@@ -55,6 +55,7 @@ module RackWarden
   			
   			# Do framework setup.
   			framework_module = Frameworks::Base.select_framework(binding)
+    		puts "RW framework_module #{framework_module}"
     		if framework_module
       		framework_module.setup_framework
         

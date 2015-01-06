@@ -23,7 +23,7 @@ module RackWarden
   puts "RW requiring model files in #{File.join(File.dirname(__FILE__), 'models/*')}"
   Dir.glob(File.join(File.dirname(__FILE__), 'models/*')).each {|f| puts f; require f}
 
-  puts "RW finalizing"
+  puts "RW DataMapper.finalizin"
   # Tell DataMapper the models are done being defined
   DataMapper.finalize
 
