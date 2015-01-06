@@ -5,7 +5,7 @@ module RackWarden
   class App < Sinatra::Base
     enable :sessions
     register Sinatra::Flash
-    
+        
     set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
     set :layout, :'rw_layout.html'
     set :default_route, '/'
@@ -79,6 +79,16 @@ module RackWarden
   		# finally, send parent app to super, but don't send the use-block (thus the empty proc)
   		super(parent_app_instance, &Proc.new{})
   	end
+  	
+  	# For testing interception of request.
+  	#require 'yaml'
+  	if development?
+	    def call(env)  
+	    	puts "RW instance.app #{app}"
+		    puts "RW instance.call(env) #{env.to_yaml}"
+		    super(env)
+		  end 
+		end
 	
     use Warden::Manager do |config|
       # Tell Warden how to save our User info into a session.
