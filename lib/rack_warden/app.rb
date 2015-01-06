@@ -44,7 +44,8 @@ module RackWarden
   		  puts "RW has parent: #{parent_app_instance}"
   		  
   			# Save original views from opts.
-  			rack_warden_app_class.set(:original_views, opts.has_key?(:views) ? rack_warden_app_class.views : nil)
+  			#rack_warden_app_class.set(:original_views, opts.has_key?(:views) ? rack_warden_app_class.views : nil)
+  			rack_warden_app_class.set(:original_views, rack_warden_app_class.views)
 
   			# Set app settings with remainder of opts.
   			rack_warden_app_class.set opts if opts.any?
@@ -59,13 +60,18 @@ module RackWarden
         
           # Manipulate views
       		new_views = []
-      		original_views = self.class.original_views
+      		#original_views = self.class.original_views
       		# append parent rails views folder unless opts.has_key?(:views)
-      		#new_views << default_parent_views unless opts.has_key?(:views)
-      		new_views << framework_module.views_path unless opts.has_key?(:views)
+      		#new_views << framework_module.views_path unless opts[:views]==false #opts.has_key?(:views)
       		# append original_views, if original_views
-      		new_views << original_views if original_views
-      		self.class.set(:views => [new_views, Array(self.class.views)].flatten.compact.uniq) if new_views.any?
+      		#new_views << original_views if original_views
+      		#self.class.set(:views => [new_views, Array(self.class.views)].flatten.compact.uniq) if new_views.any?
+      		
+      		new_views.unshift rack_warden_app_class.original_views
+      		new_views.unshift framework_module.views_path unless rack_warden_app_class.views==false
+      		new_views.unshift rack_warden_app_class.views
+      		rack_warden_app_class.set :views, new_views.flatten.compact.uniq
+      		
       		puts "RW views: #{self.class.views}"
     		end
   		end

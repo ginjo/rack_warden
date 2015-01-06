@@ -6,7 +6,7 @@ module RackWarden
 
       def selector
         puts "RW Rails.selector"
-        parent_app_class.parents.find{|x| x.to_s=='ActionDispatch'}
+        parent_app.parents.find{|x| x.to_s=='ActionDispatch'}
       end
       
       def views_path
@@ -14,7 +14,7 @@ module RackWarden
       end
       
       def setup_framework
-        puts "RW Rails.setup_framework parent_app_class #{parent_app_class}"
+        puts "RW Rails.setup_framework parent_app #{parent_app}"
     		ApplicationController.send(:include, RackWarden::App::RackWardenHelpers)
     			      
 	      # Define class method 'require_login' on framework controller.

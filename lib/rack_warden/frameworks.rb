@@ -7,7 +7,8 @@ module RackWarden
         # Select the framework of the parent app.
         def select_framework(env)
           puts "RW framework constants: #{Frameworks.constants}"
-          Frameworks.constants.dup.tap{|_constants| _constants.delete(Base)}.each do |c|
+          Frameworks.constants.dup.tap{|_constants| _constants.delete(:Base)}.each do |c|
+          	puts "RW framework constant #{c}"
             r = Frameworks.const_get(c).framework_selector(env) #rescue nil
             return r if r
           end
@@ -23,7 +24,7 @@ module RackWarden
 
       ###  Methods extended into framework module  ###
 
-      attr_accessor :parent_app_instance, :parent_app_class, :rack_warden_app_instance, :rack_warden_app_class
+      attr_accessor :parent_app_instance, :parent_app_class, :parent_app, :rack_warden_app_instance, :rack_warden_app_class
 
       # Sets framework module with variables from env (the scope of the parent app's initializer),
       # and runs the framework selector logic.
@@ -33,6 +34,7 @@ module RackWarden
         @initialization_args = env.eval 'initialization_args'
         @parent_app_instance = env.eval 'parent_app_instance'
         @parent_app_class = @parent_app_instance.class
+        @parent_app = @parent_app_instance.is_a?(Class) ? @parent_app_instance : @parent_app_class
         @rack_warden_app_instance = env.eval 'self'
         @rack_warden_app_class = @rack_warden_app_instance.class
         selector && self

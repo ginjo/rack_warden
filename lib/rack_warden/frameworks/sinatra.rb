@@ -5,8 +5,8 @@ module RackWarden
       extend Base
             
       def selector
-        puts "RW Sinatra.selector"
-        parent_app_class.ancestors.find{|x| x.to_s=='Sinatra::Base'}
+        puts "RW Sinatra.selector parent_app.ancestors #{parent_app.ancestors}"
+        parent_app.ancestors.find{|x| x.to_s=='Sinatra::Base'}
       end
       
       def views_path
@@ -14,18 +14,18 @@ module RackWarden
       end
       
       def setup_framework
-        puts "RW Sinatra.setup_framework parent_app_class #{parent_app_class}"
-  			parent_app_class.helpers(RackWarden::App::RackWardenHelpers)
+        puts "RW Sinatra.setup_framework parent_app #{parent_app}"
+  			parent_app.helpers(RackWarden::App::RackWardenHelpers)
   			  			
         # Define class method 'require_login' on framework controller.
-  			parent_app_class.instance_eval do
+  			parent_app.instance_eval do
   			  def self.require_login(*args)
   			    before(*args) do
   			      require_login
   			    end
   			  end
 			  end
-  			parent_app_class.require_login(rack_warden_app_class.require_login) if rack_warden_app_class.require_login != false
+  			parent_app.require_login(rack_warden_app_class.require_login) if rack_warden_app_class.require_login != false
     	end
     	
     end # Sinatra
