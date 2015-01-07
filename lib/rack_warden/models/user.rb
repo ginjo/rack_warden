@@ -7,9 +7,9 @@ module RackWarden
     
     storage_names[:default] = App.user_table_name if App.user_table_name
 
-    property :id, Serial, key: true
-    property :username, String, length: 128, unique: true, required: true, default: lambda {|r,v| r.instance_variable_get :@email}
-    property :email, String, length: 128, unique: true, required: true #, default: 'error'
+    property :id, Serial, :key => true
+    property :username, String, :length => 128, :unique => true, :required => true, :default => lambda {|r,v| r.instance_variable_get :@email}
+    property :email, String, :length => 128, :unique => true, :required => true #, :default => 'error'
 
     property :password, BCryptHash
     
@@ -32,7 +32,7 @@ module RackWarden
   
   # # Create a test User
   # if User.count == 0
-  #   @user = User.create(username: "admin")
+  #   @user = User.create(:username => "admin")
   #   @user.password = "admin"
   #   @user.save
   # end
