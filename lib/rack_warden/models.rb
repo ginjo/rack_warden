@@ -3,7 +3,7 @@ module RackWarden
   
   # Best guess at framework database settings.
   def self.get_database_config
-  	puts ActiveRecord::Base.configurations[(RackWarden::App.environment || :development).to_s].to_yaml
+  	#puts ActiveRecord::Base.configurations[(RackWarden::App.environment || :development).to_s].to_yaml
     case
     when App.database_config.to_s.downcase == 'auto';
 	    (ActiveRecord::Base.connection_config rescue nil) ||

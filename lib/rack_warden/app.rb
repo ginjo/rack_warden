@@ -21,7 +21,7 @@ module RackWarden
     
     # Load config from file, if any exist.
     Hash.new.tap do |hash|
-      config_files.each {|c| puts File.join(Dir.pwd, c); hash.merge!(Psych.load_file(File.join(Dir.pwd, c))) rescue nil}
+      config_files.each {|c| puts File.join(Dir.pwd, c); hash.merge!(YAML.load_file(File.join(Dir.pwd, c))) rescue nil}
       set hash
     end
   

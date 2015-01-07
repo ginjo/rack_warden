@@ -11,6 +11,7 @@ require 'bcrypt'
 require 'data_mapper'
 require 'warden'
 require 'open-uri'
+require 'yaml'
 
 # gem 'data_mapper'
 # gem 'dm-sqlite-adapter'
