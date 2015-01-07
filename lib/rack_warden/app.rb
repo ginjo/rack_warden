@@ -16,10 +16,12 @@ module RackWarden
     set :allow_public_signup, false
     set :log_path, File.join(Dir.pwd, 'log', 'rack_warden.log')
     set :user_table_name, nil
+    set :views, File.expand_path("../views/", __FILE__) unless views
+    set :initialized, false
     
     # Load config from file, if any exist.
     Hash.new.tap do |hash|
-      config_files.each {|c| hash.merge! Psych.load_file(c) rescue nil}
+      config_files.each {|c| puts File.join(Dir.pwd, c); hash.merge!(Psych.load_file(File.join(Dir.pwd, c))) rescue nil}
       set hash
     end
   
@@ -40,7 +42,7 @@ module RackWarden
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		rack_warden_app_class = self.class
-  		if parent_app_instance
+  		if parent_app_instance && !settings.initialized
   		  puts "RW has parent: #{parent_app_instance}"
   		  
   			# Save original views from opts.
@@ -75,6 +77,7 @@ module RackWarden
       		
       		puts "RW views: #{self.class.views}"
     		end
+    		settings.set :initialized, true
   		end
   		# finally, send parent app to super, but don't send the use-block (thus the empty proc)
   		super(parent_app_instance, &Proc.new{})
@@ -151,7 +154,7 @@ module RackWarden
   	  end
 		
   		def warden
-  	    env['warden']
+  	    request.env['warden']
   		end
 
   		def current_user
