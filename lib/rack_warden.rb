@@ -30,4 +30,9 @@ module RackWarden
     autoload :Sinatra, 'rack_warden/frameworks/sinatra'
     autoload :Rails, 'rack_warden/frameworks/rails'
   end
+  
+	def self.new(*args)
+		App.new(*args)
+	end
+  
 end
