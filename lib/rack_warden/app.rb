@@ -82,13 +82,13 @@ module RackWarden
   	
   	# For testing interception of request.
   	# This might be breaking older rails installations
-		# 	if development?
-		#     def call(env)  
-		#     	puts "RW instance.app #{app}"
-		# 	    puts "RW instance.call(env) #{env.to_yaml}"
-		# 	    super(env)
-		# 	  end 
-		# 	end
+		# if development?
+		#   def call(env={})  
+		#   	puts "RW instance.app #{app}"
+		#     puts "RW instance.call(env) #{env.to_yaml}"
+		#     super(env)
+		#   end 
+		# end
 	
     use Warden::Manager do |config|
       # Tell Warden how to save our User info into a session.
