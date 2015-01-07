@@ -6,7 +6,7 @@ module RackWarden
 
       def selector
         puts "RW Rails.selector parent_app.ancestors #{parent_app.ancestors}"
-        parent_app.ancestors.find{|x| x.to_s[/Rails|ActionDispatch/]}     #{|x| x.to_s=='ActionDispatch'}
+        parent_app.ancestors.find{|x| x.to_s[/Rails|ActionDispatch/]} or defined?(Rails)
       end
       
       def views_path
