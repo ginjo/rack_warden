@@ -37,10 +37,11 @@ module RackWarden
   	#	end
   	#
   	def initialize(parent_app_instance=nil, *args, &block)
-  		@app = parent_app_instance
+  		#@app = parent_app_instance
+  		super(parent_app_instance, &Proc.new{})
   	  initialization_args = args.dup
   		#puts "RW INITIALIZE middleware instance [app, self, args, block]: #{[app, self, args, block]}"
-  		puts "RW new instance with parent: #{app}"
+  		puts "RW new instance with parent: #{@app}"
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		#settings = self.class
@@ -82,7 +83,7 @@ module RackWarden
     		settings.set :initialized, true
   		end
   		# finally, send parent app to super, but don't send the use-block (thus the empty proc)
-  		super(app, &Proc.new{})
+  		#super(app, &Proc.new{})
   	end
   	
   	# For testing interception of request.

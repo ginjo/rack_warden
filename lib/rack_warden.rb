@@ -35,5 +35,21 @@ module RackWarden
 	def self.new(*args)
 		App.new(*args)
 	end
+	
+
+	# Utility to get middleware stack
+	def self.middleware_classes(app=nil)                                                                                                                                              
+	  r = [app || Rack::Builder.parse_file(File.join(Dir.pwd, 'config.ru')).first]
+	
+	  while ((next_app = r.last.instance_variable_get(:@app)) != nil)
+	    r << next_app
+	  end
+	
+	  r.map{|e| e.instance_variable_defined?(:@app) ? e.class : e }
+	end
+	#app = Rack::Builder.parse_file('config.ru').first
+	#puts middleware_classes(app).inspect
+	
+	
   
 end
