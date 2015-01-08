@@ -17,7 +17,7 @@ module RackWarden
   end
   
   #puts "RW DataMapper using log_path #{App.log_path}"
-  DataMapper::Logger.new(App.log_path)
+  DataMapper::Logger.new(settings.log_file)  #$stdout) #App.log_path)
   
   
   DataMapper.setup(:default, get_database_config)

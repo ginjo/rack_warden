@@ -14,7 +14,7 @@ module RackWarden
     set :recaptcha, Hash.new
     set :require_login, nil
     set :allow_public_signup, false
-    set :log_path, File.join(Dir.pwd, 'log', 'rack_warden.log')
+    set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
     set :user_table_name, nil
     set :views, File.expand_path("../views/", __FILE__) unless views
     set :initialized, false
@@ -24,6 +24,14 @@ module RackWarden
       config_files.each {|c| puts File.join(Dir.pwd, c); hash.merge!(YAML.load_file(File.join(Dir.pwd, c))) rescue nil}
       set hash
     end
+    
+		begin
+	    enable :logging
+	    set :log_file, File.new(settings.log_path, 'a+')
+	    settings.log_file.sync = true
+	    use Rack::CommonLogger, settings.log_file
+	  rescue
+	  end
   
   
     # WBR - This will receive params and a block from the parent "use" statement.

@@ -43,6 +43,8 @@ module RackWarden
 	#app = Rack::Builder.parse_file('config.ru').first
 	#puts middleware_classes(app).inspect
 	
-	
+	def self.settings
+		App.settings
+	end
   
 end
