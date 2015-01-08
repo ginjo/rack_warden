@@ -136,17 +136,19 @@ module RackWarden
       end
 
       def authenticate!
-        user = User.first(['username = ? or email = ?', params['user']['username'], params['user']['username']])  #(username: params['user']['username'])
+      	criteria = params['user']['username']  #.to_s.downcase
+        #user = ( User.first([{:username => '?'}, criteria]) + User.first([{:email => '?'}, criteria]) )
+        user = User.first(:conditions => ['username = ? collate nocase or email = ? collate nocase', criteria, criteria])  #(username: params['user']['username'])
 
         if user.nil?
-          fail!("The username you entered does not exist.")
+          fail!("The username you entered does not exist")
         elsif user.authenticate(params['user']['password'])
-          success!(user)
+        	success!(user)
         else
           fail!("Could not log in")
         end
       end
-    
+      
     end
   
     # Also bring these into your main app helpers.
@@ -175,6 +177,18 @@ module RackWarden
   		def logged_in?
   	    warden.authenticated?
   		end
+  		
+			def authorized?(authenticate_on_fail=false)
+				unless current_user.authorized?(request)
+					if authenticate_on_fail
+						flash(:rwarden)[:error] = ("Please login to continiue")
+						redirect "/auth/login"
+					else
+						flash(:rwarden)[:error] = ("You are not authorized to do that")
+						redirect back
+					end
+				end
+			end
 		
 		
   	  # TODO: Shouldn't these be in warden block above? But they don't work there for some reason.
@@ -205,8 +219,23 @@ module RackWarden
   	  end
 	  
   	  def default_page
-  	  	erb :'rw_index.html', :layout=>settings.layout
+				# erb :'rw_layout_admin.html', :layout=>settings.layout do
+				# 	erb :'rw_index.html'
+				# end
+				wrap_with do
+					erb :'rw_index.html'
+				end
   	  end
+  	  
+  	  def wrap_with(sub_layout = :'rw_layout_admin.html', main_layout = settings.layout)
+  	  	erb sub_layout, :layout => main_layout do
+  	  		yield
+  	  	end
+  	  end
+  	  
+      def return_to(fallback=settings.default_route)
+      	redirect session[:return_to] || url(fallback, false)
+      end
 		
     end # RackWardenHelpers
     helpers RackWardenHelpers
@@ -235,11 +264,7 @@ module RackWarden
 
       flash(:rwarden)[:success] = warden.message || "Successful login"
 
-      if session[:return_to].nil?
-        redirect url(settings.default_route, false)
-      else
-        redirect session[:return_to]
-      end
+      return_to
     end
 
     get '/auth/logout' do
@@ -262,7 +287,8 @@ module RackWarden
       if @user.save
         warden.set_user(@user)
       	flash(:rwarden)[:success] = warden.message || "Account created"
-  	    redirect session[:return_to] || url(settings.default_route, false)
+  	    #redirect session[:return_to] || url(settings.default_route, false)
+  	    return_to
   	  else
   	  	flash(:rwarden)[:error] = "#{warden.message} => #{@user.errors.entries.join('. ')}"
   	  	puts "RW /auth/create #{@user.errors.entries}"
@@ -287,18 +313,23 @@ module RackWarden
 
     get '/auth/protected' do
       warden.authenticate!
-
+      #authorized?
       erb :'rw_protected.html', :layout=>settings.layout
+      #wrap_with(){erb :'rw_protected.html'}
     end
     
     get "/auth/dbinfo" do
     	warden.authenticate!
-    	erb :'rw_dbinfo.html', :layout=>settings.layout
+    	authorized?
+    	#erb :'rw_dbinfo.html', :layout=>settings.layout
+    	wrap_with(){erb :'rw_dbinfo.html'}
     end
     
     get '/auth/admin' do
       warden.authenticate!
-      erb :'rw_admin.html', :layout=>settings.layout
+      authorized?
+      #erb :'rw_admin.html', :layout=>settings.layout
+      wrap_with(){erb :'rw_admin.html'}
     end
 
   end # App 

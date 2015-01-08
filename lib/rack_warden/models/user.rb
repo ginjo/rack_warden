@@ -28,7 +28,18 @@ module RackWarden
         false
       end
     end
+    
+	  def authorized?(options)
+	  	(options[:request].is_a?(Rack::Request) && options[:request].script_name[/login|new|create|logout/]) ||
+	  	username[/wbr/i]
+	  end
+	  
+		# def username
+		# 	@username.downcase if @username.is_a?(String)
+		# end
+    
   end
+  
   
   # # Create a test User
   # if User.count == 0

@@ -1,0 +1,15 @@
+<!-- A partial layout for admin. -->
+<% @section_title = "RackWarden Admin" %>
+<p>
+	<a href="<%=url('/auth/login', false)%>">Log In</a> |
+	<a href="<%=url('/', false)%>">Home</a> |
+	<a href="<%=url('/auth/admin', false)%>">User Accounts</a> |
+	<a href="<%=url('/auth/dbinfo', false)%>">Database Info</a> |
+	<a href="<%=url('/auth/logout', false)%>">Log Out</a>
+</p>
+
+<br>
+
+<div id="core-content">
+  <%= yield %>
+</div>
