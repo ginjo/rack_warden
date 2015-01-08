@@ -13,13 +13,6 @@ require 'warden'
 require 'open-uri'
 require 'yaml'
 
-# gem 'data_mapper'
-# gem 'dm-sqlite-adapter'
-# gem 'warden'
-
-# require "rack_warden/app"
-# require "rack_warden/version"
-
 module RackWarden
   autoload :App, 'rack_warden/app'
   autoload :User, "rack_warden/models"
@@ -36,8 +29,12 @@ module RackWarden
 		App.new(*args)
 	end
 	
+	def self.call(env)
+		App.new.call(env)
+	end
+	
 
-	# Utility to get middleware stack
+	# Utility to get middleware stack. Maybe temporary.
 	def self.middleware_classes(app=nil)                                                                                                                                              
 	  r = [app || Rack::Builder.parse_file(File.join(Dir.pwd, 'config.ru')).first]
 	
