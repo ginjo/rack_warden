@@ -31,6 +31,7 @@ module RackWarden
     autoload :Rails, 'rack_warden/frameworks/rails'
   end
   
+  # Make this module a pseudo-class appropriate for middlware stack.
 	def self.new(*args)
 		App.new(*args)
 	end

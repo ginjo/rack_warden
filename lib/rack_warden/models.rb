@@ -15,17 +15,18 @@ module RackWarden
     end
   end
   
-  puts "RW DataMapper using log_path #{App.log_path}"
+  #puts "RW DataMapper using log_path #{App.log_path}"
   DataMapper::Logger.new(App.log_path)
   
-  puts "RW get_database_config #{get_database_config}"
+  
   DataMapper.setup(:default, get_database_config)
   # Do DataMapper.repository.adapter to get connection info for this connection.
+  puts "RW DataMapper.setup #{DataMapper.repository.adapter}"
 
-  puts "RW requiring model files in #{File.join(File.dirname(__FILE__), 'models/*')}"
-  Dir.glob(File.join(File.dirname(__FILE__), 'models/*')).each {|f| puts f; require f}
+  #puts "RW requiring model files in #{File.join(File.dirname(__FILE__), 'models/*')}"
+  Dir.glob(File.join(File.dirname(__FILE__), 'models/*')).each {|f| require f}
 
-  puts "RW DataMapper.finalize"
+  #puts "RW DataMapper.finalize"
   # Tell DataMapper the models are done being defined
   DataMapper.finalize
 
@@ -33,6 +34,7 @@ module RackWarden
   # Update the database to match the properties of User.
   DataMapper.auto_upgrade!
   
-  puts "RW DataMapper repository #{DataMapper.repository.adapter.options}"
+  # Careful! This will expose sensitive db login info.
+  #puts "RW DataMapper repository #{DataMapper.repository.adapter.options}"
   
 end # module

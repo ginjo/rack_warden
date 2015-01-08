@@ -5,7 +5,7 @@ module RackWarden
       extend Base
 
       def selector
-        puts "RW Rails.selector parent_app.ancestors #{parent_app.ancestors}"
+        #puts "RW Rails.selector parent_app.ancestors #{parent_app.ancestors}"
         parent_app.ancestors.find{|x| x.to_s[/Rails|ActionDispatch/]} or defined?(Rails)
       end
       
@@ -14,11 +14,12 @@ module RackWarden
       end
       
       def setup_framework
-        puts "RW Rails.setup_framework parent_app #{parent_app}"
+        #puts "RW setup_framework for rails"
     		ApplicationController.send(:include, RackWarden::App::RackWardenHelpers)
     			      
 	      # Define class method 'require_login' on framework controller.
-    		#parent_app_class.instance_eval do        #This seems to work too.
+    		#parent_app_class.instance_eval do
+    		# Probably more reliable to use this.
     		ApplicationController.instance_eval do
     		  def self.require_login(*args)
     		    before_filter(:require_login, *args) do

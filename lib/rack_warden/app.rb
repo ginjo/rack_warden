@@ -32,32 +32,34 @@ module RackWarden
     # when you call "use RackWarden::App"
     # Example:
     #
-    # use RackWarden::App :layout=>:'my_layout' do |rack_warden_instance, parent_app_instance|
+    # use RackWarden::App :layout=>:'my_layout' do |rack_warden_instance, app|
   	# 	set :myvar, 'something'
   	#	end
   	#
   	def initialize(parent_app_instance=nil, *args, &block)
+  		@app = parent_app_instance
   	  initialization_args = args.dup
-  		puts "RW INITIALIZE middleware instance [parent_app_instance, self, args, block]: #{[parent_app_instance, self, args, block]}"
+  		#puts "RW INITIALIZE middleware instance [app, self, args, block]: #{[app, self, args, block]}"
+  		puts "RW new instance with parent: #{app}"
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
-  		rack_warden_app_class = self.class
-  		if parent_app_instance && !settings.initialized
-  		  puts "RW has parent: #{parent_app_instance}"
+  		#settings = self.class
+  		if app && !settings.initialized
+  		  puts "RW initializing settings"
   		  
   			# Save original views from opts.
-  			#rack_warden_app_class.set(:original_views, opts.has_key?(:views) ? rack_warden_app_class.views : nil)
-  			rack_warden_app_class.set(:original_views, rack_warden_app_class.views)
+  			#settings.set(:original_views, opts.has_key?(:views) ? settings.views : nil)
+  			settings.set(:original_views, settings.views)
 
   			# Set app settings with remainder of opts.
-  			rack_warden_app_class.set opts if opts.any?
+  			settings.set opts if opts.any?
   			
   			# Eval the use-block from the parent app, in context of this app.
-  			rack_warden_app_class.instance_exec(self, parent_instance, &block) if block_given?
+  			settings.instance_exec(self, app, &block) if block_given?
   			
   			# Do framework setup.
   			framework_module = Frameworks::Base.select_framework(binding)
-    		puts "RW framework_module #{framework_module}"
+    		puts "RW selected framework module #{framework_module}"
     		if framework_module
       		framework_module.setup_framework
         
@@ -70,17 +72,17 @@ module RackWarden
       		#new_views << original_views if original_views
       		#self.class.set(:views => [new_views, Array(self.class.views)].flatten.compact.uniq) if new_views.any?
       		
-      		new_views.unshift rack_warden_app_class.original_views
-      		new_views.unshift framework_module.views_path unless rack_warden_app_class.views==false
-      		new_views.unshift rack_warden_app_class.views
-      		rack_warden_app_class.set :views, new_views.flatten.compact.uniq
+      		new_views.unshift settings.original_views
+      		new_views.unshift framework_module.views_path unless settings.views==false
+      		new_views.unshift settings.views
+      		settings.set :views, new_views.flatten.compact.uniq
       		
-      		puts "RW views: #{self.class.views}"
+      		puts "RW compiled views: #{settings.views.inspect}"
     		end
     		settings.set :initialized, true
   		end
   		# finally, send parent app to super, but don't send the use-block (thus the empty proc)
-  		super(parent_app_instance, &Proc.new{})
+  		super(app, &Proc.new{})
   	end
   	
   	# For testing interception of request.
@@ -224,7 +226,6 @@ module RackWarden
 
       flash(:rwarden)[:success] = warden.message || "Successful login"
 
-  		puts "RETURN_TO #{session[:return_to]}"
       if session[:return_to].nil?
         redirect url(settings.default_route, false)
       else
@@ -263,7 +264,8 @@ module RackWarden
     post '/auth/unauthenticated' do
     	# I had to remove the condition, since it was not updating return path when it should have.
       session[:return_to] = env['warden.options'][:attempted_path] if !request.xhr? && !env['warden.options'][:attempted_path][/login|new|create/]
-      puts "WARDEN ATTEMPTED PATH: #{env['warden.options'][:attempted_path]}"
+      puts "RW attempted path: #{env['warden.options'][:attempted_path]}"
+      puts "RW will return-to #{session[:return_to]}"
       puts warden
       # if User.count > 0
         flash(:rwarden)[:error] = warden.message || "Please login to continue"
