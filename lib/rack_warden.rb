@@ -24,13 +24,9 @@ module RackWarden
     autoload :Rails, 'rack_warden/frameworks/rails'
   end
   
-  # Make this module a pseudo-class appropriate for middlware stack.
+  # Make this module a pseudo-class appropriate for middlware stack. Use RackWarden for older rails apps (rather than 'RackWarden::App')
 	def self.new(*args)
 		App.new(*args)
-	end
-	
-	def self.call(env)
-		App.new.call(env)
 	end
 	
 
