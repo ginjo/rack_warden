@@ -4,6 +4,7 @@ module RackWarden
   # Best guess at framework database settings.
   def self.get_database_config
   	#puts ActiveRecord::Base.configurations[(RackWarden::App.environment || :development).to_s].to_yaml
+    #conf = case
     case
     when App.database_config.to_s.downcase == 'file'; "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
     when App.database_config.to_s.downcase == 'auto';
@@ -14,6 +15,8 @@ module RackWarden
     when App.database_config; App.database_config
     else App.database_default
     end
+    #... sort out environment HERE
+    #conf = RackWarden::App.environment || :development).to_s
   end
   
   #puts "RW DataMapper using log_path #{App.log_path}"
