@@ -97,11 +97,12 @@ module RackWarden
   	# For testing interception of request.
   	# This might be breaking older rails installations
 		# if development?
-		#   def call(env={})  
-		#   	puts "RW instance.app #{app}"
-		#     puts "RW instance.call(env) #{env.to_yaml}"
-		#     super(env)
-		#   end 
+		  def call(env)  
+		  	#puts "RW instance.app #{app}"
+		    #puts "RW instance.call(env) #{env.to_yaml}"
+		    env['rack_warden'] = self
+		    super(env)
+		  end 
 		# end
 	
     use Warden::Manager do |config|
@@ -228,13 +229,28 @@ module RackWarden
   	  end
   	  
   	  def wrap_with(sub_layout = :'rw_layout_admin.html', main_layout = settings.layout)
-  	  	erb sub_layout, :layout => main_layout do
+  	  	if  main_layout.to_s == 'rw_layout.html'
+  	  	erb main_layout do
   	  		yield
   	  	end
+  	  	else
+	  	  	erb sub_layout, :layout => main_layout do
+	  	  		yield
+	  	  	end
+	  	  end
   	  end
   	  
       def return_to(fallback=settings.default_route)
       	redirect session[:return_to] || url(fallback, false)
+      end
+      
+      def test_view_helper
+      	return unless current_user
+      	erb "Current User: #{current_user.username}"
+      end
+      
+      def rack_warden
+      	self
       end
 		
     end # RackWardenHelpers
