@@ -5,7 +5,7 @@ module RackWarden
   def self.get_database_config
   	#puts ActiveRecord::Base.configurations[(RackWarden::App.environment || :development).to_s].to_yaml
     #conf = case
-    case
+    
     when App.database_config.to_s.downcase == 'file'; "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
     when App.database_config.to_s.downcase == 'auto';
 	    (ActiveRecord::Base.connection_config rescue nil) ||
@@ -20,6 +20,7 @@ module RackWarden
   end
   
   #puts "RW DataMapper using log_path #{App.log_path}"
+  ### CAUTION - There may be a file conflict between this and rack::commonlogger.
   DataMapper::Logger.new(settings.log_file)  #$stdout) #App.log_path)
   
   
