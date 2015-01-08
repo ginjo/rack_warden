@@ -291,6 +291,11 @@ module RackWarden
       erb :'rw_protected.html', :layout=>settings.layout
     end
     
+    get "/auth/dbinfo" do
+    	warden.authenticate!
+    	erb :'rw_dbinfo.html', :layout=>settings.layout
+    end
+    
     get '/auth/admin' do
       warden.authenticate!
       erb :'rw_admin.html', :layout=>settings.layout

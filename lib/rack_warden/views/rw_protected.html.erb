@@ -1,9 +1,3 @@
 <p>
 	<h2>Protected Page Example</h2>
 </p>
-
-<p>
-	<%= DataMapper.repository.adapter.to_yaml.gsub(/\n|\r/, '<br>') %>
-	<%= DataMapper.repository.adapter.select('select * from SQLITE_MASTER').to_yaml.gsub(/\n|\r/, '<br>').gsub(/  /, '&nbsp;&nbsp;') %>
-	
-</p>

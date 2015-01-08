@@ -1,0 +1,9 @@
+<p>
+	<h2>RackWarden db info</h2>
+</p>
+
+<p>
+	<%= DataMapper.repository.adapter.select('select * from SQLITE_MASTER').to_yaml.gsub(/\n|\r/, '<br>').gsub(/  /, '&nbsp;&nbsp;') %>
+	<br><br>
+	<%= DataMapper.repository.adapter.to_yaml.gsub(/\n|\r/, '<br>') %>
+</p>
