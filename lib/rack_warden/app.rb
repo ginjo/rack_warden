@@ -95,14 +95,12 @@ module RackWarden
   	end
   	
   	# This might be breaking older rails installations.
-		# if development?
-		# 	def call(env)  
-		# 		#puts "RW instance.app #{app}"
-		# 	  #puts "RW instance.call(env) #{env.to_yaml}"
-		# 	  env['rack_warden'] = self
-		# 	  super(env)
-		# 	end 
-		# end
+		def call(env)  
+			#puts "RW instance.app #{app}"
+		  #puts "RW instance.call(env) #{env.to_yaml}"
+		  env['rack_warden'] = self
+		  super(env)
+		end 
 	
     use Warden::Manager do |config|
       # Tell Warden how to save our User info into a session.
@@ -167,7 +165,7 @@ module RackWarden
   	  end
 		
   		def warden
-  	    request.env['warden']
+  	    env['warden']
   		end
 
   		def current_user
@@ -196,16 +194,6 @@ module RackWarden
   	  def valid_user_input?
   	    params['user'] && params['user']['email'] && params['user']['password']
   	  end
-	  
-      # def create_user
-      #     
-      #   verify_recaptcha if settings.recaptcha[:secret]
-      #     
-      #   #return unless valid_user_input?
-      #         
-      #         @user = User.new(params['user'])
-      #   @user.save #&& warden.set_user(@user)
-      # end
 		
    		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])
    		  secret = settings.recaptcha[:secret]
@@ -219,19 +207,6 @@ module RackWarden
   	  end
 	  
   	  def default_page
-				# 	erb settings.layout do
-				# 		erb :'rw_layout_admin.html' do
-				# 			erb :'rw_index.html'
-				# 		end
-				# 	end
-				
-				# 	erb :'rw_layout_admin.html', :layout=>settings.layout do
-				# 		erb :'rw_index.html'
-				# 	end
-				
-				# 	wrap_with do
-				# 		erb :'rw_index.html'
-				# 	end
 				nested_erb :'rw_index.html', :'rw_layout_admin.html', settings.layout    #settings.layout
   	  end
 			
@@ -253,8 +228,11 @@ module RackWarden
       	erb "Current User: #{current_user.username}"
       end
       
+      # This actually returns the current self at runtime - whatever controller you included the helpers in.
+      # This will not return the RackWarden::App object :(
       def rack_warden
-      	self
+      	#puts "rack_warden method self #{request.env['rack_warden']}"
+      	request.env['rack_warden']
       end
 		
     end # RackWardenHelpers
