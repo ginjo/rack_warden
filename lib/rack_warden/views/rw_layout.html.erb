@@ -35,7 +35,7 @@
     <% end %>
 
 		<div id="content">
-	    <%= yield %>
+	    <%= yield if block_given? %>
 		</div>
   </body>
 </html>

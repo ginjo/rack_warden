@@ -21,7 +21,7 @@ module RackWarden
     
     # Load config from file, if any exist.
     Hash.new.tap do |hash|
-      config_files.each {|c| puts File.join(Dir.pwd, c); hash.merge!(YAML.load_file(File.join(Dir.pwd, c))) rescue nil}
+      config_files.each {|c| hash.merge!(YAML.load_file(File.join(Dir.pwd, c))) rescue nil}
       set hash
     end
     
@@ -94,15 +94,14 @@ module RackWarden
   		#super(app, &Proc.new{})
   	end
   	
-  	# For testing interception of request.
-  	# This might be breaking older rails installations
+  	# This might be breaking older rails installations.
 		# if development?
-		  def call(env)  
-		  	#puts "RW instance.app #{app}"
-		    #puts "RW instance.call(env) #{env.to_yaml}"
-		    env['rack_warden'] = self
-		    super(env)
-		  end 
+		# 	def call(env)  
+		# 		#puts "RW instance.app #{app}"
+		# 	  #puts "RW instance.call(env) #{env.to_yaml}"
+		# 	  env['rack_warden'] = self
+		# 	  super(env)
+		# 	end 
 		# end
 	
     use Warden::Manager do |config|
@@ -220,24 +219,29 @@ module RackWarden
   	  end
 	  
   	  def default_page
-				# erb :'rw_layout_admin.html', :layout=>settings.layout do
-				# 	erb :'rw_index.html'
-				# end
-				wrap_with do
-					erb :'rw_index.html'
-				end
+				# 	erb settings.layout do
+				# 		erb :'rw_layout_admin.html' do
+				# 			erb :'rw_index.html'
+				# 		end
+				# 	end
+				
+				# 	erb :'rw_layout_admin.html', :layout=>settings.layout do
+				# 		erb :'rw_index.html'
+				# 	end
+				
+				# 	wrap_with do
+				# 		erb :'rw_index.html'
+				# 	end
+				nested_erb :'rw_index.html', :'rw_layout_admin.html', settings.layout    #settings.layout
   	  end
-  	  
-  	  def wrap_with(sub_layout = :'rw_layout_admin.html', main_layout = settings.layout)
-  	  	if  main_layout.to_s == 'rw_layout.html'
-  	  	erb main_layout do
-  	  		yield
+			
+  	  def nested_erb(*list)
+  	  	template = list.shift
+  	  	counter =0
+  	  	list.inject(template) do |tmplt, lay|
+  	  		#puts "RW LAYOUTS lay: #{lay}, rslt: #{tmplt}"
+  	  		erb tmplt, :layout=>lay
   	  	end
-  	  	else
-	  	  	erb sub_layout, :layout => main_layout do
-	  	  		yield
-	  	  	end
-	  	  end
   	  end
   	  
       def return_to(fallback=settings.default_route)
@@ -338,14 +342,14 @@ module RackWarden
     	warden.authenticate!
     	authorized?
     	#erb :'rw_dbinfo.html', :layout=>settings.layout
-    	wrap_with(){erb :'rw_dbinfo.html'}
+    	nested_erb :'rw_dbinfo.html', :'rw_layout_admin.html', settings.layout
     end
     
     get '/auth/admin' do
       warden.authenticate!
       authorized?
       #erb :'rw_admin.html', :layout=>settings.layout
-      wrap_with(){erb :'rw_admin.html'}
+      nested_erb :'rw_admin.html', :'rw_layout_admin.html', settings.layout
     end
 
   end # App 

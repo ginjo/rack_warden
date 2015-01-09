@@ -1,8 +1,9 @@
 <!-- A partial layout for admin. -->
-<% @section_title = "RackWarden Admin" %>
+<%# @section_title = "RackWarden Admin" %>
+<h2>RackWarden Admin</h2>
 <p>
 	<a href="<%=url('/auth/login', false)%>">Log In</a> |
-	<a href="<%=url('/', false)%>">Home</a> |
+	<a href="<%=url('/auth', false)%>">Home</a> |
 	<a href="<%=url('/auth/admin', false)%>">User Accounts</a> |
 	<a href="<%=url('/auth/dbinfo', false)%>">Database Info</a> |
 	<a href="<%=url('/auth/logout', false)%>">Log Out</a>
@@ -11,5 +12,5 @@
 <br>
 
 <div id="core-content">
-  <%= yield %>
+  <%= yield if block_given? %>
 </div>
