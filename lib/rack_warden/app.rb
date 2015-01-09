@@ -136,7 +136,8 @@ module RackWarden
       def authenticate!
       	criteria = params['user']['username']  #.to_s.downcase
         #user = ( User.first([{:username => '?'}, criteria]) + User.first([{:email => '?'}, criteria]) )
-        user = User.first(:conditions => ['username = ? collate nocase or email = ? collate nocase', criteria, criteria])  #(username: params['user']['username'])
+        #user = User.first(:conditions => ['username = ? collate NOCASE or email = ? collate NOCASE', criteria, criteria])  #(username: params['user']['username'])
+        user = User.first(:conditions => ['username = ? or email = ?', criteria, criteria])  #(username: params['user']['username'])
 
         if user.nil?
           fail!("The username you entered does not exist")
@@ -165,7 +166,7 @@ module RackWarden
   	  end
 		
   		def warden
-  	    env['warden']
+  	    request.env['warden']
   		end
 
   		def current_user
