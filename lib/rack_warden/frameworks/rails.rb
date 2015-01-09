@@ -15,7 +15,7 @@ module RackWarden
       
       def setup_framework
         #puts "RW setup_framework for rails"
-    		ApplicationController.send(:include, RackWarden::App::RackWardenHelpers)
+    		ApplicationController.send(:include, RackWarden::UniversalHelpers)
     			      
 	      # Define class method 'require_login' on framework controller.
     		#parent_app_class.instance_eval do

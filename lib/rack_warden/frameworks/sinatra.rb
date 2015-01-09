@@ -15,7 +15,7 @@ module RackWarden
       
       def setup_framework
         #puts "RW setup_framework for sinatra"
-  			parent_app.helpers(RackWarden::App::RackWardenHelpers)
+  			parent_app.helpers(RackWarden::UniversalHelpers)
   			  			
         # Define class method 'require_login' on framework controller.
   			parent_app.instance_eval do

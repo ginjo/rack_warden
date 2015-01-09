@@ -17,7 +17,10 @@ module RackWarden
   autoload :App, 'rack_warden/app'
   autoload :User, "rack_warden/models"
   autoload :Pref, "rack_warden/models"
+  autoload :Routes, "rack_warden/routes"
   autoload :VERSION, "rack_warden/version"
+  autoload :WardenConfig, "rack_warden/warden"
+  autoload :RackWardenHelpers, "rack_warden/helpers"
   module Frameworks
     autoload :Base, 'rack_warden/frameworks'
     autoload :Sinatra, 'rack_warden/frameworks/sinatra'
@@ -43,6 +46,7 @@ module RackWarden
 	#app = Rack::Builder.parse_file('config.ru').first
 	#puts middleware_classes(app).inspect
 	
+	# Shortcut/sugar to app
 	def self.settings
 		App.settings
 	end
