@@ -21,7 +21,7 @@ module RackWarden
   			parent_app.instance_eval do
   				puts "RW installing require_login into #{self}"
   			  def self.require_login(*args)
-  			  	puts "RW #{self}.require_login"
+  			  	#puts "RW class #{self}.require_login"
   			    before(*args) do
   			      require_login
   			    end

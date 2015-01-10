@@ -23,7 +23,7 @@ module RackWarden
     		ActionController::Base.instance_eval do
     			puts "RW installing require_login into #{self}"
     		  def self.require_login(*args)
-	    		  puts "RW class #{self}.require_login #{args}"
+	    		  #puts "RW class #{self}.require_login #{args}"
     		    before_filter(:require_login, *args)
     		  end
     	  end
