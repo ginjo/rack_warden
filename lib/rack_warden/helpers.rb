@@ -38,7 +38,7 @@ module RackWarden
 	  	request.env['rack_warden_instance']
 	  end
 	
-	end
+	end # UniversalHelpers
 
 	# Also bring these into your main app helpers.
 	module RackWardenHelpers

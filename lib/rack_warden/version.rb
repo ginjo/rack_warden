@@ -1,3 +1,3 @@
 module RackWarden
-  VERSION = "0.0.9.pre04"
+  VERSION = "0.0.9"
 end

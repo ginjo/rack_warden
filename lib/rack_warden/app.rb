@@ -60,7 +60,6 @@ module RackWarden
   		puts "RW new instance with parent: #{@app}"
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
-  		#settings = self.class
   		if app && !settings.initialized
   		  puts "RW initializing settings"
   		  
@@ -94,7 +93,7 @@ module RackWarden
 
   	end # initialize
   	
-		# This might be breaking older rails installations.
+		# Store this app instance in the env.
 		def call(env)  
 			#puts "RW instance.app #{app}"
 		  #puts "RW instance.call(env) #{env.to_yaml}"
