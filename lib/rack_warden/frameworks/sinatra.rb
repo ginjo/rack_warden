@@ -18,15 +18,11 @@ module RackWarden
   			parent_app.helpers(RackWarden::UniversalHelpers)
   			  			
         # Define class method 'require_login' on framework controller.
-  			parent_app.instance_eval do
-  				puts "RW installing require_login into #{self}"
-  			  def self.require_login(*args)
-  			  	#puts "RW class #{self}.require_login"
-  			    before(*args) do
-  			      require_login
-  			    end
-  			  end
-			  end
+				parent_app.define_singleton_method :require_login do |accept_conditions=/.*/, reject_conditions=false|
+					before(accept_conditions){require_login unless reject_conditions}
+				end
+				
+				# Add require_login to before filter of sinatra app.
   			parent_app.require_login(rack_warden_app_class.require_login) if rack_warden_app_class.require_login != false
     	end
     	

@@ -18,16 +18,11 @@ module RackWarden
     		ActionController::Base.send(:include, RackWarden::UniversalHelpers)
     			      
 	      # Define class method 'require_login' on framework controller.
-    		#parent_app_class.instance_eval do
-    		# Probably more reliable to use this.
-    		ActionController::Base.instance_eval do
-    			puts "RW installing require_login into #{self}"
-    		  def self.require_login(*args)
-	    		  #puts "RW class #{self}.require_login #{args}"
-    		    before_filter(:require_login, *args)
-    		  end
-    	  end
-    		# The way you pass arguments here is fragile. If it's not correct, it will bomb with "undefined method 'before'".
+				ActionController::Base.define_singleton_method :require_login do |conditions_hash={}|
+					before_filter(:require_login, conditions_hash)
+				end
+				
+    		# The way you pass arguments here is fragile. If it's not correct, it will bomb with "undefined method 'before'...".
     		(ActionController::Base.require_login (rack_warden_app_class.require_login || {})) if rack_warden_app_class.require_login != false
       end
             
