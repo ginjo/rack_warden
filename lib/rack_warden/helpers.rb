@@ -3,7 +3,7 @@ module RackWarden
 	module UniversalHelpers
 
 		def require_login
-			puts "RW #{self}.require_login"
+			#puts "RW instance #{self}.require_login with rack_warden: #{rack_warden}, and warden: #{warden}"
 			warden.authenticate!
 	  end
 	
