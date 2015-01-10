@@ -71,7 +71,7 @@ module RackWarden
   			settings.set opts if opts.any?
   			
   			# Eval the use-block from the parent app, in context of this app.
-  			settings.instance_exec(self, app, &block) if block_given?
+  			settings.instance_exec(self, &block) if block_given?
   			
   			# Do framework setup.
   			framework_module = Frameworks::Base.select_framework(binding)

@@ -4,17 +4,17 @@ RackWarden is a rack middleware mini-app that provides user authentication and m
 
 RackWarden uses Sinatra for the mini-app, Warden for authentication, and DataMapper for database connections. It is based on the sinatra-warden-example at https://github.com/sklise/sinatra-warden-example. If you are new to Warden or Sinatra, I highly recommend downloading and experimenting with that example.
 
-My goal in developing this software is to have drop-in authentication containing most of the features you see in user/account management sections of a typical web site. But I don't want to be strapped by this module in any of my projects, so it must be customizable. Or rather, overridable. The basics of this flexibility are already in place, and it will be a central theme throughout. See below for examples on overriding and customizing RackWarden.
+My goal in developing this software is to have drop-in authentication containing most of the features you see in user/account management sections of a typical web site. But I don't want to be strapped by this module in any of my projects, so it must be customizable. Or rather, overridable. The basics of this flexibility are already in place, and it will be a central theme throughout.
 
 Please note that RackWarden is a work-in-progress. The gemspec, the files, the code, and the documentation can and will change over time. Follow on github for the latest fixes, changes, and developments.
 
 ## What Does it Do?
 
-RackWarden acts as a self-sufficient gatekeeper for your ruby web app. Once you enable RackWarden in your rack-based project, all routes/actions in your project will require a login and will redirect browsers to an authentication page. RackWarden provides its own view & layout templates to facilitate user authentication. RackWarden also provides it's own tables to store user data.
+RackWarden is a modular gatekeeper for your ruby web app. Once you enable RackWarden in your rack-based project, all routes/actions in your project will require a login and will redirect browsers to an authentication page. RackWarden provides its own view & layout templates to facilitate user authentication. RackWarden also provides it's own database & table structure to store user data. Views, layouts, databases, and tables are easily customized and/or overridden, however.
 
 Once RackWarden authenticates a user, it gets out of the way, and the user is returned to your application. RackWarden also provides a number of user management tools for common actions like creating, updating, and deleting users.
 
-Most of the RackWarden features can be customized. You can override the views, the database, the actions, and even the authentication logic with your own templates and code. The easiest (and possibly the most dramatic) customization is to provide RackWarden with your own layout template, giving RackWarden the look-and-feel of your own application.
+Most of the RackWarden features can be customized. You can override the views, the database, the actions, and even the authentication logic with your own templates and code. The easiest (and possibly the most dramatic) customization is to provide RackWarden with your own layout template, giving RackWarden the appearane of the application you're integrating it with.
 
 
 ## Installation
@@ -39,7 +39,7 @@ A few simple steps will have your entire app protected.
 ### Sinatra
 
     class MySinatraApp < Sinatra::Base
-      use RackWarden::App
+      use RackWarden
     
       get "/" do
         erb "All routes are now protected"
@@ -50,7 +50,7 @@ A few simple steps will have your entire app protected.
 
 application.rb or environment.rb
 
-    config.middleware.use RackWarden::App
+    config.middleware.use RackWarden
     
     # All routes are now protected
     
@@ -60,19 +60,19 @@ application.rb or environment.rb
 
 RackWarden will look for a configuration file named rack\_warden.yml in your project root or in your project/config/ directory. 
 
-		---
-		database: sqlite3:///usr/local/some_other_database.sqlite3.db
-		layout: :'my_custom_layout.html.erb'
+    ---
+    database: sqlite3:///usr/local/some_other_database.sqlite3.db
+    layout: :'my_custom_layout.html.erb'
 
 
 You an also pass configuration settings to RackWarden through the ```use``` method of your framework. The params hash of ```use``` will be translated directly to RackWarden's settings. In addition to RackWarden's specific configuration options, you can also pass in any standard Sinatra settings.
 
-If you pass a block with the ```use``` method, the block will be evaluated in the context of the RackWarden::App class. Anything you do in that block is just as if you were writing code in the app class itself. While in the block, you also have access to the current instance of RackWarden::App and the current instance of the parent app.
+If you pass a block with the ```use``` method, the block will be evaluated in the context of the RackWarden::App class. Anything you do in that block is just as if you were writing code in the app class itself. While in the block, you also have access to the current instance of RackWarden::App.
 
-    use RackWarden::App do |rack_warden_app_instance, parent_app_instance|
+    use RackWarden::App do |rack_warden_app_instance|
       set :somesetting, 'some_value'
     end
-		
+    
 
 ## Configuration Options
 
@@ -154,15 +154,22 @@ Settings for Google's recaptcha service
 
 ### :log\_path
 
-		File.join(Dir.pwd, 'log', 'rack_warden.log')
+    File.join(Dir.pwd, 'log', 'rack_warden.log')
+    
+### :user\_table\_name
+
+    nil
+    
+### :views
+
+    File.expand_path("../views/", __FILE__)
+
 
 ## Customization
 
 ### Views
 
-To customize RackWarden for your specific project, you can set :views to point to a directory within your project. Then create templates that match the names of RackWarden templates, and they will be picked up and rendered. RackWarden looks for templates at the top level of your views directory as a default. You can change or add to this when you define the middleware in your project.
-
-Update: also looks in views/rack\_warden/ for view templates.
+To customize RackWarden for your specific project, you can set :views to point to a directory within your project. Then create templates that match the names of RackWarden templates, and they will be picked up and rendered. RackWarden looks for templates at the top level of your views directory and in views/rack\_warden (if it exists) as a default. You can change or add to this with the ```:views``` setting.
 
     use RackWarden::App, :views => File.join(Dir.pwd, 'app/views/another_directory')
     
@@ -175,15 +182,20 @@ Just remember that RackWarden is Sinatra, and any templates you pass must use Si
 
 ### Database
 
-As a default, RackWarden will use the database specified in your project. You can also pass a database specification with the ```:database_config``` setting.
+As a default, RackWarden will use a sqlite3 in-memory database (that starts fresh each time you boot your app). To use the database specified in your project, just pass ```:auto``` to the ```:database_config``` setting. Pass ```:file``` to set up a sqlite3 database in your app's working directory. Or pass your own custom database specification (a url or hash). If you use a database other than sqlite3, you will need to include the respective DataMapper extension gems in your Gemfile or in your manually installed gem list. For MySQL, use dm-mysql-adapter, for Postgres use dm-postgres-adapter. See the DataMapper site for more info on database adapters.
+    
+    # Database specification as a url
+    database_config: 'sqlite3:///path/to/my/database.sqlite3.db'
+    
+    # Database specification as a hash
+    database_config: {adapter: 'sqlite3', database: '/path/to/my/database.sqlite3.db'}
+    
+		# Use a remote MySQL database
+		database_config: {adapter: 'mysql', username: 'will', password: 'mypass',
+			host: 'somehost', database: 'my_database'}
 		
-		# As a url
-		database_config: 'sqlite3:///path/to/my/database.sqlite3.db'
-		
-		# As a hash
-		database_config: {adapter: 'sqlite3', database: '/path/to/my/database.sqlite3.db'}
-		
-If your project has no database, or if you pass ```false``` to the ```:database_config``` setting, RackWarden will create its own database in the working directory as 'rack_warden.sqlite3.db'.
+		# Format for database urls
+		#<adapter>://<username>:<password>@<host>:<port>/<database_name>
 
 
 
