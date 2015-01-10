@@ -18,7 +18,9 @@ module RackWarden
   			parent_app.helpers(RackWarden::UniversalHelpers)
   			  			
         # Define class method 'require_login' on framework controller.
-				parent_app.define_singleton_method :require_login do |accept_conditions=/.*/, reject_conditions=false|
+				parent_app.define_singleton_method :require_login do |*args|
+					accept_conditions = args[0] || (/.*/)
+					reject_conditions = args[1] || false
 					before(accept_conditions){require_login unless reject_conditions}
 				end
 				
