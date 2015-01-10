@@ -36,11 +36,9 @@ module RackWarden
 	# Utility to get middleware stack. Maybe temporary.
 	def self.middleware_classes(app=nil)                                                                                                                                              
 	  r = [app || Rack::Builder.parse_file(File.join(Dir.pwd, 'config.ru')).first]
-	
 	  while ((next_app = r.last.instance_variable_get(:@app)) != nil)
 	    r << next_app
 	  end
-	
 	  r.map{|e| e.instance_variable_defined?(:@app) ? e.class : e }
 	end
 	#app = Rack::Builder.parse_file('config.ru').first
@@ -49,6 +47,11 @@ module RackWarden
 	# Shortcut/sugar to app
 	def self.settings
 		App.settings
+	end
+	
+	def self.included(base)
+		puts "RW self.included into BASE #{base}, ID #{base.object_id}"
+		App.new base
 	end
   
 end

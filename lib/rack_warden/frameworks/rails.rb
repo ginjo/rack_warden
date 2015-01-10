@@ -21,13 +21,16 @@ module RackWarden
     		#parent_app_class.instance_eval do
     		# Probably more reliable to use this.
     		ApplicationController.instance_eval do
+    			puts "RW installing require_login into #{self}"
     		  def self.require_login(*args)
+	    		  puts "RW #{self}.require_login"
     		    before_filter(:require_login, *args) do
     		      require_login
     		    end
     		  end
     	  end
-    		(ApplicationController.before_filter :require_login, *Array(rack_warden_app_class.require_login).flatten) if rack_warden_app_class.require_login != false
+    		#(ApplicationController.before_filter :require_login, *Array(rack_warden_app_class.require_login).flatten) if rack_warden_app_class.require_login != false
+    		(ApplicationController.require_login rack_warden_app_class.require_login) if rack_warden_app_class.require_login != false
       end
             
     end

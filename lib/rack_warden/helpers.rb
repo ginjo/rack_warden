@@ -3,6 +3,7 @@ module RackWarden
 	module UniversalHelpers
 
 		def require_login
+			puts "RW #{self}.require_login"
 			warden.authenticate!
 	  end
 	
@@ -34,7 +35,7 @@ module RackWarden
 		# Returns the current rack_warden app instance stored in env.
 	  def rack_warden
 	  	#puts "rack_warden method self #{request.env['rack_warden']}"
-	  	request.env['rack_warden']
+	  	request.env['rack_warden_instance']
 	  end
 	
 	end

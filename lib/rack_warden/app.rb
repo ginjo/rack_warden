@@ -55,6 +55,7 @@ module RackWarden
   	#	end
   	#
   	def initialize(parent_app_instance=nil, *args, &block)
+  		rw_reloaded = parent_app_instance && parent_app_instance != app
   		super(parent_app_instance, &Proc.new{}) # Must send empty proc, not original proc, since we're calling original block here.
   	  initialization_args = args.dup
   		#puts "RW INITIALIZE middleware instance [app, self, args, block]: #{[app, self, args, block]}"
@@ -62,7 +63,7 @@ module RackWarden
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		#settings = self.class
-  		if app && !settings.initialized
+  		if app && !settings.initialized || rw_reloaded  # Is this helping with 7G and others, balancing reloading too much vs not enough?
   		  puts "RW initializing settings"
   		  
   			# Save original views from opts.
@@ -99,7 +100,7 @@ module RackWarden
 		def call(env)  
 			#puts "RW instance.app #{app}"
 		  #puts "RW instance.call(env) #{env.to_yaml}"
-		  env['rack_warden'] = self
+		  env['rack_warden_instance'] = self
 		  super(env)
 		end 
 
