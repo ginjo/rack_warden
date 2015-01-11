@@ -13,8 +13,8 @@ module RackWarden
     set :require_login, nil
     set :allow_public_signup, false
     set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
-    set :log_file, (app_file == $0 ? $stdout : nil)
-    set :log_level, Logger::INFO
+    set :log_file, ($0[/rails|irb/i] && development? ? $stdout : nil)
+    set :log_level, (development? ? Logger::INFO : Logger::WARN)
     set :logger, nil
     set :user_table_name, nil
     set :views, File.expand_path("../views/", __FILE__) unless views
@@ -27,24 +27,25 @@ module RackWarden
     end
     
     
-    
-    enable :sessions
-    register Sinatra::Flash
-    
+    # Initialize Logging
 		begin
 	    enable :logging
-	    # We take existing log file from settings, enable sync (disables buffering), and put it back in settings
+	    # We take existing log file from settings, enable sync (disables buffering), and put it back in settings.
     	_log_file = settings.log_file || File.new(settings.log_path, 'a+')
 	    _log_file.sync = true
-	    set :log_file, _log_file #unless settings.log_file
+	    set :log_file, _log_file
 	    set :logger, Logger.new(_log_file, 'daily') unless settings.logger
 	    logger.level = log_level
-	    #use Rack::CommonLogger, _log_file
-	    #$stdout.reopen(_log_file)
-	    #$stderr.reopen(_log_file)
+	    use Rack::CommonLogger, _log_file
 	  rescue
 	  	puts "there was an error setting up the loggers #{$!}"
 	  end
+	  
+	  #logger.info "RW app_file: #{app_file}, $0 #{$0}"
+	  #logger.info ENV.to_hash.to_yaml
+	  
+	  enable :sessions
+    register Sinatra::Flash
 	  
 		include RackWarden::WardenConfig
 		include RackWarden::Routes
