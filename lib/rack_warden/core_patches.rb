@@ -4,3 +4,17 @@ class String
 		self.gsub(/\n|\r/, '<br>').gsub(/  /, '&nbsp;&nbsp;')
 	end
 end
+
+class Hash
+	# Extract key-value pairs from self, given list of objects.
+	# If last object given is hash, it will be the collector for the extracted pairs.
+	# Extracted pairs are deleted from the original hash (self).
+	# Returns the extracted pairs as a hash or as the supplied collector hash.
+	# Attempts to ignore case.
+	def extract(*args)
+		other_hash = args.last.is_a?(Hash) ? args.pop : {}
+		other_hash.tap do |other|
+			self.delete_if {|k,v| (args.include?(k) || args.include?(k.to_s) || args.include?(k.to_s.downcase) || args.include?(k.to_sym)) || args.include?(k.to_s.downcase.to_sym) ? other[k]=v : nil}
+		end
+	end
+end

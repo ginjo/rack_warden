@@ -14,21 +14,24 @@ module RackWarden
     set :allow_public_signup, false
     set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
     set :log_file, ($0[/rails|irb/i] && development? ? $stdout : nil)
-    set :log_level, (development? ? Logger::INFO : Logger::WARN)
+    set :log_level, (development? ? Logger::DEBUG : Logger::INFO)
     set :logger, nil
     set :user_table_name, nil
     set :views, File.expand_path("../views/", __FILE__) unless views
     set :initialized, false
     
     # Load config from file, if any exist.
-    Hash.new.tap do |hash|
-      config_files.each {|c| hash.merge!(YAML.load_file(File.join(Dir.pwd, c))) rescue nil}
-      set hash
+    def self.initialize_config(more_config={})
+	    Hash.new.tap do |hash|
+	      config_files.each {|c| hash.merge!(YAML.load_file(File.join(Dir.pwd, c))) rescue nil}
+	      prepend_views(hash.extract :views)
+	      hash.merge! more_config
+	      set hash
+	    end
     end
     
-    
     # Initialize Logging
-		begin
+    def self.initialize_logging
 	    enable :logging
 	    # We take existing log file from settings, enable sync (disables buffering), and put it back in settings.
     	_log_file = settings.log_file || File.new(settings.log_path, 'a+')
@@ -41,8 +44,16 @@ module RackWarden
 	  	puts "there was an error setting up the loggers #{$!}"
 	  end
 	  
-	  #logger.info "RW app_file: #{app_file}, $0 #{$0}"
-	  #logger.info ENV.to_hash.to_yaml
+	  def self.prepend_views(new_views)
+	  	puts "RW prepend_views #{new_views.inspect}"
+	  	new_views = new_views.values if new_views.is_a?(Hash)
+	  	set :views, [new_views, views].flatten.compact.uniq
+	  end
+	  
+	  
+	  
+		initialize_config
+		initialize_logging
 	  
 	  enable :sessions
     register Sinatra::Flash
@@ -74,31 +85,28 @@ module RackWarden
   		if app && !settings.initialized
   		  logger.info "RW initializing settings"
   		  
-  			# Save original views from opts.
-  			#settings.set(:original_views, opts.has_key?(:views) ? settings.views : nil)
-  			settings.set(:original_views, settings.views)
-
-  			# Set app settings with remainder of opts.
-  			settings.set opts if opts.any?
-  			
-  			# Eval the use-block from the parent app, in context of this app.
-  			settings.instance_exec(self, &block) if block_given?
-  			
   			# Do framework setup.
   			framework_module = Frameworks::Base.select_framework(binding)
     		logger.info "RW selected framework module #{framework_module}"
+  		  
+  		  # Prepend views from opts.
+  			views_from_use_opts = (opts.extract :views)
+  			logger.debug "RW views_from_use_opts #{views_from_use_opts}"
+				
+  			# Set app settings with remainder of opts.
+  			settings.set opts if opts.any?  			
+
     		if framework_module
-      		framework_module.setup_framework
-        
-          # Manipulate views
-      		new_views = []
-      		new_views.unshift settings.original_views
-      		new_views.unshift framework_module.views_path unless settings.views==false
-      		new_views.unshift settings.views
-      		settings.set :views, new_views.flatten.compact.uniq
-      		
+    			settings.prepend_views(framework_module.views_path) unless settings.views==false || opts[:views]==false
+      		framework_module.setup_framework      		
       		logger.info "RW compiled views: #{settings.views.inspect}"
     		end
+    		
+    		settings.prepend_views views_from_use_opts
+    		
+  			# Eval the use-block from the parent app, in context of this app.
+  			settings.instance_exec(self, &block) if block_given?
+    		
     		settings.set :initialized, true
   		end
 
