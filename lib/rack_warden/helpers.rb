@@ -4,7 +4,7 @@ module RackWarden
 	protected
 		
 		def require_login
-			#puts "RW instance #{self}.require_login with rack_warden: #{rack_warden}, and warden: #{warden}"
+			App.logger.debug "RW instance #{self}.require_login with rack_warden: #{rack_warden}, and warden: #{warden}"
 			warden.authenticate!
 	  end
 	
@@ -34,7 +34,7 @@ module RackWarden
 
 		# Returns the current rack_warden app instance stored in env.
 	  def rack_warden
-	  	#puts "rack_warden method self #{request.env['rack_warden']}"
+	  	App.logger.debug "rack_warden method self #{request.env['rack_warden']}"
 	  	request.env['rack_warden_instance']
 	  end
 	
@@ -42,12 +42,17 @@ module RackWarden
 
 	# Also bring these into your main app helpers.
 	module RackWardenHelpers
+		def logger
+			settings.logger
+		end
+	
+	
 	  # WBR - override. This passes block to be rendered to first template that matches.
 		def find_template(views, name, engine, &block)
-			# puts "THE VIEWS: #{views}"
-			# puts "THE NAME: #{name}"
-			# puts "THE ENGINE: #{engine}"
-			# puts "THE BLOCK: #{block}"
+			App.logger.debug "RW find_template views: #{views}"
+			App.logger.debug "RW find_template name: #{name}"
+			App.logger.debug "RW find_template engine: #{engine}"
+			App.logger.debug "RW find_template block: #{block}"
 	    Array(views).each { |v| super(v, name, engine, &block) }
 	  end
 	
@@ -61,7 +66,7 @@ module RackWarden
 		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])
 			secret = settings.recaptcha[:secret]
 	 		_recaptcha = ActiveSupport::JSON.decode(open("https://www.google.com/recaptcha/api/siteverify?secret=#{secret}&response=#{response}&remoteip=#{ip}").read)
-	    puts "RECAPTCHA", _recaptcha
+	    App.logger.info "RW recaptcha", _recaptcha
 	    unless _recaptcha['success']
 	    	flash(:rwarden)[:error] = "Please confirm you are human"
 	    	redirect back unless skip_redirect

@@ -12,6 +12,7 @@ require 'data_mapper'
 require 'warden'
 require 'open-uri'
 require 'yaml'
+require 'rack_warden/core_patches'
 
 module RackWarden
   autoload :App, 'rack_warden/app'
@@ -50,8 +51,9 @@ module RackWarden
 	end
 	
 	def self.included(base)
-		puts "RW self.included into BASE #{base}, ID #{base.object_id}"
-		App.new base
-	end
+		App.logger.info "RW self.included into BASE #{base}, ID #{base.object_id}"
+		# Force initialize rack_warden, even if not all the settings are known yet.
+		#App.new base
+	end	
   
 end

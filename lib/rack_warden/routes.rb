@@ -54,7 +54,7 @@ module RackWarden
 				    return_to
 				  else
 				  	flash(:rwarden)[:error] = "#{warden.message} => #{@user.errors.entries.join('. ')}"
-				  	puts "RW /auth/create #{@user.errors.entries}"
+				  	App.logger.info "RW /auth/create #{@user.errors.entries}"
 				  	redirect back #url('/auth/new', false)
 				  end
 				end
@@ -62,9 +62,9 @@ module RackWarden
 				post '/auth/unauthenticated' do
 					# I had to remove the condition, since it was not updating return path when it should have.
 				  session[:return_to] = env['warden.options'][:attempted_path] if !request.xhr? && !env['warden.options'][:attempted_path][/login|new|create/]
-				  puts "RW attempted path: #{env['warden.options'][:attempted_path]}"
-				  puts "RW will return-to #{session[:return_to]}"
-				  puts warden
+				  App.logger.info "RW attempted path: #{env['warden.options'][:attempted_path]}"
+				  App.logger.debug "RW will return-to #{session[:return_to]}"
+				  App.logger.debug warden
 				  # if User.count > 0
 				    flash(:rwarden)[:error] = warden.message || "Please login to continue"
 				    redirect url('/auth/login', false)

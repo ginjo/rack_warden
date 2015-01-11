@@ -5,7 +5,7 @@ module RackWarden
       extend Base
             
       def selector
-        #puts "RW Sinatra.selector parent_app.ancestors #{parent_app.ancestors}"
+        App.logger.debug "RW Sinatra.selector parent_app.ancestors #{parent_app.ancestors}"
         parent_app.ancestors.find{|x| x.to_s=='Sinatra::Base'}
       end
       
@@ -14,7 +14,7 @@ module RackWarden
       end
       
       def setup_framework
-        #puts "RW setup_framework for sinatra"
+        App.logger.debug "RW setup_framework for sinatra"
   			parent_app.helpers(RackWarden::UniversalHelpers)
   			  			
         # Define class method 'require_login' on framework controller.

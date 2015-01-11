@@ -1,7 +1,7 @@
 module RackWarden
 	module WardenConfig
 		def self.included(base)
-			puts "RW WardenConfig base: #{base}"
+			App.logger.info "RW loading warden config into #{base}"
 			base.instance_eval do
 			
 			

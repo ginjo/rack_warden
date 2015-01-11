@@ -13,6 +13,9 @@ module RackWarden
     set :require_login, nil
     set :allow_public_signup, false
     set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
+    set :log_file, (app_file == $0 ? $stdout : nil)
+    set :log_level, Logger::INFO
+    set :logger, nil
     set :user_table_name, nil
     set :views, File.expand_path("../views/", __FILE__) unless views
     set :initialized, false
@@ -30,10 +33,17 @@ module RackWarden
     
 		begin
 	    enable :logging
-	    set :log_file, File.new(settings.log_path, 'a+')
-	    settings.log_file.sync = true
-	    use Rack::CommonLogger, settings.log_file
+	    # We take existing log file from settings, enable sync (disables buffering), and put it back in settings
+    	_log_file = settings.log_file || File.new(settings.log_path, 'a+')
+	    _log_file.sync = true
+	    set :log_file, _log_file #unless settings.log_file
+	    set :logger, Logger.new(_log_file, 'daily') unless settings.logger
+	    logger.level = log_level
+	    #use Rack::CommonLogger, _log_file
+	    #$stdout.reopen(_log_file)
+	    #$stderr.reopen(_log_file)
 	  rescue
+	  	puts "there was an error setting up the loggers #{$!}"
 	  end
 	  
 		include RackWarden::WardenConfig
@@ -57,11 +67,11 @@ module RackWarden
   	def initialize(parent_app_instance=nil, *args, &block)
   		super(parent_app_instance, &Proc.new{}) # Must send empty proc, not original proc, since we're calling original block here.
   	  initialization_args = args.dup
-  		puts "RW new instance with parent: #{@app}"
+  		logger.info "RW new instance with parent: #{@app}"
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		if app && !settings.initialized
-  		  puts "RW initializing settings"
+  		  logger.info "RW initializing settings"
   		  
   			# Save original views from opts.
   			#settings.set(:original_views, opts.has_key?(:views) ? settings.views : nil)
@@ -75,7 +85,7 @@ module RackWarden
   			
   			# Do framework setup.
   			framework_module = Frameworks::Base.select_framework(binding)
-    		puts "RW selected framework module #{framework_module}"
+    		logger.info "RW selected framework module #{framework_module}"
     		if framework_module
       		framework_module.setup_framework
         
@@ -86,7 +96,7 @@ module RackWarden
       		new_views.unshift settings.views
       		settings.set :views, new_views.flatten.compact.uniq
       		
-      		puts "RW compiled views: #{settings.views.inspect}"
+      		logger.info "RW compiled views: #{settings.views.inspect}"
     		end
     		settings.set :initialized, true
   		end
@@ -95,13 +105,15 @@ module RackWarden
   	
 		# Store this app instance in the env.
 		def call(env)  
-			#puts "RW instance.app #{app}"
-		  #puts "RW instance.call(env) #{env.to_yaml}"
+			#logger.info "RW instance.app #{app}"
+		  #logger.info "RW instance.call(env) #{env.to_yaml}"
 		  env['rack_warden_instance'] = self
 		  super(env)
 		end 
 
-
+		# To run server with 'ruby app.rb'. Disable if using rack to serve.
+		# This really only applies to endpoints, but leaving it hear as example.
+  	#run! if app_file == $0
   end # App 
 end # RackWarden
 
