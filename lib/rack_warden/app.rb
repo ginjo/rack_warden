@@ -21,14 +21,21 @@ module RackWarden
     set :initialized, false
     
     # Load config from file, if any exist.
-    def self.initialize_config(more_config={})
+    def self.initialize_config_files(more_config={})
 	    Hash.new.tap do |hash|
 	      config_files.each {|c| hash.merge!(YAML.load_file(File.join(Dir.pwd, c))) rescue nil}
-	      prepend_views(hash.extract :views)
 	      hash.merge! more_config
-	      set hash
+	      overlay_settings hash
 	    end
     end
+    
+    def self.overlay_settings(new_settings)
+    	new_views = new_settings.extract(:views).values
+    	puts "RW overlay_settings new_views #{new_views.inspect}"
+	  	set :views, [new_views, views].flatten.compact.uniq
+    	set new_settings
+    end
+    	
     
     # Initialize Logging
     def self.initialize_logging
@@ -44,15 +51,15 @@ module RackWarden
 	  	puts "there was an error setting up the loggers #{$!}"
 	  end
 	  
-	  def self.prepend_views(new_views)
-	  	puts "RW prepend_views #{new_views.inspect}"
-	  	new_views = new_views.values if new_views.is_a?(Hash)
-	  	set :views, [new_views, views].flatten.compact.uniq
-	  end
+# 	  def self.prepend_views(new_views)
+# 	  	puts "RW prepend_views #{new_views.inspect}"
+# 	  	new_views = new_views.values if new_views.is_a?(Hash)
+# 	  	set :views, [new_views, views].flatten.compact.uniq
+# 	  end
 	  
 	  
 	  
-		initialize_config
+		initialize_config_files
 		initialize_logging
 	  
 	  enable :sessions
@@ -88,24 +95,27 @@ module RackWarden
   			# Do framework setup.
   			framework_module = Frameworks::Base.select_framework(binding)
     		logger.info "RW selected framework module #{framework_module}"
+    		
+    		# Prepend views from framework_module
+  			settings.overlay_settings(:views=>framework_module.views_path) if framework_module && ![settings.views, opts[:views]].flatten.include?(false)
   		  
   		  # Prepend views from opts.
-  			views_from_use_opts = (opts.extract :views)
-  			logger.debug "RW views_from_use_opts #{views_from_use_opts}"
+  			settings.overlay_settings opts
+  			#logger.debug "RW views_from_use_opts #{views_from_use_opts}"
 				
   			# Set app settings with remainder of opts.
-  			settings.set opts if opts.any?  			
+  			#settings.set opts if opts.any?  			
 
-    		if framework_module
-    			settings.prepend_views(framework_module.views_path) unless settings.views==false || opts[:views]==false
-      		framework_module.setup_framework      		
-      		logger.info "RW compiled views: #{settings.views.inspect}"
-    		end
+    		framework_module.setup_framework if framework_module
+    			#overlay_settings(:views=>framework_module.views_path) unless settings.views.include?(false)  #==false || opts[:views]==false
+
     		
-    		settings.prepend_views views_from_use_opts
+    		#settings.prepend_views views_from_use_opts
     		
   			# Eval the use-block from the parent app, in context of this app.
   			settings.instance_exec(self, &block) if block_given?
+  			
+  			logger.info "RW compiled views: #{settings.views.inspect}"
     		
     		settings.set :initialized, true
   		end
