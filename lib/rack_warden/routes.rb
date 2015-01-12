@@ -96,6 +96,12 @@ module RackWarden
 				  nested_erb :'rw_admin.html', :'rw_layout_admin.html', settings.layout
 				end
 				
+				get '/auth/show_session' do
+					warden.authenticate!
+					authorized?
+					nested_erb :'rw_session.html', :'rw_layout_admin.html', settings.layout
+				end
+				
 			end
 		end
 	end
