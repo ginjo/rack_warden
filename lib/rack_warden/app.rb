@@ -35,6 +35,7 @@ module RackWarden
 	    end
     end
     
+    # Apply new settings on top of existing settings, prepending new views to old views.
     def self.overlay_settings(new_settings)
     	new_views = new_settings.extract(:views).values
     	logger.debug "RW overlay_settings new_views #{new_views.inspect}"
@@ -42,7 +43,7 @@ module RackWarden
     	set new_settings
     end
     	
-    # Initialize Logging
+    # Initialize logging.
     def self.initialize_logging(reset=reset_logger)
 	    # We take existing log file from settings, enable sync (disables buffering), then put it back in settings.
     	_log_file = !logging && File.new('/dev/null', 'a') || !reset && settings.log_file || File.new(settings.log_path, 'a+')
@@ -69,6 +70,7 @@ module RackWarden
 	  	puts "there was an error setting up logging #{$!}"
 	  end
 	  
+	  # Main RackWarden::App class setup.
 	  def self.initialize_app
 	  	initialize_logging
 	  	logger.warn "RW initializing RackWarden::App"
@@ -100,7 +102,7 @@ module RackWarden
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		if app && !settings.initialized
-  		  logger.info "RW initializing settings from app instance"
+  		  logger.warn "RW initializing settings from app instance"
   		  
   			# Do framework setup.
   			framework_module = Frameworks::Base.select_framework(binding)
@@ -135,6 +137,7 @@ module RackWarden
 		  super(env)
 		end 
 		
+		# Only initialize app after all above have loaded.
 		initialize_app
 
 		# To run server with 'ruby app.rb'. Disable if using rack to serve.
