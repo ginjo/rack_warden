@@ -51,7 +51,7 @@ module RackWarden
 	end
 	
 	def self.included(base)
-		App.logger.info "RW self.included into BASE #{base}, ID #{base.object_id}"
+		App.logger.warn "RW self.included into BASE #{base}, ID #{base.object_id}"
 		# Force initialize rack_warden, even if not all the settings are known yet.
 		#App.new base
 	end	

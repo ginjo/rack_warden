@@ -17,7 +17,7 @@ module RackWarden
     set :allow_public_signup, false
     set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
     set :log_file, ($0[/rails|irb/i] && development? ? $stdout : nil)
-    set :log_level, (development? ? Logger::DEBUG : Logger::INFO)
+    set :log_level => ENV['RACK_WARDEN_LOG_LEVEL'] || (development? ? 'INFO' : 'WARN')
     set :logger, nil
     set :user_table_name, nil
     set :views, File.expand_path("../views/", __FILE__) unless views
@@ -47,7 +47,7 @@ module RackWarden
 	    _log_file.sync = true
 	    set :log_file, _log_file
 	    set :logger, Logger.new(_log_file, 'daily') unless settings.logger
-	    logger.level = log_level
+	    logger.level = eval "Logger::#{log_level}"
 	    use Rack::CommonLogger, _log_file
 	    logger.info "RW initialized logger #{_log_file.inspect}"
 	  rescue
@@ -64,17 +64,9 @@ module RackWarden
 			
 	    helpers RackWardenHelpers
 	    helpers UniversalHelpers
-	  end
-	  
+	  end  
+  
 
-	  
-		#initialize_config_files
-		#initialize_logging
-	  
-
-  
-  
-  
     # WBR - This will receive params and a block from the parent "use" statement.
     # This middleware app has been modified to process the parent use-block in
     # the context of the RackWarden class. So you can set settings on RackWarden,
@@ -88,7 +80,7 @@ module RackWarden
   	def initialize(parent_app_instance=nil, *args, &block)
   		super(parent_app_instance, &Proc.new{}) # Must send empty proc, not original proc, since we're calling original block here.
   	  initialization_args = args.dup
-  		logger.info "RW new instance with parent: #{@app}"
+  		logger.info "RW new app instance with parent: #{@app}"
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		if app && !settings.initialized

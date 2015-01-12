@@ -54,7 +54,7 @@ module RackWarden
 				    return_to
 				  else
 				  	flash(:rwarden)[:error] = "#{warden.message} => #{@user.errors.entries.join('. ')}"
-				  	App.logger.info "RW /auth/create #{@user.errors.entries}"
+				  	App.logger.info "RW /auth/create '#{user.username rescue nil}' errors #{@user.errors.entries}"
 				  	redirect back #url('/auth/new', false)
 				  end
 				end

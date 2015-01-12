@@ -67,7 +67,7 @@ module RackWarden
 		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])
 			secret = settings.recaptcha[:secret]
 	 		_recaptcha = ActiveSupport::JSON.decode(open("https://www.google.com/recaptcha/api/siteverify?secret=#{secret}&response=#{response}&remoteip=#{ip}").read)
-	    App.logger.info "RW recaptcha", _recaptcha
+	    App.logger.warn "RW recaptcha", _recaptcha
 	    unless _recaptcha['success']
 	    	flash(:rwarden)[:error] = "Please confirm you are human"
 	    	redirect back unless skip_redirect
