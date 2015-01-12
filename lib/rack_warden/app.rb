@@ -15,10 +15,13 @@ module RackWarden
     set :recaptcha, Hash.new
     set :require_login, nil
     set :allow_public_signup, false
+    set :logging, true
     set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
     set :log_file, ($0[/rails|irb/i] && development? ? $stdout : nil)
     set :log_level => ENV['RACK_WARDEN_LOG_LEVEL'] || (development? ? 'INFO' : 'WARN')
     set :logger, nil
+    set :use_common_logger, true
+    set :reset_logger, false
     set :user_table_name, nil
     set :views, File.expand_path("../views/", __FILE__) unless views
     set :initialized, false
@@ -40,22 +43,35 @@ module RackWarden
     end
     	
     # Initialize Logging
-    def self.initialize_logging
-	    enable :logging
-	    # We take existing log file from settings, enable sync (disables buffering), and put it back in settings.
-    	_log_file = settings.log_file || File.new(settings.log_path, 'a+')
+    def self.initialize_logging(reset=reset_logger)
+	    # We take existing log file from settings, enable sync (disables buffering), then put it back in settings.
+    	_log_file = !logging && File.new('/dev/null', 'a') || !reset && settings.log_file || File.new(settings.log_path, 'a+')
 	    _log_file.sync = true
 	    set :log_file, _log_file
-	    set :logger, Logger.new(_log_file, 'daily') unless settings.logger
+	    set :logger, Logger.new(_log_file, 'daily') unless settings.logger && !reset
 	    logger.level = eval "Logger::#{log_level}"
-	    use Rack::CommonLogger, _log_file
-	    logger.info "RW initialized logger #{_log_file.inspect}"
+	    
+	    # Setup Rack::CommonLogger
+	    if use_common_logger
+	    	mw = @middleware.find {|m| Array(m)[0] == Rack::CommonLogger}
+		    #@middleware.delete_if {|m| Array(m)[0] == Rack::CommonLogger}
+		    mw ? mw[1]=[_log_file] : use(Rack::CommonLogger, _log_file)
+	    end
+	    
+		  if logger.level < 2
+			  ### CAUTION - There may be a file conflict between this and rack::commonlogger.
+			  DataMapper::Logger.new(_log_file)  #$stdout) #App.log_path)
+			  logger.info "RW DataMapper using log_file #{_log_file.inspect}"
+		  end
+	    
+	    logger.info "RW initialized logging (level #{logger.level}) #{_log_file.inspect}"
 	  rescue
-	  	puts "there was an error setting up the loggers #{$!}"
+	  	puts "there was an error setting up logging #{$!}"
 	  end
 	  
 	  def self.initialize_app
 	  	initialize_logging
+	  	logger.warn "RW initializing RackWarden::App"
 	  	initialize_config_files
 	  	initialize_logging
 	  	
@@ -101,6 +117,8 @@ module RackWarden
     		    		
   			# Eval the use-block from the parent app, in context of this app.
   			settings.instance_exec(self, &block) if block_given?
+  			
+  			settings.initialize_logging
   			
   			logger.info "RW compiled views: #{settings.views.inspect}"
     		

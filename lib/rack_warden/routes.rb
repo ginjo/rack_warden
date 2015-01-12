@@ -50,11 +50,12 @@ module RackWarden
 				  if @user.save
 				    warden.set_user(@user)
 				  	flash(:rwarden)[:success] = warden.message || "Account created"
+				  	App.logger.info "RW /auth/create succeeded for '#{user.username rescue nil}' #{@user.errors.entries}"
 				    #redirect session[:return_to] || url(settings.default_route, false)
 				    return_to
 				  else
 				  	flash(:rwarden)[:error] = "#{warden.message} => #{@user.errors.entries.join('. ')}"
-				  	App.logger.info "RW /auth/create '#{user.username rescue nil}' errors #{@user.errors.entries}"
+				  	App.logger.info "RW /auth/create errors for '#{user.username rescue nil}' #{@user.errors.entries}"
 				  	redirect back #url('/auth/new', false)
 				  end
 				end
@@ -62,7 +63,7 @@ module RackWarden
 				post '/auth/unauthenticated' do
 					# I had to remove the condition, since it was not updating return path when it should have.
 				  session[:return_to] = env['warden.options'][:attempted_path] if !request.xhr? && !env['warden.options'][:attempted_path][/login|new|create/]
-				  App.logger.info "RW attempted path: #{env['warden.options'][:attempted_path]}"
+				  App.logger.info "RW attempted path unauthenticated: #{env['warden.options'][:attempted_path]}"
 				  App.logger.debug "RW will return-to #{session[:return_to]}"
 				  App.logger.debug warden
 				  # if User.count > 0

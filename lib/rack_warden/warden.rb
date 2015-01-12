@@ -1,7 +1,7 @@
 module RackWarden
 	module WardenConfig
 		def self.included(base)
-			App.logger.warn "RW loading warden config into #{base}"
+			App.logger.warn "RW loading Warden config into #{base}"
 			base.instance_eval do
 			
 			
@@ -44,10 +44,13 @@ module RackWarden
 		
 		        if user.nil?
 		          fail!("The username you entered does not exist")
+		          App.logger.warn "RW user not found '#{criteria}'"
 		        elsif user.authenticate(params['user']['password'])
 		        	success!(user)
+		        	App.logger.warn "RW user logged in '#{user.username}'"
 		        else
 		          fail!("Could not log in")
+		          App.logger.warn "RW user failed login '#{user.username}'"
 		        end
 		      end
 		    end

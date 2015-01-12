@@ -18,11 +18,11 @@ module RackWarden
     rslt = conf[(RackWarden::App.environment || :development).to_s] || conf
   end
   
-  if App.logger.level.to_s[/DEBUG|INFO/]
-	  App.logger.debug "RW DataMapper using log_path #{App.log_path}"
-	  ### CAUTION - There may be a file conflict between this and rack::commonlogger.
-	  DataMapper::Logger.new(settings.log_file)  #$stdout) #App.log_path)
-  end
+#   if App.logger.level.to_s[/DEBUG|INFO/]
+# 	  ### CAUTION - There may be a file conflict between this and rack::commonlogger.
+# 	  DataMapper::Logger.new(settings.log_file)  #$stdout) #App.log_path)
+# 	  App.logger.info "RW DataMapper using log_file #{App.log_file}"
+#   end
   
   DataMapper.setup(:default, get_database_config)
   # Do DataMapper.repository.adapter to get connection info for this connection.
