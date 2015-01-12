@@ -3,7 +3,7 @@ module RackWarden
   
   # Best guess at framework database settings.
   def self.get_database_config
-  	App.logger.debug ActiveRecord::Base.configurations[(RackWarden::App.environment || :development).to_s].to_yaml
+  	#App.logger.debug ActiveRecord::Base.configurations[(RackWarden::App.environment || :development).to_s].to_yaml
     #conf = case
     case
     when App.database_config.to_s.downcase == 'file'; "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"

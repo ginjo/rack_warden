@@ -3,6 +3,9 @@
 
 module RackWarden
   class App < Sinatra::Base
+  
+  	enable :sessions
+    register Sinatra::Flash
         
     set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
     set :layout, :'rw_layout.html'
@@ -31,12 +34,11 @@ module RackWarden
     
     def self.overlay_settings(new_settings)
     	new_views = new_settings.extract(:views).values
-    	puts "RW overlay_settings new_views #{new_views.inspect}"
+    	logger.debug "RW overlay_settings new_views #{new_views.inspect}"
 	  	set :views, [new_views, views].flatten.compact.uniq
     	set new_settings
     end
     	
-    
     # Initialize Logging
     def self.initialize_logging
 	    enable :logging
@@ -47,29 +49,29 @@ module RackWarden
 	    set :logger, Logger.new(_log_file, 'daily') unless settings.logger
 	    logger.level = log_level
 	    use Rack::CommonLogger, _log_file
+	    logger.info "RW initialized logger #{_log_file.inspect}"
 	  rescue
 	  	puts "there was an error setting up the loggers #{$!}"
 	  end
 	  
-# 	  def self.prepend_views(new_views)
-# 	  	puts "RW prepend_views #{new_views.inspect}"
-# 	  	new_views = new_views.values if new_views.is_a?(Hash)
-# 	  	set :views, [new_views, views].flatten.compact.uniq
-# 	  end
+	  def self.initialize_app
+	  	initialize_logging
+	  	initialize_config_files
+	  	initialize_logging
+	  	
+			include RackWarden::WardenConfig
+			include RackWarden::Routes
+			
+	    helpers RackWardenHelpers
+	    helpers UniversalHelpers
+	  end
 	  
+
 	  
+		#initialize_config_files
+		#initialize_logging
 	  
-		initialize_config_files
-		initialize_logging
-	  
-	  enable :sessions
-    register Sinatra::Flash
-	  
-		include RackWarden::WardenConfig
-		include RackWarden::Routes
-		
-    helpers RackWardenHelpers
-    helpers UniversalHelpers
+
   
   
   
@@ -90,28 +92,21 @@ module RackWarden
   		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		if app && !settings.initialized
-  		  logger.info "RW initializing settings"
+  		  logger.info "RW initializing settings from app instance"
   		  
   			# Do framework setup.
   			framework_module = Frameworks::Base.select_framework(binding)
     		logger.info "RW selected framework module #{framework_module}"
     		
-    		# Prepend views from framework_module
+    		# Prepend views from framework_module if framework_module exists.
   			settings.overlay_settings(:views=>framework_module.views_path) if framework_module && ![settings.views, opts[:views]].flatten.include?(false)
   		  
-  		  # Prepend views from opts.
-  			settings.overlay_settings opts
-  			#logger.debug "RW views_from_use_opts #{views_from_use_opts}"
-				
-  			# Set app settings with remainder of opts.
-  			#settings.set opts if opts.any?  			
-
+  		  # Overlay settings with opts.
+  			settings.overlay_settings opts				
+	
+				# Setup framework if framework_module exists.
     		framework_module.setup_framework if framework_module
-    			#overlay_settings(:views=>framework_module.views_path) unless settings.views.include?(false)  #==false || opts[:views]==false
-
-    		
-    		#settings.prepend_views views_from_use_opts
-    		
+    		    		
   			# Eval the use-block from the parent app, in context of this app.
   			settings.instance_exec(self, &block) if block_given?
   			
@@ -129,6 +124,8 @@ module RackWarden
 		  env['rack_warden_instance'] = self
 		  super(env)
 		end 
+		
+		initialize_app
 
 		# To run server with 'ruby app.rb'. Disable if using rack to serve.
 		# This really only applies to endpoints, but leaving it hear as example.

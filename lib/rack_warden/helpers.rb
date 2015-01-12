@@ -42,10 +42,11 @@ module RackWarden
 
 	# Also bring these into your main app helpers.
 	module RackWardenHelpers
+
+		# Access main logger from app instance.
 		def logger
 			settings.logger
 		end
-	
 	
 	  # WBR - override. This passes block to be rendered to first template that matches.
 		def find_template(views, name, engine, &block)
