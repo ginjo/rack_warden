@@ -73,7 +73,7 @@ module RackWarden
 	  # Main RackWarden::App class setup.
 	  def self.initialize_app
 	  	initialize_logging
-	  	logger.warn "RW initializing RackWarden::App"
+	  	logger.warn "RW initializing RackWarden::App in process #{$0}"
 	  	initialize_config_files
 	  	initialize_logging
 	  	
