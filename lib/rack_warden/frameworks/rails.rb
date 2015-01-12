@@ -6,7 +6,7 @@ module RackWarden
 
       def selector
         App.logger.debug "RW Rails.selector parent_app.ancestors #{parent_app.ancestors}"
-        parent_app.ancestors.find{|x| x.to_s[/Rails|ActionDispatch/]} or defined?(Rails)
+        parent_app.ancestors.find{|x| x.to_s[/Rails|ActionDispatch/]} or defined?(::Rails)
       end
       
       def views_path

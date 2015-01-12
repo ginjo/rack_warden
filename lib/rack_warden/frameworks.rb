@@ -14,7 +14,7 @@ module RackWarden
           nil
         end
         
-        # Extend target with target (like saying 'extend self').
+        # Extend target with target (like saying 'extend self' within target).
         def extended(target)
           target.extend target
         end
