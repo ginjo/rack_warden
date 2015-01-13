@@ -24,20 +24,26 @@ module RackWarden
 # 	  App.logger.info "RW DataMapper using log_file #{App.log_file}"
 #   end
   
+  
+  # DataMapper setup.
+  # Note that DataMapper.repository.adapter will get connection info for this connection.
   DataMapper.setup(:default, get_database_config)
-  # Do DataMapper.repository.adapter to get connection info for this connection.
+  
   App.logger.debug "RW DataMapper.setup #{DataMapper.repository.adapter}"
   
-  # Careful! This will expose sensitive db login info.
+  # Careful! This will expose sensitive db login info to the log files.
   App.logger.warn "RW DataMapper repository #{DataMapper.repository.adapter.options.dup.tap{|o| o.delete(:password); o.delete('password')}}"
 
+	# Load all models.
   App.logger.debug "RW requiring model files in #{File.join(File.dirname(__FILE__), 'models/*')}"
   Dir.glob(File.join(File.dirname(__FILE__), 'models/*')).each {|f| require f}
-
+	
+	# DataMapper finalize
   App.logger.debug "RW DataMapper.finalize"
   # Tell DataMapper the models are done being defined
   DataMapper.finalize
 
+	# DataMapper auto upgrade.
   App.logger.warn "RW DataMapper.auto_upgrade!"
   # Update the database to match the properties of User.
   DataMapper.auto_upgrade!

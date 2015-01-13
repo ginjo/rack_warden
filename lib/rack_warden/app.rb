@@ -4,7 +4,6 @@
 module RackWarden
   class App < Sinatra::Base
   
-  	enable :sessions
     register Sinatra::Flash
         
     set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
@@ -22,6 +21,7 @@ module RackWarden
     set :logger, nil
     set :use_common_logger, true
     set :reset_logger, false
+    set :sessions, nil # Will use parent app sessions. Pass in :key=>'something' to enable RW-specific sessions.
     set :user_table_name, nil
     set :views, File.expand_path("../views/", __FILE__) unless views
     set :initialized, false
