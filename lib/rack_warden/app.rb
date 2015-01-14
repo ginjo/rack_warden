@@ -1,10 +1,12 @@
 # require 'bundler'
 # Bundler.require
 
+require 'logger'
+
 module RackWarden
   class App < Sinatra::Base
   
-    register Sinatra::Flash
+    #register Sinatra::Flash
         
     set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
     set :layout, :'rw_layout.html'
@@ -67,15 +69,18 @@ module RackWarden
 	    
 	    logger.info "RW initialized logging (level #{logger.level}) #{_log_file.inspect}"
 	  rescue
-	  	puts "there was an error setting up logging #{$!}"
+	  	puts "There was an error setting up logging: #{$!}"
 	  end
 	  
 	  # Main RackWarden::App class setup.
 	  def self.initialize_app
+      
 	  	initialize_logging
 	  	logger.warn "RW initializing RackWarden::App in process #{$0}"
 	  	initialize_config_files
 	  	initialize_logging
+	  	
+	  	use Rack::Flash, :accessorize=>:rwarden
 	  	
 			include RackWarden::WardenConfig
 			include RackWarden::Routes
