@@ -80,7 +80,10 @@ module RackWarden
 	  	initialize_config_files
 	  	initialize_logging
 	  	
-	  	use Rack::Flash, :accessorize=>[:rw_error, :rw_success]
+  		# Setup sessions if not already
+  		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
+  			set :sessions, true
+  		use Rack::Flash, :accessorize=>[:rw_error, :rw_success]
 	  	
 			include RackWarden::WardenConfig
 			include RackWarden::Routes
@@ -109,7 +112,7 @@ module RackWarden
   		if app && !settings.initialized
   		  logger.warn "RW initializing settings from app instance"
   		  
-  			# Do framework setup.
+  			# Get framework module.
   			framework_module = Frameworks::Base.select_framework(binding)
     		logger.info "RW selected framework module #{framework_module}"
     		

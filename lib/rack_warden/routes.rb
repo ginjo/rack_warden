@@ -5,7 +5,8 @@ module RackWarden
 			
 				App.logger.debug "RW loading routes"
 			
-				get "/is_running" do
+			
+				get "/auth/is_running" do
 					"YES"
 				end
 
