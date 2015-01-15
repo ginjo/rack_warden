@@ -13,7 +13,7 @@ module RackWarden
 		end
 	
 		def current_user
-	    warden.user
+	    warden.authenticated? && warden.user
 		end
 	
 		def logged_in?
@@ -22,10 +22,12 @@ module RackWarden
 		end
 		
 		def authorized?(options=request)
+			App.logger.debug "RW authorized? user '#{current_user}'"
 			current_user && current_user.authorized?(options) || request.script_name[/login|new|create|logout/]
 		end
 
 		def require_authorization(authenticate_on_fail=false, options=request)
+			App.logger.debug "RW require_authorization"
 			logged_in? || warden.authenticate!
 			unless authorized?(options)
 				if authenticate_on_fail
@@ -40,11 +42,18 @@ module RackWarden
 
 		# Returns the current rack_warden app instance stored in env.
 	  def rack_warden
-	  	App.logger.debug "rack_warden method self #{request.env['rack_warden']}"
-	  	request.env['rack_warden_instance']
+	  	App.logger.debug "RW rack_warden method self #{request.env['rack_warden_instance']}"
+	  	request.env['rack_warden_instance'].tap {|rw| rw.request = request}
+	  end
+	  
+	  def account_widget
+	  	rack_warden.erb :'rw_account_widget.html'
 	  end
 	
 	end # UniversalHelpers
+
+
+
 
 	# Also bring these into your main app helpers.
 	module RackWardenHelpers
