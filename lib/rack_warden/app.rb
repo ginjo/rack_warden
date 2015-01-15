@@ -80,7 +80,7 @@ module RackWarden
 	  	initialize_config_files
 	  	initialize_logging
 	  	
-	  	use Rack::Flash, :accessorize=>:rwarden
+	  	use Rack::Flash, :accessorize=>[:rw_error, :rw_success]
 	  	
 			include RackWarden::WardenConfig
 			include RackWarden::Routes

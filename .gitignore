@@ -22,4 +22,5 @@ rack_warden.y*ml
 .DS_Store
 log/**
 scratch.rb
-
+/*.diff
+*.test.*

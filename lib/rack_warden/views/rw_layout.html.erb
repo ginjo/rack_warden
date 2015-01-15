@@ -22,15 +22,15 @@
 			<a href="<%=url('/auth/logout', false)%>">Log Out</a>
 		</p>
 
-		<% if flash.rwarden %>
-	    <% if flash.rwarden[:success] %>
+		<% if defined? :flash %>
+	    <% if flash.rw_success %>
 		    <div style="color:green;">
-		      <%= flash.rwarden[:success] %>
+		      <%= flash.rw_success %>
 		    </div>
 	    <% end %>
-	    <% if flash.rwarden[:error] %>
+	    <% if flash.rw_error %>
 		    <div style="color:red;">
-		      <%= flash.rwarden[:error] %>
+		      <%= flash.rw_error %>
 		    </div>
 	    <% end %>
 	   <% end %>

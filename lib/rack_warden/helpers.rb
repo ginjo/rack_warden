@@ -24,10 +24,10 @@ module RackWarden
 		def authorized?(authenticate_on_fail=false)
 			unless current_user.authorized?(request)
 				if authenticate_on_fail
-					flash(:rwarden)[:error] = ("Please login to continiue")
+					flash.rw_error = ("Please login to continiue")
 					redirect "/auth/login"
 				else
-					flash(:rwarden)[:error] = ("You are not authorized to do that")
+					flash.rw_error = ("You are not authorized to do that")
 					redirect back
 				end
 			end
@@ -70,7 +70,7 @@ module RackWarden
 	 		_recaptcha = ActiveSupport::JSON.decode(open("https://www.google.com/recaptcha/api/siteverify?secret=#{secret}&response=#{response}&remoteip=#{ip}").read)
 	    App.logger.warn "RW recaptcha #{_recaptcha.inspect}"
 	    unless _recaptcha['success']
-	    	flash(:rwarden)[:error] = "Please confirm you are human"
+	    	flash.rw_error = "Please confirm you are human"
 	    	redirect back unless skip_redirect
 	    	Halt "You appear to be a robot."
 	    end
