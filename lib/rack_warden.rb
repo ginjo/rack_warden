@@ -13,7 +13,9 @@ require 'data_mapper'
 require 'warden'
 require 'open-uri'
 require 'yaml'
+#require 'rexml'
 require 'rack_warden/core_patches'
+
 
 module RackWarden
   autoload :App, 'rack_warden/app'
