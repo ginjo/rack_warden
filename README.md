@@ -1,36 +1,32 @@
 # RackWarden
 
-RackWarden is a rack middleware mini-app that provides user authentication and management to any rack-based app (currently supports Sinatra and Rails, with more on the way). This project is in its infancy. It is currently a great starter to get you going with plug-in authentication for your ruby app. Over time it will grow into a more fully featured package while maintaining a focus on simplicity, modularity, and transparency.
+RackWarden is a gatekeeper providing authentication and user management for any rack based app. It is middleware that only requires a couple lines of code to protect your entire app. RackWarden is self-contained: it will use its own controllers, views, models, and database. Or, you can drop in your own views and layouts, specify your own database, and share an existing users table for seamless integration.
 
-RackWarden uses Sinatra for the mini-app, Warden for authentication, and DataMapper for database connections. It is based on the sinatra-warden-example at https://github.com/sklise/sinatra-warden-example. If you are new to Warden or Sinatra, I highly recommend downloading and experimenting with that example.
+RackWarden uses Sinatra for the mini-app, Warden for authentication, and DataMapper for database connections. It is based on the sinatra-warden-example at <https://github.com/sklise/sinatra-warden-example>.
 
-My goal in developing this software is to have drop-in authentication containing most of the features you see in user/account management sections of a typical web site. But I don't want to be strapped by this module in any of my projects, so it must be customizable. Or rather, overridable. The basics of this flexibility are already in place, and it will be a central theme throughout.
-
-Please note that RackWarden is a work-in-progress. The gemspec, the files, the code, and the documentation can and will change over time. Follow on github for the latest fixes, changes, and developments.
-
-## What Does it Do?
-
-RackWarden is a modular gatekeeper for your ruby web app. Once you enable RackWarden in your rack-based project, all routes/actions in your project will require a login and will redirect browsers to an authentication page. RackWarden provides its own view & layout templates to facilitate user authentication. RackWarden also provides it's own database & table structure to store user data. Views, layouts, databases, and tables are easily customized and/or overridden, however.
-
-Once RackWarden authenticates a user, it gets out of the way, and the user is returned to your application. RackWarden also provides a number of user management tools for common actions like creating, updating, and deleting users.
-
-Most of the RackWarden features can be customized. You can override the views, the database, the actions, and even the authentication logic with your own templates and code. The easiest (and possibly the most dramatic) customization is to provide RackWarden with your own layout template, giving RackWarden the appearane of the application you're integrating it with.
+RackWarden is a work-in-progress. The gemspec, the files, the code, and the documentation can and will change over time. Follow on github for the latest updates.
 
 
 ## Installation
 
-In your Gemfile:
+In your Gemfile.
 
     gem 'rack_warden'
 
-Then:
+Then.
 
     $ bundle
 
-Or install manually:
+Or install manually.
 
     $ gem install rack_warden
 
+If you are using a database other than sqlite, and you want RackWarden to use that database as well, install the corresponding DataMapper adapter.
+
+    gem 'dm-mysql-adapter'
+    gem 'dm-postgres-adapter'
+    
+The dm-sqlite-adapter is included in the RackWarden gemspec. See the [DataMapper](https://github.com/datamapper/dm-core/wiki/Adapters) site for more info on adapters. 
 
 ## Usage
 
@@ -58,7 +54,7 @@ application.rb or environment.rb
 
 ## Configuration
 
-RackWarden will look for a configuration file named rack\_warden.yml in your project root or in your project/config/ directory. 
+RackWarden will look for a yaml configuration file named rack\_warden.yml in your project root or in your project-root/config/ directory. You can specify any of RackWarden's settings here.
 
     ---
     database: sqlite3:///usr/local/some_other_database.sqlite3.db
@@ -78,6 +74,25 @@ If you pass a block with the ```use``` method, the block will be evaluated in th
 
 Current list of settings specific to rack\_warden, with defaults.
 
+    set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
+    set :layout, :'rw_layout.html'
+    set :default_route, '/'
+    set :database_config => nil
+    set :database_default => "sqlite3::memory:?cache=shared"
+    set :recaptcha, Hash.new
+    set :require_login, nil
+    set :allow_public_signup, false
+    set :logging, true
+    set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
+    set :log_file, ($0[/rails|irb|ruby|rack/i] && development? ? $stdout : nil)
+    set :log_level => ENV['RACK_WARDEN_LOG_LEVEL'] || (development? ? 'INFO' : 'WARN')
+    set :logger, nil
+    set :use_common_logger, true
+    set :reset_logger, false
+    set :sessions, nil # Will use parent app sessions. Pass in :key=>'something' to enable RW-specific sessions.
+    set :user_table_name, nil
+    set :views, File.expand_path("../views/", __FILE__) unless views
+
 ### :layout
 
 A symbol representing a layout file in any of the view paths.
@@ -92,7 +107,7 @@ A Sinatra route to fall back on after logout, errors, or any action that has no 
     
 ### :database\_config
 
-A database specification hash or or url string.
+A database specification hash or url string.
 
     database_config: "sqlite:///Absolute/path/to/your/rack_warden.sqlite3.db"
     
@@ -110,7 +125,7 @@ A database specification hash or or url string.
 ### :require\_login
 
 Parameters to pass to the before/before\_filter for require\_login.
-So if you're main app is Sinatra,
+So if your main app is Sinatra,
 
     require_login: /^\/.+/
     
@@ -130,8 +145,7 @@ which is the same as
     
 For Rails, you would be passing a hash of :only or :except keys.
 
-    require_login:
-      except: :index
+    require_login: {:except => :index}
     
 The default for :require\_login is nil, which means require login on every route or action.
 To disable automatic activation of require\_login, pass it ```false```.
@@ -152,24 +166,13 @@ Settings for Google's recaptcha service
       :secret  => ''
     }
 
-### :log\_path
-
-    File.join(Dir.pwd, 'log', 'rack_warden.log')
-    
-### :user\_table\_name
-
-    nil
-    
-### :views
-
-    File.expand_path("../views/", __FILE__)
 
 
 ## Customization
 
 ### Views
 
-To customize RackWarden for your specific project, you can set :views to point to a directory within your project. Then create templates that match the names of RackWarden templates, and they will be picked up and rendered. RackWarden looks for templates at the top level of your views directory and in views/rack\_warden (if it exists) as a default. You can change or add to this with the ```:views``` setting.
+RackWarden looks for templates at the top level of your views directory and in views/rack\_warden (if it exists) as a default. You can change or add to this with the ```:views``` setting.
 
     use RackWarden::App, :views => File.join(Dir.pwd, 'app/views/another_directory')
     
@@ -190,12 +193,12 @@ As a default, RackWarden will use a sqlite3 in-memory database (that starts fres
     # Database specification as a hash
     database_config: {adapter: 'sqlite3', database: '/path/to/my/database.sqlite3.db'}
     
-		# Use a remote MySQL database
-		database_config: {adapter: 'mysql', username: 'will', password: 'mypass',
-			host: 'somehost', database: 'my_database'}
-		
-		# Format for database urls
-		#<adapter>://<username>:<password>@<host>:<port>/<database_name>
+    # Use a remote MySQL database
+    database_config: {adapter: 'mysql', username: 'will', password: 'mypass',
+      host: 'somehost', database: 'my_database'}
+    
+    # Format for database urls
+    #<adapter>://<username>:<password>@<host>:<port>/<database_name>
 
 
 
