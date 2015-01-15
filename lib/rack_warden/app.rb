@@ -5,20 +5,18 @@ require 'logger'
 
 module RackWarden
   class App < Sinatra::Base
-  
-    #register Sinatra::Flash
-        
+          
     set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
     set :layout, :'rw_layout.html'
     set :default_route, '/'
     set :database_config => nil  #, "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
-    set :database_default => "sqlite3::memory:"   #"sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
+    set :database_default =>  "sqlite3::memory:?cache=shared"   #"sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"  #{:adapter=>"in_memory"}
     set :recaptcha, Hash.new
     set :require_login, nil
     set :allow_public_signup, false
     set :logging, true
     set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
-    set :log_file, ($0[/rails|irb/i] && development? ? $stdout : nil)
+    set :log_file, ($0[/rails|irb|ruby|rack/i] && development? ? $stdout : nil)
     set :log_level => ENV['RACK_WARDEN_LOG_LEVEL'] || (development? ? 'INFO' : 'WARN')
     set :logger, nil
     set :use_common_logger, true
@@ -80,10 +78,9 @@ module RackWarden
 	  	initialize_config_files
 	  	initialize_logging
 	  	
-  		# Setup sessions if not already
+  		# Setup flash if not already
   		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
-  			set :sessions, true
-  		use Rack::Flash, :accessorize=>[:rw_error, :rw_success]
+			use Rack::Flash, :accessorize=>[:rw_error, :rw_success]
 	  	
 			include RackWarden::WardenConfig
 			include RackWarden::Routes

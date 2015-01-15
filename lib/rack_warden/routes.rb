@@ -57,7 +57,7 @@ module RackWarden
 				  if @user.save
 				    warden.set_user(@user)
 				  	flash.rw_success = warden.message || "Account created"
-				  	App.logger.info "RW /auth/create succeeded for '#{user.username rescue nil}' #{@user.errors.entries}"
+				  	App.logger.info "RW /auth/create succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"
 				    #redirect session[:return_to] || url(settings.default_route, false)
 				    return_to
 				  else
@@ -85,31 +85,27 @@ module RackWarden
 				get '/auth/protected' do
 				  #warden.authenticate!
 				  require_login
-				  #authorized?
 				  erb :'rw_protected.html', :layout=>settings.layout
 				  #wrap_with(){erb :'rw_protected.html'}
 				end
 				
 				get "/auth/dbinfo" do
 					#warden.authenticate!
-					require_login
-					authorized?
+					require_authorization
 					#erb :'rw_dbinfo.html', :layout=>settings.layout
 					nested_erb :'rw_dbinfo.html', :'rw_layout_admin.html', settings.layout
 				end
 				
 				get '/auth/admin' do
 				  #warden.authenticate!
-				  require_login
-				  authorized?
+				  require_authorization
 				  #erb :'rw_admin.html', :layout=>settings.layout
 				  nested_erb :'rw_admin.html', :'rw_layout_admin.html', settings.layout
 				end
 				
-				get '/auth/show_session' do
+				get '/auth/sessinfo' do
 					#warden.authenticate!
-					require_login
-					authorized?
+					require_authorization
 					nested_erb :'rw_session.html', :'rw_layout_admin.html', settings.layout
 				end
 				

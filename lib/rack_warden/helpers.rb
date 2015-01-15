@@ -21,8 +21,13 @@ module RackWarden
 	    warden.authenticated?
 		end
 		
-		def authorized?(authenticate_on_fail=false)
-			unless current_user.authorized?(request)
+		def authorized?(options=request)
+			current_user && current_user.authorized?(options) || request.script_name[/login|new|create|logout/]
+		end
+
+		def require_authorization(authenticate_on_fail=false, options=request)
+			logged_in? || warden.authenticate!
+			unless authorized?(options)
 				if authenticate_on_fail
 					flash.rw_error = ("Please login to continiue")
 					redirect "/auth/login"
@@ -30,7 +35,7 @@ module RackWarden
 					flash.rw_error = ("You are not authorized to do that")
 					redirect back
 				end
-			end
+			end		
 		end
 
 		# Returns the current rack_warden app instance stored in env.

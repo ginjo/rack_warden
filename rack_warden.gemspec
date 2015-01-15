@@ -19,7 +19,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
     
   spec.add_dependency "sinatra"
-  #spec.add_dependency "sinatra-flash"
   spec.add_dependency "rack-flash3"
   spec.add_dependency "bcrypt"
   spec.add_dependency "data_mapper"

@@ -4,7 +4,6 @@
 
 <p>
 	<%#= DataMapper.repository.adapter.select('select * from SQLITE_MASTER').to_yaml.to_html %>
-	<br><br>
 	<%#= DataMapper.repository.adapter.to_yaml.gsub(/\n|\r/, '<br>') %>
 	<%= DataMapper.repository.adapter.options.dup.tap{|o| o.delete(:password); o.delete('password')}.to_yaml.to_html %>
 </p>

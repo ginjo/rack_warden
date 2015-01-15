@@ -29,9 +29,9 @@ module RackWarden
       end
     end
     
-	  def authorized?(options)
-	  	(options[:request].is_a?(Rack::Request) && options[:request].script_name[/login|new|create|logout/]) ||
-	  	username[/wbr/i]
+	  def authorized?(options={})
+	  	#options[:request].script_name[/login|new|create|logout/] ||
+	  	self.id==1
 	  end
 	  
 		# def username
