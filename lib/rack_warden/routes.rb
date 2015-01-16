@@ -45,7 +45,7 @@ module RackWarden
 				end
 				
 				get '/auth/new' do
-				  halt 403 unless settings.allow_public_signup or !(User.count > 0)
+				  halt 403 unless settings.allow_public_signup || !(User.count > 0) || authorized?
 				  erb :'rw_new_user.html', :layout=>settings.layout, :locals=>{:recaptcha_sitekey=>settings.recaptcha['sitekey']}
 				end
 				

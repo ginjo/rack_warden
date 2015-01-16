@@ -16,7 +16,8 @@ module RackWarden
     end
     #... sort out environment HERE
     rslt = conf[(RackWarden::App.environment || :development).to_s] || conf
-    rslt[:adapter] = 'mysql' if rslt[:adapter]=='mysql2'
+    rslt[:adapter] = 'mysql' if rslt && [:adapter]=='mysql2'
+    App.logger.debug "RW get_database_config rslt: #{rslt.inspect}"
     return rslt
   end
   

@@ -23,4 +23,4 @@ rack_warden.y*ml
 log/**
 scratch.rb
 /*.diff
-*.test.*
+

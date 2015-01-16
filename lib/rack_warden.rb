@@ -13,6 +13,7 @@ require 'data_mapper'
 require 'warden'
 require 'open-uri'
 require 'yaml'
+require 'tilt/erb'
 #require 'rexml'
 require 'rack_warden/core_patches'
 

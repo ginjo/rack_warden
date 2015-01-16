@@ -19,7 +19,7 @@ module RackWarden
     set :log_file, ($0[/rails|irb|ruby|rack|server/i] && development? ? $stdout : nil)
     set :log_level => ENV['RACK_WARDEN_LOG_LEVEL'] || (development? ? 'INFO' : 'WARN')
     set :logger, nil
-    set :use_common_logger, true
+    set :use_common_logger, false #true
     set :reset_logger, false
     set :sessions, nil # Will use parent app sessions. Pass in :key=>'something' to enable RW-specific sessions.
     set :user_table_name, nil
