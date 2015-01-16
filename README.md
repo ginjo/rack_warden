@@ -1,6 +1,6 @@
 # RackWarden
 
-RackWarden is a gatekeeper providing authentication and user management for any rack based app. It is middleware that only requires a couple lines of code to protect your entire app. RackWarden is self-contained: it will use its own controllers, views, models, and database. Or, you can drop in your own views and layouts, specify your own database, and share an existing users table for seamless integration.
+RackWarden is a ruby gatekeeper mini-app providing authentication and user management for rack based apps. Protecting your entire application with only a few lines of code, RackWarden uses its own controllers, views, models, and database. Or, you can drop in your own views and layouts, specify your own database, and use your existing users table for seamless integration.
 
 RackWarden uses Sinatra for the mini-app, Warden for authentication, and DataMapper for database connections. It is based on the sinatra-warden-example at <https://github.com/sklise/sinatra-warden-example>.
 
@@ -21,7 +21,7 @@ Or install manually.
 
     $ gem install rack_warden
 
-If you are using a database other than sqlite, and you want RackWarden to use that database as well, install the corresponding DataMapper adapter.
+If you are using a database other than sqlite, and you want RackWarden to use that database as well, install the corresponding DataMapper database adapter.
 
     gem 'dm-mysql-adapter'
     gem 'dm-postgres-adapter'
@@ -61,9 +61,9 @@ RackWarden will look for a yaml configuration file named rack\_warden.yml in you
     layout: :'my_custom_layout.html.erb'
 
 
-You an also pass configuration settings to RackWarden through the ```use``` method of your framework. The params hash of ```use``` will be translated directly to RackWarden's settings. In addition to RackWarden's specific configuration options, you can also pass in any standard Sinatra settings.
+You an also pass configuration settings to RackWarden through the ```use``` method of your framework. The params hash of ```use``` will be translated directly to RackWarden's settings. In addition to RackWarden's specific configuration options, you can also pass standard Sinatra settings.
 
-If you pass a block with the ```use``` method, the block will be evaluated in the context of the RackWarden::App class. Anything you do in that block is just as if you were writing code in the app class itself. While in the block, you also have access to the current instance of RackWarden::App.
+If you pass a block with the ```use``` method, the block will be evaluated in the context of the RackWarden::App class. Anything you do in that block is just as if you were writing code in the RackWarden::App class itself. While in the block, you also have access to the current instance of RackWarden::App.
 
     use RackWarden::App do |rack_warden_app_instance|
       set :somesetting, 'some_value'
@@ -95,13 +95,13 @@ Current list of settings specific to rack\_warden, with defaults.
 
 ### :layout
 
-A symbol representing a layout file in any of the view paths.
+A symbol representing a (Sinatra) layout file in any of the view paths.
     
     layout: :'rack_warden_layout.html'
     
 ### :default\_route
 
-A Sinatra route to fall back on after logout, errors, or any action that has no specified route.
+A Sinatra route to fall back on after logout, errors, or any redirect that has no specified route.
 
     default_route: '/'
     
@@ -114,8 +114,7 @@ A database specification hash or url string.
     # or
     
     database_config: 
-      adapter: mysql2
-      encoding: utf8
+      adapter: mysql
       database: my_db_name
       username: root
       password: my_password
@@ -127,18 +126,18 @@ A database specification hash or url string.
 Parameters to pass to the before/before\_filter for require\_login.
 So if your main app is Sinatra,
 
-    require_login: /^\/.+/
+    require_login: /^\/admin/
     
 is the same as
 
     class MySinatraApp
-      require_login /^\/.+/
+      require_login /^\/admin/
     end
     
 which is the same as
 
     class MySinatraApp
-      before /^\/.+/ do
+      before /^\/admin/ do
         require_login
       end
     end
@@ -159,7 +158,7 @@ Allows public access to the account creation view & action.
     
 ### :recaptcha
 
-Settings for Google's recaptcha service
+Settings for Google's recaptcha service. If these settings exist, recaptcha will be required on account creation and password reset/recover actions.
 
     :recaptcha => {
       :sitekey => '',
@@ -172,20 +171,20 @@ Settings for Google's recaptcha service
 
 ### Views
 
-RackWarden looks for templates at the top level of your views directory and in views/rack\_warden (if it exists) as a default. You can change or add to this with the ```:views``` setting.
+RackWarden looks for templates at the top level of your views directory and in views/rack\_warden/ (if it exists) as a default. You can change or add to this with the ```:views``` setting.
 
     use RackWarden::App, :views => File.join(Dir.pwd, 'app/views/another_directory')
     
-Or if you simply want RackWarden to use your own custom layout, pass it a file path in the :layout parameter.
+Or if you simply want RackWarden to wrap all of its views in your own custom layout, pass it a file path in the :layout parameter.
 
     use RackWarden::App, :layout => :'layouts/rack_warden_layout.html'
     
-Just remember that RackWarden is Sinatra, and any templates you pass must use Sinatra-specific code. For example, Sinatra uses ```url``` instead of Rails' ```url_for```. Also remember that template names in Sinatra must always be symbols. Have a look at the readme on Sinatra's web site for more details on Sinatra's DSL.
+Remember that RackWarden is Sinatra, and any templates you pass must use Sinatra-specific code. For example, Sinatra uses ```url``` instead of Rails' ```url_for```. Also remember that template names in Sinatra must always be symbols. Have a look at the readme on Sinatra's web site for more details on Sinatra's DSL.
 
 
 ### Database
 
-As a default, RackWarden will use a sqlite3 in-memory database (that starts fresh each time you boot your app). To use the database specified in your project, just pass ```:auto``` to the ```:database_config``` setting. Pass ```:file``` to set up a sqlite3 database in your app's working directory. Or pass your own custom database specification (a url or hash). If you use a database other than sqlite3, you will need to include the respective DataMapper extension gems in your Gemfile or in your manually installed gem list. For MySQL, use dm-mysql-adapter, for Postgres use dm-postgres-adapter. See the DataMapper site for more info on database adapters.
+As a default, RackWarden will use a sqlite3 in-memory database (that starts fresh each time you boot your app). To use the database specified in your project, just pass ```:auto``` to the ```:database_config``` setting. Pass ```:file``` to set up a sqlite3 database in your app's working directory. Or pass your own custom database specification (a url or hash). If you use a database other than sqlite3, you will need to include the respective DataMapper extension gem in your Gemfile or in your manually installed gem list. For MySQL, use dm-mysql-adapter, for Postgres use dm-postgres-adapter. See the DataMapper site for more info on database adapters.
     
     # Database specification as a url
     database_config: 'sqlite3:///path/to/my/database.sqlite3.db'
@@ -199,6 +198,11 @@ As a default, RackWarden will use a sqlite3 in-memory database (that starts fres
     
     # Format for database urls
     #<adapter>://<username>:<password>@<host>:<port>/<database_name>
+
+#### A note about DataMapper and ActiveRecord
+
+RackWarden and DataMapper should be able to coexist in the same ruby process. Note that the database adapters for ActiveRecord are not the same as those for DataMapper. So for example, if you are using mysql, you will need the activerecord-mysql2-adapter for ActiveRecord (or mysql2 or mysql, if you're on older rails versions) and the dm-mysql-adapter for DataMapper.
+
 
 
 
