@@ -16,13 +16,10 @@
     <h1>Rack Warden</h1>
 
     <p>
-			<a href="<%=url('/auth/login', false)%>">Log In</a> |
 			<a href="<%=url('/', false)%>">Home</a> |
 			<a href="<%=url('/auth/protected', false)%>">Test Protected Page</a> |
-			<% if authorized? %>
-				<a href="<%=url('/auth/', false)%>">Admin</a> |
-			<% end %>
-			<a href="<%=url('/auth/logout', false)%>">Log Out</a>
+			<!-- <a href="<%#=url('/auth/logout', false)%>">Log Out</a> -->
+			<%= erb :'rw_account_widget.html' %>
 		</p>
 
 		<% if defined? :flash %>

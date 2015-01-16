@@ -29,10 +29,10 @@ module RackWarden
   # Note that DataMapper.repository.adapter will get connection info for this connection.
   DataMapper.setup(:default, get_database_config)
   
-  App.logger.debug "RW DataMapper.setup #{DataMapper.repository.adapter}"
+  App.logger.debug "RW DataMapper.setup #{DataMapper.repository.adapter.inspect}"
   
   # Careful! This will expose sensitive db login info to the log files.
-  App.logger.warn "RW DataMapper repository #{DataMapper.repository.adapter.options.dup.tap{|o| o.delete(:password); o.delete('password')}}"
+  App.logger.warn "RW DataMapper repository #{DataMapper.repository.adapter.options.dup.tap{|o| o.delete(:password); o.delete('password')}.inspect}"
 
 	# Load all models.
   App.logger.debug "RW requiring model files in #{File.join(File.dirname(__FILE__), 'models/*')}"

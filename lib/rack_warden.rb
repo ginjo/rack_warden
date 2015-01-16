@@ -24,6 +24,7 @@ module RackWarden
   autoload :Routes, "rack_warden/routes"
   autoload :VERSION, "rack_warden/version"
   autoload :WardenConfig, "rack_warden/warden"
+  autoload :UniversalHelpers, "rack_warden/helpers"
   autoload :RackWardenHelpers, "rack_warden/helpers"
   module Frameworks
     autoload :Base, 'rack_warden/frameworks'

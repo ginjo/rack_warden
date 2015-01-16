@@ -5,6 +5,7 @@ module RackWarden
 		
 		def require_login
 			App.logger.debug "RW instance #{self}.require_login with rack_warden: #{rack_warden}, and warden: #{warden}"
+			#App.logger.debug "RW instance #{self}.require_login ancestors #{self.class.ancestors.inspect}"
 			logged_in? || warden.authenticate!
 	  end
 	
@@ -31,10 +32,10 @@ module RackWarden
 			logged_in? || warden.authenticate!
 			unless authorized?(options)
 				if authenticate_on_fail
-					flash.rw_error = ("Please login to continiue")
+					flash[:rw_error] = ("Please login to continiue")
 					redirect "/auth/login"
 				else
-					flash.rw_error = ("You are not authorized to do that")
+					flash[:rw_error] = ("You are not authorized to do that")
 					redirect back
 				end
 			end		

@@ -16,7 +16,7 @@ module RackWarden
     set :allow_public_signup, false
     set :logging, true
     set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
-    set :log_file, ($0[/rails|irb|ruby|rack/i] && development? ? $stdout : nil)
+    set :log_file, ($0[/rails|irb|ruby|rack|server/i] && development? ? $stdout : nil)
     set :log_level => ENV['RACK_WARDEN_LOG_LEVEL'] || (development? ? 'INFO' : 'WARN')
     set :logger, nil
     set :use_common_logger, true
