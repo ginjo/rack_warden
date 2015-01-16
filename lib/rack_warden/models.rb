@@ -28,11 +28,12 @@ module RackWarden
 #   end
   
   
-  # DataMapper setup.
-  # Note that DataMapper.repository.adapter will get connection info for this connection.
-  DataMapper.setup(:default, get_database_config)
-  
-  App.logger.debug "RW DataMapper.setup #{DataMapper.repository.adapter.inspect}"
+  unless (DataMapper.repository.adapter && App.database_config.to_s.downcase == 'auto' rescue nil)
+	  # DataMapper setup.
+	  # Note that DataMapper.repository.adapter will get connection info for this connection.
+	  DataMapper.setup(:default, get_database_config)
+	  App.logger.debug "RW DataMapper.setup #{DataMapper.repository.adapter.inspect}"
+  end
   
   # Careful! This will expose sensitive db login info to the log files.
   App.logger.warn "RW DataMapper repository #{DataMapper.repository.adapter.options.dup.tap{|o| o.delete(:password); o.delete('password')}.inspect}"
