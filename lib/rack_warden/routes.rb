@@ -69,7 +69,7 @@ module RackWarden
 				
 				post '/auth/unauthenticated' do
 					# I had to remove the condition, since it was not updating return path when it should have.
-				  session[:return_to] = env['warden.options'][:attempted_path] if !request.xhr? && !env['warden.options'][:attempted_path][/login|new|create/]
+				  session[:return_to] = env['warden.options'][:attempted_path] if !request.xhr? && !env['warden.options'][:attempted_path][Regexp.new(settings.exclude_from_return_to)]
 				  App.logger.info "RW attempted path unauthenticated: #{env['warden.options'][:attempted_path]}"
 				  App.logger.debug "RW will return-to #{session[:return_to]}"
 				  App.logger.debug warden
