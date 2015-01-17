@@ -5,7 +5,9 @@ module RackWarden
     include DataMapper::Resource
     include BCrypt
     
-    storage_names[:default] = App.user_table_name if App.user_table_name
+    def self.default_repository_name; App.repository_name; end
+    
+    storage_names[App.repository_name] = App.user_table_name if App.user_table_name
 
     property :id, Serial, :key => true
     property :username, String, :length => 128, :unique => true, :required => true, :default => lambda {|r,v| r.instance_variable_get :@email}

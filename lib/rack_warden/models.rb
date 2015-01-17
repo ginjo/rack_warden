@@ -8,8 +8,8 @@ module RackWarden
     when App.database_config.to_s.downcase == 'file'; "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
     when App.database_config.to_s.downcase == 'auto';
 	    (ActiveRecord::Base.connection_config rescue nil) ||
-	    (ActiveRecord::Base.configurations rescue nil) ||   #[(RackWarden::App.environment || :development).to_s] rescue nil) ||
-	    (DataMapper.repository(:default).adapter[:options] rescue nil) ||
+	    (ActiveRecord::Base.configurations rescue nil) ||
+	    #(DataMapper.repository(App.repository_name).adapter[:options] rescue nil) ||
     	App.database_default
     when App.database_config; App.database_config
     else App.database_default
@@ -25,18 +25,21 @@ module RackWarden
 # 	  ### CAUTION - There may be a file conflict between this and rack::commonlogger.
 # 	  DataMapper::Logger.new(settings.log_file)  #$stdout) #App.log_path)
 # 	  App.logger.info "RW DataMapper using log_file #{App.log_file}"
-#   end
+#   end  
   
-  
-  unless (DataMapper.repository.adapter && App.database_config.to_s.downcase == 'auto' rescue nil)
-	  # DataMapper setup.
-	  # Note that DataMapper.repository.adapter will get connection info for this connection.
-	  DataMapper.setup(:default, get_database_config)
-	  App.logger.debug "RW DataMapper.setup #{DataMapper.repository.adapter.inspect}"
+  begin
+  	DataMapper.repository(App.repository_name).adapter
+  	if not App.database_config.to_s.downcase[/auto|existing/]
+  		App.repository_name = :rack_warden
+  		DataMapper.setup(App.repository_name, get_database_config)
+  	end
+  rescue DataMapper::RepositoryNotSetupError
+  	DataMapper.setup(App.repository_name, get_database_config)
   end
+  App.logger.debug "RW selected DataMapper repository #{DataMapper.repository(App.repository_name).adapter.inspect}"
   
-  # Careful! This will expose sensitive db login info to the log files.
-  App.logger.warn "RW DataMapper repository #{DataMapper.repository.adapter.options.dup.tap{|o| o.delete(:password); o.delete('password')}.inspect}"
+  # Careful! This could expose sensitive db login info in the log files.
+  App.logger.warn "RW using DataMapper repository #{DataMapper.repository(App.repository_name).adapter.options.dup.tap{|o| o.delete(:password); o.delete('password')}.inspect}"
 
 	# Load all models.
   App.logger.debug "RW requiring model files in #{File.join(File.dirname(__FILE__), 'models/*')}"
@@ -48,8 +51,9 @@ module RackWarden
   DataMapper.finalize
 
 	# DataMapper auto upgrade.
-  App.logger.warn "RW DataMapper.auto_upgrade!"
+  App.logger.warn "RW User.auto_upgrade!"
   # Update the database to match the properties of User.
-  DataMapper.auto_upgrade!
+  #DataMapper.auto_upgrade!
+  User.auto_upgrade!
   
 end # RackWarden
