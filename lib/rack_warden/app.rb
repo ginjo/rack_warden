@@ -61,11 +61,12 @@ module RackWarden
 		    mw ? mw[1]=[_log_file] : use(Rack::CommonLogger, _log_file)
 	    end
 	    
-		  if logger.level < 2
-			  ### CAUTION - There may be a file conflict between this and rack::commonlogger.
-			  DataMapper::Logger.new(_log_file)  #$stdout) #App.log_path)
-			  logger.info "RW DataMapper using log_file #{_log_file.inspect}"
-		  end
+		  #if logger.level < 2
+			  #DataMapper::Logger.new(_log_file)  #$stdout) #App.log_path)
+			  DataMapper.logger.instance_variable_set :@log, _log_file
+			  DataMapper.logger.instance_variable_set :@level, DataMapper::Logger::Levels[log_level.to_s.downcase.to_sym]
+			  # logger.info "RW DataMapper using log_file #{_log_file.inspect}"
+		  #end
 	    
 	    logger.info "RW initialized logging (level #{logger.level}) #{_log_file.inspect}"
 	  rescue
@@ -77,6 +78,7 @@ module RackWarden
       
 	  	initialize_logging
 	  	logger.warn "RW initializing RackWarden::App in process #{$0}"
+	  	logger.warn "RW running in #{environment} environment"
 	  	initialize_config_files
 	  	initialize_logging
 	  	
@@ -113,7 +115,7 @@ module RackWarden
   		  
   			# Get framework module.
   			framework_module = Frameworks::Base.select_framework(binding)
-    		logger.info "RW selected framework module #{framework_module}"
+    		#logger.info "RW selected framework module #{framework_module}"
     		
     		# Prepend views from framework_module if framework_module exists.
   			settings.overlay_settings(:views=>framework_module.views_path) if framework_module && ![settings.views, opts[:views]].flatten.include?(false)

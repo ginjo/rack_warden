@@ -1,15 +1,21 @@
 module RackWarden
   module Frameworks
+  	class << self; attr_accessor :selected_framework; end
     module Base
       
       # Module methods to be called on Base from RackWarden::App (and instance).
       class << self
+      	# attr_accessor :selected_framework
         # Select the framework of the parent app.
         def select_framework(env)
           App.logger.debug "RW framework constants: #{Frameworks.constants}"
           Frameworks.constants.dup.tap{|_constants| _constants.delete(:Base)}.each do |c|
             r = Frameworks.const_get(c).framework_selector(env) #rescue nil
-            return r if r
+            if r
+            	Frameworks.selected_framework = r
+            	App.logger.info "RW selected framework #{Frameworks.selected_framework}"
+	            return r
+            end
           end
           nil
         end

@@ -36,10 +36,15 @@ module RackWarden
   rescue DataMapper::RepositoryNotSetupError
   	DataMapper.setup(App.repository_name, get_database_config)
   end
+  
+  # Careful! This could expose sensitive db login info in the log files.
   App.logger.debug "RW selected DataMapper repository #{DataMapper.repository(App.repository_name).adapter.inspect}"
   
   # Careful! This could expose sensitive db login info in the log files.
   App.logger.warn "RW using DataMapper repository #{DataMapper.repository(App.repository_name).adapter.options.dup.tap{|o| o.delete(:password); o.delete('password')}.inspect}"
+
+	App.logger.warn "RW DataMapper logging to #{DataMapper.logger.log} (level #{DataMapper.logger.level})"
+
 
 	# Load all models.
   App.logger.debug "RW requiring model files in #{File.join(File.dirname(__FILE__), 'models/*')}"
