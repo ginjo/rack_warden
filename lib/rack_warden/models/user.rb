@@ -12,17 +12,38 @@ module RackWarden
 
     property :id, Serial, :key => true
     property :username, String, :length => 128, :unique => true, :required => true, :default => lambda {|r,v| r.instance_variable_get :@email}
-    property :email, String, :length => 128, :unique => true, :required => true #, :default => 'error'
-
-    property :password, BCryptHash
+    property :email, String, :length => 128, :unique => true, :required => true, :format=>:email_address
+    property :password, BCryptHash, :length => 8..40
     
-    # before :valid?, :set_username
-    # before :save, :set_username
+    attr_accessor :password_confirmation, :'password_required'
     
-    # def set_username
-    #   puts "SETTING USERNAME"
-    #   @username = @email unless @username
-    # end
+    
+    ###  VALIDATION  ###
+    
+		validates_confirmation_of :password, :if => :password
+		validates_with_method			:password, :method => :valid_password_elements, :if => :password
+		
+	  # Validation returns nil if valid
+		def valid_password_elements
+			unless password_element_count >= 2
+				_message = "Passwords must be minimum 8 characters in length
+				and contain at least two of the following character types: uppercase,
+				lowercase, numbers, symbols."
+				[false, _message]
+			else
+				true
+			end
+		end
+	
+		# Returns number of specified character classes found in pwd
+		def password_element_count(pwd=password, character_classes = %w[upper lower digit punct])
+			character_classes.find_all{|c| pwd.to_s[/[[:#{c}:]]/]}.size
+		rescue
+			0
+		end
+		
+		
+		###  INSTANCE  ###
 
     def authenticate(attempted_password)
       if self.password == attempted_password
@@ -36,10 +57,7 @@ module RackWarden
 	  	#options[:request].script_name[/login|new|create|logout/] ||
 	  	self.id==1
 	  end
-	  
-		# def username
-		# 	@username.downcase if @username.is_a?(String)
-		# end
+	      
     
   end
   
