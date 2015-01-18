@@ -7,6 +7,7 @@ module RackWarden
     
     def self.default_repository_name; App.repository_name; end
     
+    # DataMapper will build a user table name from the containing modules: rack_warden_users.
     storage_names[App.repository_name] = App.user_table_name if App.user_table_name
 
     property :id, Serial, :key => true

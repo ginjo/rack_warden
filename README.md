@@ -1,8 +1,8 @@
 # RackWarden
 
-RackWarden is a ruby gatekeeper mini-app providing authentication and user management for rack based apps. Protecting your entire application with only a few lines of code, RackWarden uses its own controllers, views, models, and database. Or, you can drop in your own views and layouts, specify your own database, and use your existing users table for seamless integration.
+RackWarden is a ruby gatekeeper mini-app providing authentication and user management for rack based apps. Protecting your entire application with only a few lines of code, RackWarden uses its own controllers, views, models, and database. You can also drop in your own views and layouts, specify your own database, and use your existing users table for seamless custom integration.
 
-RackWarden uses Sinatra for the mini-app, Warden for authentication, and DataMapper for database connections. It is based on the sinatra-warden-example at <https://github.com/sklise/sinatra-warden-example>.
+RackWarden is a Sinatra mini-app that uses Warden for authentication and DataMapper for database connections. It is based on the sinatra-warden-example at <https://github.com/sklise/sinatra-warden-example>.
 
 RackWarden is a work-in-progress. The gemspec, the files, the code, and the documentation can and will change over time. Follow on github for the latest updates.
 
@@ -21,12 +21,12 @@ Or install manually.
 
     $ gem install rack_warden
 
-If you are using a database other than sqlite, and you want RackWarden to use that database as well, install the corresponding DataMapper database adapter.
+If you are using a database other than sqlite, and you want RackWarden to use that database as well, install the corresponding DataMapper database adapter. The dm-sqlite-adapter is included in the RackWarden gemspec.
 
     gem 'dm-mysql-adapter'
     gem 'dm-postgres-adapter'
     
-The dm-sqlite-adapter is included in the RackWarden gemspec. See the [DataMapper](https://github.com/datamapper/dm-core/wiki/Adapters) site for more info on adapters. 
+See the [DataMapper](https://github.com/datamapper/dm-core/wiki/Adapters) site for more info on adapters. 
 
 ## Usage
 
@@ -66,9 +66,11 @@ You an also pass configuration settings to RackWarden through the ```use``` meth
 If you pass a block with the ```use``` method, the block will be evaluated in the context of the RackWarden::App class. Anything you do in that block is just as if you were writing code in the RackWarden::App class itself. While in the block, you also have access to the current instance of RackWarden::App.
 
     use RackWarden::App do |rack_warden_app_instance|
-      set :somesetting, 'some_value'
+      set :some_setting, 'some_value'
     end
     
+Note that with some frameworks, the RackWarden middleware instance will be lazy-loaded only when it is needed (usually with the first request). This is a function of the ruby framework you are using and is not under control of RackWarden. This means that some settings you pass with the ```use``` method (or block) may have 'missed the boat'. RackWarden tries to integrate these settings in lazy-loaded situations as best as it can. However, if you suspect your settings might not be taking, put your settings in the rack\_warden.yml config file. The config file will always be loaded with the RackWarden module.
+
 
 ## Configuration Options
 
@@ -77,17 +79,19 @@ Current list of settings specific to rack\_warden, with defaults.
     set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
     set :layout, :'rw_layout.html'
     set :default_route, '/'
+    set :exclude_from_return_to, 'login|new|create'
+    set :repository_name, :default
     set :database_config => nil
-    set :database_default => "sqlite3::memory:?cache=shared"
+    set :database_default =>  "sqlite3::memory:?cache=shared"
     set :recaptcha, Hash.new
     set :require_login, nil
     set :allow_public_signup, false
     set :logging, true
     set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
-    set :log_file, ($0[/rails|irb|ruby|rack/i] && development? ? $stdout : nil)
+    set :log_file, ($0[/rails|irb|ruby|rack|server/i] && development? ? $stdout : nil)
     set :log_level => ENV['RACK_WARDEN_LOG_LEVEL'] || (development? ? 'INFO' : 'WARN')
     set :logger, nil
-    set :use_common_logger, true
+    set :use_common_logger, false
     set :reset_logger, false
     set :sessions, nil # Will use parent app sessions. Pass in :key=>'something' to enable RW-specific sessions.
     set :user_table_name, nil
@@ -201,7 +205,7 @@ As a default, RackWarden will use a sqlite3 in-memory database (that starts fres
 
 #### A note about DataMapper and ActiveRecord
 
-RackWarden and DataMapper should be able to coexist in the same ruby process. Note that the database adapters for ActiveRecord are not the same as those for DataMapper. So for example, if you are using mysql, you will need the activerecord-mysql2-adapter for ActiveRecord (or mysql2 or mysql, if you're on older rails versions) and the dm-mysql-adapter for DataMapper.
+ActiveRecord and DataMapper should be able to coexist in the same ruby process. Note that the database adapters for ActiveRecord are not the same as those for DataMapper. So for example, if you are using mysql, you will need the activerecord-mysql2-adapter for ActiveRecord (or mysql2 or mysql, if you're on older rails versions) and the dm-mysql-adapter for DataMapper.
 
 
 
