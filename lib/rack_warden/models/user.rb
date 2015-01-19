@@ -13,7 +13,7 @@ module RackWarden
     property :id, Serial, :key => true
     property :username, String, :length => 128, :unique => true, :required => true, :default => lambda {|r,v| r.instance_variable_get :@email}
     property :email, String, :length => 128, :unique => true, :required => true, :format=>:email_address
-    property :password, BCryptHash, :length => 8..40
+    property :password, BCryptHash
     
     attr_accessor :password_confirmation, :'password_required'
     
@@ -21,7 +21,8 @@ module RackWarden
     ###  VALIDATION  ###
     
 		validates_confirmation_of :password, :if => :password
-		validates_with_method			:password, :method => :valid_password_elements, :if => :password
+		validates_with_method			:password_confirmation, :method => :valid_password_elements, :if => :password
+		validates_length_of				:password_confirmation, :within => 8..40
 		
 	  # Validation returns nil if valid
 		def valid_password_elements
@@ -36,7 +37,7 @@ module RackWarden
 		end
 	
 		# Returns number of specified character classes found in pwd
-		def password_element_count(pwd=password, character_classes = %w[upper lower digit punct])
+		def password_element_count(pwd=password_confirmation, character_classes = %w[upper lower digit punct])
 			character_classes.find_all{|c| pwd.to_s[/[[:#{c}:]]/]}.size
 		rescue
 			0
