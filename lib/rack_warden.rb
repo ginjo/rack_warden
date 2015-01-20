@@ -6,8 +6,9 @@ module RackWarden
 end
 
 require "sinatra/base"
-#require "sinatra/flash"
 require "rack/flash"
+#require "rack/cookies"
+require "rack/contrib"
 require 'bcrypt'
 require 'data_mapper'
 require 'warden'

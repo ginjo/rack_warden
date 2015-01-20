@@ -82,15 +82,18 @@ module RackWarden
 	  	initialize_config_files
 	  	initialize_logging
 	  	
+	    use Rack::Cookies
+	  	
   		# Setup flash if not already
   		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
 			use Rack::Flash, :accessorize=>[:rw_error, :rw_success]
-	  	
+				  	
 			include RackWarden::WardenConfig
 			include RackWarden::Routes
 			
 	    helpers RackWardenHelpers
 	    helpers UniversalHelpers
+	    
 	  end  
   
 

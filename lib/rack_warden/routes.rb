@@ -39,6 +39,7 @@ module RackWarden
 				
 				get '/auth/logout' do
 				  #warden.raw_session.inspect
+				  warden.authenticated? # Hack so warden will log out. See  https://github.com/hassox/warden/issues/76.
 				  warden.logout
 				  flash.rw_success = 'You have been logged out'
 				  redirect url(settings.default_route, false)
@@ -83,28 +84,24 @@ module RackWarden
 				end
 				
 				get '/auth/protected' do
-				  #warden.authenticate!
 				  require_login
 				  erb :'rw_protected.html', :layout=>settings.layout
 				  #wrap_with(){erb :'rw_protected.html'}
 				end
 				
 				get "/auth/dbinfo" do
-					#warden.authenticate!
 					require_authorization
 					#erb :'rw_dbinfo.html', :layout=>settings.layout
 					nested_erb :'rw_dbinfo.html', :'rw_layout_admin.html', settings.layout
 				end
 				
 				get '/auth/admin' do
-				  #warden.authenticate!
 				  require_authorization
 				  #erb :'rw_admin.html', :layout=>settings.layout
 				  nested_erb :'rw_admin.html', :'rw_layout_admin.html', settings.layout
 				end
 				
 				get '/auth/sessinfo' do
-					#warden.authenticate!
 					require_authorization
 					nested_erb :'rw_session.html', :'rw_layout_admin.html', settings.layout
 				end
