@@ -7,17 +7,17 @@ end
 
 require "sinatra/base"
 require "rack/flash"
-#require "rack/cookies"
-require "rack/contrib"
+require "rack/contrib/cookies"  #"rack/contrib/cookies" ?
 require 'bcrypt'
 require 'data_mapper'
-require 'pony'
 require 'warden'
-require 'open-uri'
 require 'yaml'
 require 'tilt/erb'  # An error somwhere suggested this be explicity required.
 require 'rack_warden/core_patches'
 
+autoload :Mail, 'mail'
+autoload :URI, 'open-uri'
+autoload :Base64, 'base64'
 
 module RackWarden
   autoload :App, 'rack_warden/app'

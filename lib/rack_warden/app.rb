@@ -27,7 +27,9 @@ module RackWarden
     set :user_table_name, nil
     set :views, File.expand_path("../views/", __FILE__) unless views
     set :initialized, false
-    set :mail_options, {:via => :test, :via_options => {:from => 'my@email.com', :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE}}
+    set :mail_options,
+    		:delivery_method => :test,
+    		:delivery_options => {:from => 'my@email.com', :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE}}
 
     
     # Load config from file, if any exist.
@@ -83,9 +85,7 @@ module RackWarden
 	  	logger.warn "RW running in #{environment} environment"
 	  	initialize_config_files
 	  	initialize_logging
-	  	
-	  	Pony.options = mail_options
-	  	
+	  		  	
 	    use Rack::Cookies
 	  	
   		# Setup flash if not already
@@ -137,9 +137,7 @@ module RackWarden
   			settings.instance_exec(self, &block) if block_given?
   			
   			settings.initialize_logging
-  			
-  			Pony.options = settings.mail_options
-  			
+  			  			
   			logger.info "RW compiled views: #{settings.views.inspect}"
     		
     		settings.set :initialized, true
