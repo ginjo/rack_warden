@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
 	spec.add_dependency "bcrypt"
   spec.add_dependency "data_mapper"
   spec.add_dependency "dm-sqlite-adapter"
+  spec.add_dependency "pony"
   spec.add_dependency "rack-contrib"
   spec.add_dependency "rack-flash3"
   spec.add_dependency "sinatra"

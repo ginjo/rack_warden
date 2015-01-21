@@ -23,7 +23,8 @@ module RackWarden
     
     attr_accessor :password, :password_confirmation
 		
-		before :create, :make_activation_code	    
+		before :create, :make_activation_code
+		after :create, :send_activation
     
     ###  VALIDATION  ###
     
@@ -76,10 +77,15 @@ module RackWarden
 	    end
 	  end
 
-		# mod from wiki
 	  def self.find_for_forget(email) #, question, answer)
 	    first(:conditions => ['email = ? AND (activation_code IS NOT NULL or activated_at IS NOT NULL)', email])
 	    #find :first, :conditions=>{:email=>email, :security_question=>question, :security_answer=>answer}
+	  end
+	  
+	  def self.find_for_activate(code)
+	  	decoded = Base64.decode64(URI.decode(code))
+	  	App.logger.debug "RW find_for_activate with #{decoded}"
+	    User.first :activation_code => "#{decoded}"
 	  end
 
 		
@@ -132,6 +138,19 @@ module RackWarden
 	
 	  def make_activation_code
 	    self.activation_code = (Time.now.to_s.split(//).sort_by {rand}.join)
+	    App.logger.debug "RW make_activation_code result #{activation_code}"
+	    activation_code
+	  end
+	  
+	  def send_activation
+	  	# See this for more info on using templates here http://stackoverflow.com/questions/5446283/how-to-use-sinatras-haml-helper-inside-a-model.
+	  	tmpl = Tilt.new(File.expand_path("../../views/rw_activation.email.erb", __FILE__))
+			body = tmpl.render(Object.new, :user=>self)
+			Pony.mail({
+			  :to => email,
+			  :subject => "Signup confirmation",
+			  :body => body
+			})
 	  end
 
 	  

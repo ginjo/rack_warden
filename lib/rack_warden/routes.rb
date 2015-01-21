@@ -68,6 +68,20 @@ module RackWarden
 				  end
 				end
 				
+				get '/auth/activate/:code' do
+					Halt unless params[:code]
+					# TODO: move this logic into User. This should only be 'user = User.activate(params[:code])'
+					user = User.find_for_activate(params[:code])
+					if user.is_a? User #&& user.activated_at == nil
+						user.activate
+						# warden.set_user(user) # TODO: Make this optional with a global setting.
+						flash[:success] = "Account activated"
+						redirect "/auth/login"
+					else
+						halt "Could not activate"
+					end
+				end
+				
 				post '/auth/unauthenticated' do
 					# I had to remove the condition, since it was not updating return path when it should have.
 				  session[:return_to] = env['warden.options'][:attempted_path] if !request.xhr? && !env['warden.options'][:attempted_path][Regexp.new(settings.exclude_from_return_to)]

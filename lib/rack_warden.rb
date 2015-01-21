@@ -11,6 +11,7 @@ require "rack/flash"
 require "rack/contrib"
 require 'bcrypt'
 require 'data_mapper'
+require 'pony'
 require 'warden'
 require 'open-uri'
 require 'yaml'
