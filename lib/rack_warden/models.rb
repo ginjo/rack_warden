@@ -22,12 +22,7 @@ module RackWarden
     return rslt
   end
   
-#   if App.logger.level.to_s[/DEBUG|INFO/]
-# 	  ### CAUTION - There may be a file conflict between this and rack::commonlogger.
-# 	  DataMapper::Logger.new(settings.log_file)  #$stdout) #App.log_path)
-# 	  App.logger.info "RW DataMapper using log_file #{App.log_file}"
-#   end  
-  
+  # Select existing datamapper repository, create a new one, or create a default.
   begin
   	DataMapper.repository(App.repository_name).adapter
   	if not App.database_config.to_s.downcase[/auto|existing/]

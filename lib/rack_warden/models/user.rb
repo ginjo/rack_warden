@@ -144,11 +144,13 @@ module RackWarden
 	  
 	  def send_activation
 	  	# See this for more info on using templates here http://stackoverflow.com/questions/5446283/how-to-use-sinatras-haml-helper-inside-a-model.
-	  	tmpl = Tilt.new(File.expand_path("../../views/rw_activation.email.erb", __FILE__))
+	  	#tmpl = Tilt.new(File.expand_path("../../views/rw_activation.email.erb", __FILE__))
+	  	#_body = Object.new.extend(Sinatra::Templates).find_template(App.views, 'rw_activation.email.erb', ERB){|path| Tilt.new(path).render(Object.new, :user=>self)}
+			tmpl = App.views.collect {|v| Tilt.new(File.join(v, 'rw_activation.email.erb')) rescue nil}.compact[0]
 			RackWarden::Mail.new({
-			  :to			=>	email,
+			  :to				=>	email,
 			  :subject	=>	"Signup confirmation",
-			  :body		=>	tmpl.render(Object.new, :user=>self)
+			  :body			=>	tmpl.render(Object.new, :user=>self)
 			}).deliver!
 	  end
 

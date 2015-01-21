@@ -46,39 +46,42 @@ module RackWarden
 				end
 				
 				get '/auth/new' do
-				  halt 403 unless settings.allow_public_signup || !(User.count > 0) || authorized?
+				  halt(403, "Not authorized", :layout=>settings.layout) unless settings.allow_public_signup || !(User.count > 0) || authorized?
 				  erb :'rw_new_user.html', :layout=>settings.layout, :locals=>{:recaptcha_sitekey=>settings.recaptcha['sitekey']}
 				end
 				
 				post '/auth/create' do
 				  verify_recaptcha if settings.recaptcha[:secret]
-				  Halt "Could not create account", :layout=>settings.layout unless params[:user]
+				  Halt("Could not create account", :layout=>settings.layout) unless params[:user]
 				  params[:user].delete_if {|k,v| v.nil? || v==''}
 				  @user = User.new(params['user'])
 				  if @user.save
-				    warden.set_user(@user)
+				    warden.set_user(@user) if settings.login_on_create
 				  	flash.rw_success = warden.message || "Account created"
 				  	App.logger.info "RW /auth/create succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"
 				    #redirect session[:return_to] || url(settings.default_route, false)
-				    return_to
+				    return_to (logged_in? ? '/auth' : '/auth/login')
 				  else
 				  	flash.rw_error = "#{warden.message} => #{@user.errors.entries.join('. ')}"
-				  	App.logger.info "RW /auth/create errors for '#{user.username rescue nil}' #{@user.errors.entries}"
+				  	App.logger.info "RW /auth/create failed for '#{@user.username rescue nil}' #{@user.errors.entries}"
 				  	redirect back #url('/auth/new', false)
 				  end
 				end
 				
 				get '/auth/activate/:code' do
-					Halt unless params[:code]
+					redirect settings.default_route unless params[:code]
 					# TODO: move this logic into User. This should only be 'user = User.activate(params[:code])'
-					user = User.find_for_activate(params[:code])
-					if user.is_a? User #&& user.activated_at == nil
-						user.activate
-						# warden.set_user(user) # TODO: Make this optional with a global setting.
-						flash[:success] = "Account activated"
-						redirect "/auth/login"
+					@user = User.find_for_activate(params[:code])
+					if @user.is_a? User #&& user.activated_at == nil
+						@user.activate
+						warden.set_user(@user) if settings.login_on_activate
+						flash.rw_success = "Account activated"
+						App.logger.info "RW /auth/activate succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"
+						#redirect "/auth/login"
+						return_to (logged_in? ? '/auth' : '/auth/login')
 					else
-						halt "Could not activate"
+						App.logger.info "RW /auth/activate failed for '#{@user.username rescue nil}' #{@user.errors.entries}"
+						halt "Could not activate", :layout=>settings.layout
 					end
 				end
 				

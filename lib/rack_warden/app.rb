@@ -9,9 +9,9 @@ module RackWarden
     set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
     set :layout, :'rw_layout.html'
     set :default_route, '/'
-    set :exclude_from_return_to, 'login|new|create'
+    set :exclude_from_return_to, 'login|logout|new|create'
     set :repository_name, :default
-    set :database_config => nil  #, "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
+    set :database_config => nil
     set :database_default =>  "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
     set :recaptcha, Hash.new
     set :require_login, nil
@@ -21,15 +21,17 @@ module RackWarden
     set :log_file, ($0[/rails|irb|ruby|rack|server/i] && development? ? $stdout : nil)
     set :log_level => ENV['RACK_WARDEN_LOG_LEVEL'] || (development? ? 'INFO' : 'WARN')
     set :logger, nil
-    set :use_common_logger, false #true
+    set :use_common_logger, false
     set :reset_logger, false
     set :sessions, nil # Will use parent app sessions. Pass in :key=>'something' to enable RW-specific sessions.
-    set :user_table_name, nil
+    set :user_table_name, 'rack_warden_users'
     set :views, File.expand_path("../views/", __FILE__) unless views
     set :initialized, false
+    set :login_on_create, true
+    set :login_on_activate, false
     set :mail_options,
     		:delivery_method => :test,
-    		:delivery_options => {:from => 'my@email.com', :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE}}
+    		:delivery_options => {:from => 'my@email.com', :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE}
 
     
     # Load config from file, if any exist.
