@@ -12,7 +12,7 @@ module RackWarden
     set :exclude_from_return_to, 'login|new|create'
     set :repository_name, :default
     set :database_config => nil  #, "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
-    set :database_default =>  "sqlite3::memory:?cache=shared"   #"sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"  #{:adapter=>"in_memory"}
+    set :database_default =>  "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
     set :recaptcha, Hash.new
     set :require_login, nil
     set :allow_public_signup, false
@@ -27,7 +27,7 @@ module RackWarden
     set :user_table_name, nil
     set :views, File.expand_path("../views/", __FILE__) unless views
     set :initialized, false
-    set :mail_options, nil   #{:via => :smtp, :via_options => {:openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE}}
+    set :mail_options, {:via => :test, :via_options => {:from => 'my@email.com', :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE}}
 
     
     # Load config from file, if any exist.

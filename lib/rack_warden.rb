@@ -23,6 +23,7 @@ module RackWarden
   autoload :App, 'rack_warden/app'
   autoload :User, "rack_warden/models"
   autoload :Pref, "rack_warden/models"
+  autoload :Mail, "rack_warden/mail"
   autoload :Routes, "rack_warden/routes"
   autoload :VERSION, "rack_warden/version"
   autoload :WardenConfig, "rack_warden/warden"

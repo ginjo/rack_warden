@@ -1,1 +1,3 @@
-Activate '<%=user.username%>' with this link http://localhost:4567/auth/activate/<%=(URI.encode(Base64.encode64 user.activation_code))%>
+Activate your new account with this link
+
+http://localhost:4567/auth/activate/<%=(URI.encode(Base64.encode64 user.activation_code))%>

@@ -5,6 +5,7 @@ module RackWarden
   def self.get_database_config
   	#App.logger.debug ActiveRecord::Base.configurations[(RackWarden::App.environment || :development).to_s].to_yaml
     conf = case
+    when App.database_config.to_s.downcase == 'memory'; "sqlite3::memory:?cache=shared"
     when App.database_config.to_s.downcase == 'file'; "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
     when App.database_config.to_s.downcase == 'auto';
 	    (ActiveRecord::Base.connection_config rescue nil) ||
