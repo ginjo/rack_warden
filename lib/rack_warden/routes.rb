@@ -80,7 +80,7 @@ module RackWarden
 						#redirect "/auth/login"
 						return_to (logged_in? ? '/auth' : '/auth/login')
 					else
-						App.logger.info "RW /auth/activate failed for '#{@user.username rescue nil}' #{$!}"
+						App.logger.info "RW /auth/activate failed for '#{@user}' with errors: #{$!}"
 						halt "Could not activate", :layout=>settings.layout
 					end
 				end
