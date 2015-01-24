@@ -188,7 +188,7 @@ Remember that RackWarden is Sinatra, and any templates you pass must use Sinatra
 
 ### Database
 
-As a default, RackWarden will use a sqlite3 in-memory database (that starts fresh each time you boot your app). To use the database specified in your project, just pass ```:auto``` to the ```:database_config``` setting. Pass ```:file``` to set up a sqlite3 database in your app's working directory. Or pass your own custom database specification (a url or hash). If you use a database other than sqlite3, you will need to include the respective DataMapper extension gem in your Gemfile or in your manually installed gem list. For MySQL, use dm-mysql-adapter, for Postgres use dm-postgres-adapter. See the DataMapper site for more info on database adapters.
+As a default, RackWarden will use a sqlite3 database created in your app's root. To use the database specified in your project, just pass ```:auto``` to the ```:database_config``` setting. Pass ```:file``` to set up a sqlite3 database in your app's working directory. Or pass your own custom database specification (a url or hash). If you use a database other than sqlite3, you will need to include the respective DataMapper extension gem in your Gemfile or in your manually installed gem list. For MySQL, use dm-mysql-adapter, for Postgres use dm-postgres-adapter. See the DataMapper site for more info on database adapters.
     
     # Database specification as a url
     database_config: 'sqlite3:///path/to/my/database.sqlite3.db'

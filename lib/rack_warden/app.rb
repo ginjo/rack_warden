@@ -100,7 +100,24 @@ module RackWarden
 	    helpers RackWardenHelpers
 	    helpers UniversalHelpers
 	    
-	  end  
+	  end
+	  
+	  # Creates uri-friendly codes/keys/hashes from raw unfriendly strings (like BCrypt hashes). 
+	  def self.uri_encode(string)
+	  	URI.encode(Base64.encode64(string))
+	  end
+	  
+	  def self.uri_decode(string)
+	  	Base64.decode64(URI.decode(string))
+	  end
+	  
+	  # Generic template rendering. Does not have automatic access to 'controller' environment.
+	  # Pass 'object' to be the context of rendered template.
+  	# See this for more info on using templates here http://stackoverflow.com/questions/5446283/how-to-use-sinatras-haml-helper-inside-a-model.
+	  def self.render_template(template_name, locals_hash={}, object=self )
+		  tmpl = settings.views.collect {|v| Tilt.new(File.join(v, template_name)) rescue nil}.compact[0]
+		  tmpl.render(object, locals_hash)
+		end
   
 
     # WBR - This will receive params and a block from the parent "use" statement.
