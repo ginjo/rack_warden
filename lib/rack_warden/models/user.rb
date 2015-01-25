@@ -13,7 +13,7 @@ module RackWarden
     property :id, Serial, :key => true
     property :username, String, :length => 128, :unique => true, :required => true, :default => lambda {|r,v| r.instance_variable_get :@email}
     property :email, String, :length => 128, :unique => true, :required => true, :format=>:email_address
-    property :encrypted_password, BCryptHash, :writer => :protected, :default => lambda {|r,v| r.instance_variable_get :@password}
+    property :encrypted_password, BCryptHash, :writer => :protected, :default => lambda {|r,v| BCrypt::Password.create(r.instance_variable_get :@password)}
     property :remember_token, BCryptHash
     property :remember_token_expires_at, EpochTime
     property :activated_at, EpochTime
