@@ -6,6 +6,7 @@ module RackWarden
 end
 
 require "sinatra/base"
+require "sinatra/contrib"
 require "rack/flash"
 require "rack/contrib/cookies"  #"rack/contrib/cookies" ?
 require 'bcrypt'

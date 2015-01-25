@@ -5,6 +5,9 @@ module RackWarden
 			
 				App.logger.debug "RW loading routes"
 			
+				get "/auth/test_route" do
+					respond_with :'rw_protected.html'
+				end
 			
 				get "/auth/is_running" do
 					"YES"
@@ -22,7 +25,7 @@ module RackWarden
 				
 				get '/auth/login' do
 				  if User.count > 0
-				    erb :'rw_login.html', :layout=>settings.layout
+				    respond_with :'rw_login.html', :layout=>settings.layout
 				  else
 				    flash.rw_error = warden.message || "Please create an admin account"
 				    redirect url('/auth/new', false)
@@ -46,7 +49,7 @@ module RackWarden
 				end
 				
 				get '/auth/new' do
-				  halt(403, "Not authorized", :layout=>settings.layout) unless settings.allow_public_signup || !(User.count > 0) || authorized?
+				  halt(403, "Not authorized") unless settings.allow_public_signup || !(User.count > 0) || authorized?
 				  erb :'rw_new_user.html', :layout=>settings.layout, :locals=>{:recaptcha_sitekey=>settings.recaptcha['sitekey']}
 				end
 				

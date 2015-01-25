@@ -89,6 +89,7 @@ module RackWarden
 	  	initialize_logging
 	  		  	
 	    use Rack::Cookies
+	    register Sinatra::RespondWith
 	  	
   		# Setup flash if not already
   		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
