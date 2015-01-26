@@ -93,7 +93,7 @@ Current list of settings specific to rack\_warden, with defaults.
     set :logger, nil
     set :use_common_logger, false
     set :reset_logger, false
-    set :sessions, nil # Will use parent app sessions. Pass in :key=>'something' to enable RW-specific sessions.
+    set :sessions, true # Will use parent app sessions.
     set :user_table_name, nil
     set :views, File.expand_path("../views/", __FILE__) unless views
 

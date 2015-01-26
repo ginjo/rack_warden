@@ -3,6 +3,7 @@ module RackWarden
 		def self.included(base)
 			base.instance_eval do
 			
+				# This will break everything.
 				#respond_to :erb, :haml, :xml, :html
 			
 				App.logger.debug "RW loading routes"

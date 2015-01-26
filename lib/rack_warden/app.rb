@@ -23,7 +23,7 @@ module RackWarden
     set :logger, nil
     set :use_common_logger, false
     set :reset_logger, false
-    set :sessions, true # Will use parent app sessions. Pass in :key=>'something' to enable RW-specific sessions.
+    set :sessions, true # Will use parent app sessions. Pass in :key=>'something' to enable RW-specific sessions (maybe).
     set :user_table_name, 'rack_warden_users'
     set :views, File.expand_path("../views/", __FILE__) unless views
     set :initialized, false
@@ -88,7 +88,7 @@ module RackWarden
 	  	initialize_config_files
 	  	initialize_logging
 	  		  	
-	    #use Rack::Cookies
+	    use Rack::Cookies
 	    register Sinatra::RespondWith
 	  	
   		# Setup flash if not already

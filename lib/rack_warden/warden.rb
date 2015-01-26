@@ -75,7 +75,7 @@ module RackWarden
 		      		App.logger.warn "RW user logged in with remember_me token '#{user.username}'"
 		      	else
 		          #fail!("Could not login with remember_me token")
-		          App.logger.warn "RW user failed remember_me token login '#{env['rack.request.cookie_hash']['rack_warden_remember_me']}'"
+		          App.logger.info "RW user failed remember_me token login '#{env['rack.request.cookie_hash']['rack_warden_remember_me']}'"
 		          nil	        	
 		        end
 		      end # authenticate!
@@ -99,9 +99,11 @@ module RackWarden
 					App.logger.debug "RW after_authentication callback - remember_token cookie: #{auth.env['rack.request.cookie_hash']['rack_warden_remember_me']}"
 	      	if user.is_a?(User) && user.remember_token
 	      		user.remember_me
-				  	#auth.env['rack.cookies']['rack_warden_remember_me'] = { :value => user.remember_token , :expires => user.remember_token_expires_at }   #user.remember_me # sets its remember_token attribute to some large random value and returns the value
-					
-						auth.response.set_cookie 'rack_warden_remember_me', :value => user.remember_token , :expires => user.remember_token_expires_at
+						
+						# We have no path to response object here :(
+						#auth.response.set_cookie 'rack_warden_remember_me', :value => user.remember_token , :expires => user.remember_token_expires_at
+						# So we have to do this
+				  	auth.env['rack.cookies']['rack_warden_remember_me'] = { :value => user.remember_token , :expires => user.remember_token_expires_at }   #user.remember_me # sets its remember_token attribute to some large random value and returns the value
 					end
 				end
 				
@@ -110,8 +112,10 @@ module RackWarden
 					App.logger.debug "RW before_logout callback - auth: #{auth.instance_variables}"
 					App.logger.debug "RW before_logout callback - opts: #{opts.inspect}"
 				 	App.logger.debug "RW before_logout callback - remember_token cookie: #{auth.env['rack.request.cookie_hash']['rack_warden_remember_me']}"
-				  #auth.env['rack.cookies']['rack_warden_remember_me'] = nil
-				  auth.response.set_cookie 'rack_warden_remember_me', nil
+				  
+				  #auth.response.set_cookie 'rack_warden_remember_me', nil
+				  auth.env['rack.cookies']['rack_warden_remember_me'] = nil
+
 				  user.forget_me
 				end
 				
