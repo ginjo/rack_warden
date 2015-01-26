@@ -1,7 +1,8 @@
 module RackWarden
 	class Mail < ::Mail::Message
 		def initialize(*args)
-		
+			App.logger.debug "RW creating new mail message with args: #{args.inspect}"
+			
 			mail_options = App.mail_options.dup
 			
 			options = args.last.is_a?(Hash) ? args.pop : {}

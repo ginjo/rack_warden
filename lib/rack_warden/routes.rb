@@ -30,7 +30,7 @@ module RackWarden
 				
 				get '/auth/login' do
 				  if User.count > 0
-				    respond_with :'rw_login', :layout=>settings.layout
+				    erb :'rw_login.html', :layout=>settings.layout
 				  else
 				    flash.rw_error = warden.message || "Please create an admin account"
 				    redirect url('/auth/new', false)
