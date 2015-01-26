@@ -8,7 +8,8 @@ end
 require "sinatra/base"
 require "sinatra/contrib"
 require "rack/flash"
-require "rack/contrib/cookies"  #"rack/contrib/cookies" ?
+# Don't need this, since sinatra sessions already sets up cookies
+#require "rack/contrib/cookies"  #"rack/contrib/cookies" ?
 require 'bcrypt'
 require 'data_mapper'
 require 'warden'

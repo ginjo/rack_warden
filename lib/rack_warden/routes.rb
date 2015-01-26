@@ -3,10 +3,15 @@ module RackWarden
 		def self.included(base)
 			base.instance_eval do
 			
+				#respond_to :erb, :haml, :xml, :html
+			
 				App.logger.debug "RW loading routes"
 			
-				get "/auth/test_route" do
-					respond_with :'rw_protected.html'
+				get "/auth/testing" do
+					settings.logger.debug "RW /auth/testing request.cookies" + request.cookies.to_yaml
+					settings.logger.debug "RW /auth/testing response" + response.to_yaml
+					response.set_cookie '_auth_testing_cookie', :value=>"Hi Im a Cookie", :expires=>Time.now+60*60, :path=>'/'
+					respond_with :'rw_protected'
 				end
 			
 				get "/auth/is_running" do
@@ -25,7 +30,7 @@ module RackWarden
 				
 				get '/auth/login' do
 				  if User.count > 0
-				    respond_with :'rw_login.html', :layout=>settings.layout
+				    respond_with :'rw_login', :layout=>settings.layout
 				  else
 				    flash.rw_error = warden.message || "Please create an admin account"
 				    redirect url('/auth/new', false)
@@ -60,6 +65,7 @@ module RackWarden
 				  @user = User.new(params['user'])
 				  if @user.save
 				    warden.set_user(@user) if settings.login_on_create
+				    @user.activate if settings.mail_options[:delivery_method] == :test
 				  	flash.rw_success = warden.message || "Account created"
 				  	App.logger.info "RW /auth/create succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"
 				    #redirect session[:return_to] || url(settings.default_route, false)

@@ -1,12 +1,14 @@
 module RackWarden
 	class Mail < ::Mail::Message
 		def initialize(*args)
+		
+			mail_options = App.mail_options.dup
 			
 			options = args.last.is_a?(Hash) ? args.pop : {}
-			super( *[args, App.mail_options[:delivery_options].dup.merge(options)].flatten )
+			super( *[args, mail_options[:delivery_options].merge(options)].flatten )
 			
-			_delivery_method = App.mail_options.delete(:via) || App.mail_options.delete(:delivery_method) || :test
-			_delivery_options = App.mail_options.delete(:via_options) || App.mail_options.delete(:delivery_options) || {}
+			_delivery_method = mail_options.delete(:via) || mail_options.delete(:delivery_method) || :test
+			_delivery_options = mail_options.delete(:via_options) || mail_options.delete(:delivery_options) || {:from=>'test@localhost'}
 			
 			if _delivery_method.is_a?(Array)
 				delivery_method *_delivery_method
