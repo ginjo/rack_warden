@@ -7,17 +7,7 @@ module RackWarden
 				#respond_to :erb, :haml, :xml, :html
 			
 				App.logger.debug "RW loading routes"
-			
-				get "/auth/testing" do
-					settings.logger.debug "RW /auth/testing request.cookies" + request.cookies.to_yaml
-					settings.logger.debug "RW /auth/testing response" + response.to_yaml
-					response.set_cookie '_auth_testing_cookie', :value=>"Hi Im a Cookie", :expires=>Time.now+60*60, :path=>'/'
-					respond_with :'rw_protected'
-				end
-			
-				get "/auth/is_running" do
-					"YES"
-				end
+
 
 				if defined? ::RACK_WARDEN_STANDALONE
 					get '/?' do
@@ -70,7 +60,7 @@ module RackWarden
 				  	flash.rw_success = warden.message || "Account created"
 				  	App.logger.info "RW /auth/create succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"
 				    #redirect session[:return_to] || url(settings.default_route, false)
-				    return_to (logged_in? ? '/auth' : '/auth/login')
+				    return_to url((logged_in? ? '/auth' : '/auth/login'), false)
 				  else
 				  	flash.rw_error = "#{warden.message} => #{@user.errors.entries.join('. ')}"
 				  	App.logger.info "RW /auth/create failed for '#{@user.username rescue nil}' #{@user.errors.entries}"
@@ -88,10 +78,11 @@ module RackWarden
 						flash.rw_success = "Account activated"
 						App.logger.info "RW /auth/activate succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"
 						#redirect "/auth/login"
-						return_to (logged_in? ? '/auth' : '/auth/login')
+						return_to url((logged_in? ? '/auth' : '/auth/login'), false)
 					else
 						App.logger.info "RW /auth/activate failed for '#{@user}' with errors: #{$!}"
-						halt "Could not activate", :layout=>settings.layout
+						#halt "Could not activate", :layout=>settings.layout
+						redirect_error "The activation code was not valid"
 					end
 				end
 				
@@ -110,6 +101,24 @@ module RackWarden
 				  # end
 				end
 				
+				get "/auth/error" do
+					erb :'rw_error.html', :layout => settings.layout
+				end				
+				
+				
+				
+			
+				get "/auth/testing" do
+					settings.logger.debug "RW /auth/testing request.cookies" + request.cookies.to_yaml
+					settings.logger.debug "RW /auth/testing response" + response.to_yaml
+					response.set_cookie '_auth_testing_cookie', :value=>"Hi Im a Cookie", :expires=>Time.now+60, :path=>'/'
+					respond_with :'rw_protected'
+				end
+			
+				get "/auth/is_running" do
+					"YES"
+				end
+								
 				get '/auth/protected' do
 				  require_login
 				  erb :'rw_protected.html', :layout=>settings.layout

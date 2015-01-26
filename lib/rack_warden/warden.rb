@@ -71,10 +71,8 @@ module RackWarden
 		      	if user.is_a?(User) && !user.remember_token.to_s.empty?
 							success!(user)
 		      		user.remember_me
-		      		###cookies['rack_warden_remember_me'] = { :value => user.remember_token , :expires => user.remember_token_expires_at }
 		      		App.logger.warn "RW user logged in with remember_me token '#{user.username}'"
 		      	else
-		          #fail!("Could not login with remember_me token")
 		          App.logger.info "RW user failed remember_me token login '#{env['rack.request.cookie_hash']['rack_warden_remember_me']}'"
 		          nil	        	
 		        end

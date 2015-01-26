@@ -33,7 +33,7 @@ module RackWarden
 			unless authorized?(options)
 				if authenticate_on_fail
 					flash[:rw_error] = ("Please login to continiue")
-					redirect "/auth/login"
+					redirect url("/auth/login", false)
 				else
 					flash[:rw_error] = ("You are not authorized to do that")
 					redirect back
@@ -66,16 +66,10 @@ module RackWarden
 	
 	  # WBR - override. This passes block to be rendered to first template that matches.
 		def find_template(views, name, engine, &block)
-			App.logger.debug "RW find_template views: #{views}"
-			App.logger.debug "RW find_template name: #{name}"
-			App.logger.debug "RW find_template engine: #{engine}"
-			App.logger.debug "RW find_template block: #{block}"
+			App.logger.debug "RW find_template name: #{name}, engine: #{engine}, block: #{block}, views: #{views}"
 	    Array(views).each { |v| super(v, name, engine, &block) }
 	  end
-	
-	
-	  # TODO: Shouldn't these be in warden block above? But they don't work there for some reason.
-	
+		
 	  def valid_user_input?
 	    params['user'] && params['user']['email'] && params['user']['password']
 	  end
@@ -92,7 +86,7 @@ module RackWarden
 	  end
 	
 	  def default_page
-			nested_erb :'rw_index.html', :'rw_layout_admin.html', settings.layout    #settings.layout
+			nested_erb :'rw_index.html', :'rw_layout_admin.html', settings.layout
 	  end
 		
 	  def nested_erb(*list)
@@ -106,6 +100,11 @@ module RackWarden
 	  
 	  def return_to(fallback=settings.default_route)
 	  	redirect session[:return_to] || url(fallback, false)
+	  end
+	  
+	  def redirect_error(message="Error")
+	  	flash.rw_error = message
+			redirect url("/auth/error", false)
 	  end
 	  
 	  def account_bar
