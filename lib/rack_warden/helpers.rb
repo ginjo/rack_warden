@@ -43,12 +43,24 @@ module RackWarden
 
 		# Returns the current rack_warden app instance stored in env.
 	  def rack_warden
-	  	App.logger.debug "RW rack_warden method self #{request.env['rack_warden_instance']}"
-	  	request.env['rack_warden_instance'].tap {|rw| rw.request = request}
+	  	App.logger.debug "RW rack_warden helper method self #{self}"
+	  	App.logger.debug "RW rack_warden helper method request.env['rack_warden_instance'] #{request.env['rack_warden_instance']}"
+	  	request.env['rack_warden_instance'] #.tap {|rw| rw.request = request}    #request}
 	  end
 	  
 	  def account_widget
 	  	rack_warden.erb :'rw_account_widget.html'
+	  end
+	  
+	  def flash_widget
+	  	#return "flash_widget DISABLED"
+	  	App.logger.debug "RW flash_widget self.flash #{self.flash}"
+	  	App.logger.debug "RW flash_widget rack.flash #{env['x-rack.flash']}"
+	  	App.logger.debug "RW flash_widget.rack_warden.flash #{rack_warden.request.env['x-rack.flash']}"
+	  	#rack_warden.settings.render_template :'rw_flash_widget.html'
+	  	#"FLASH WIDGET DISABLED"
+	  	#flash.rw_test
+	  	rack_warden.erb :'rw_flash_widget.html'
 	  end
 	
 	end # UniversalHelpers
@@ -66,18 +78,33 @@ module RackWarden
 	
 	  # WBR - override. This passes block to be rendered to first template that matches.
 		def find_template(views, name, engine, &block)
-			App.logger.debug "RW find_template name: #{name}, engine: #{engine}, block: #{block}, views: #{views}"
+			logger.debug "RW find_template name: #{name}, engine: #{engine}, block: #{block}, views: #{views}"
 	    Array(views).each { |v| super(v, name, engine, &block) }
+	  end
+	  
+	  # Because accessing app instance thru env seems to loose flash access.
+	  def flash
+	  	request.env['x-rack.flash']
 	  end
 		
 	  def valid_user_input?
 	    params['user'] && params['user']['email'] && params['user']['password']
 	  end
+
+		def rw_prefix(_route='')
+			settings.rw_prefix.to_s + _route.to_s
+		end
+		
+		def url_for(_url, _full_uri=false)
+			url(rw_prefix(_url), _full_uri)
+		end
+
+
 	
 		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])
 			secret = settings.recaptcha[:secret]
 	 		_recaptcha = ActiveSupport::JSON.decode(open("https://www.google.com/recaptcha/api/siteverify?secret=#{secret}&response=#{response}&remoteip=#{ip}").read)
-	    App.logger.warn "RW recaptcha #{_recaptcha.inspect}"
+	    logger.warn "RW recaptcha #{_recaptcha.inspect}"
 	    unless _recaptcha['success']
 	    	flash.rw_error = "Please confirm you are human"
 	    	redirect back unless skip_redirect

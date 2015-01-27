@@ -18,22 +18,10 @@
     <p>
 			<a href="<%=url('/', false)%>">Home</a> |
 			<a href="<%=url('/auth/protected', false)%>">Test Protected Page</a> |
-			<!-- <a href="<%#=url('/auth/logout', false)%>">Log Out</a> -->
 			<%= erb :'rw_account_widget.html' %>
 		</p>
 
-		<% if defined? :flash %>
-	    <% if flash.rw_success %>
-		    <div style="color:green;">
-		      <%= flash.rw_success %>
-		    </div>
-	    <% end %>
-	    <% if flash.rw_error %>
-		    <div style="color:red;">
-		      <%= flash.rw_error %>
-		    </div>
-	    <% end %>
-	   <% end %>
+		<%= erb :'rw_flash_widget.html' %>
 
 		<div id="content">
 	    <%= yield if block_given? %>

@@ -29,6 +29,7 @@ module RackWarden
     set :initialized, false
     set :login_on_create, true
     set :login_on_activate, false
+    set :rw_prefix, '/auth'
     set :mail_options,
     		:delivery_method => :test,
     		:delivery_options => {:from => 'my@email.com'} #, :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE
@@ -90,10 +91,11 @@ module RackWarden
 	  		  	
 	    use Rack::Cookies
 	    register Sinatra::RespondWith
+	    register Sinatra::Namespace
 	  	
   		# Setup flash if not already
   		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
-			use Rack::Flash, :accessorize=>[:rw_error, :rw_success]
+			use Rack::Flash, :accessorize=>[:rw_error, :rw_success, :rw_test]
 				  	
 			include RackWarden::WardenConfig
 			include RackWarden::Routes
@@ -117,7 +119,12 @@ module RackWarden
   	# See this for more info on using templates here http://stackoverflow.com/questions/5446283/how-to-use-sinatras-haml-helper-inside-a-model.
 	  def self.render_template(template_name, locals_hash={}, object=self )
 		  tmpl = settings.views.collect {|v| Tilt.new(File.join(v, template_name)) rescue nil}.compact[0]
-		  tmpl.render(object, locals_hash)
+		  if tmpl
+		  	tmpl.render(object, locals_hash)
+		  else
+			  App.logger.info "RW self.render_template found no templates to render" 
+			  nil
+			end
 		end
   
 
@@ -171,6 +178,8 @@ module RackWarden
 			#logger.debug "RW request env " + env.to_yaml
 			#logger.debug "RW env['rack.request.cookie_hash'] " + env['rack.request.cookie_hash'].to_yaml
 		  # Set this now, so you can access the rw app instance from the endpoint app.
+		  logger.debug "RW app.call storing app instance in env['rack_warden_instance'] #{self}"
+		  self.request= Rack::Request.new(env)
 		  env['rack_warden_instance'] = self
 		  # Send to super, then build & process response.
 			# resp = Rack::Response.new *super(env).tap{|e| e.unshift e.pop}
