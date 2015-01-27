@@ -37,7 +37,7 @@ module RackWarden
 			unless authorized?(options)
 				if authenticate_on_fail
 					flash[:rw_error] = ("Please login to continiue")
-					redirect url("/auth/login", false)
+					redirect url_for("/login")
 				else
 					flash[:rw_error] = ("You are not authorized to do that")
 					redirect back
@@ -130,12 +130,12 @@ module RackWarden
 	  end
 	  
 	  def return_to(fallback=settings.default_route)
-	  	redirect session[:return_to] || url(fallback, false)
+	  	redirect session[:return_to] || url_for(fallback)
 	  end
 	  
 	  def redirect_error(message="Error")
 	  	flash.rw_error = message
-			redirect url("/auth/error", false)
+			redirect url_for("/error")
 	  end
 	  
 	  def account_bar

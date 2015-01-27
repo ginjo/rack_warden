@@ -13,18 +13,23 @@
     <script src='https://www.google.com/recaptcha/api.js'></script>
   </head>
   <body>
+  	<br>
     <h1>Rack Warden</h1>
 
     <p>
-			<a href="<%=url('/', false)%>">Home</a> |
-			<a href="<%=url('/auth/protected', false)%>">Test Protected Page</a> |
+			<a href="<%=url('/', false)%>">Main Site</a> |
+			<a href="<%=url_for('/protected')%>">Test Protected Page</a> |
 			<%= erb :'rw_account_widget.html' %>
 		</p>
 
 		<%= erb :'rw_flash_widget.html' %>
 
 		<div id="content">
+			<br>
+			<br>
 	    <%= yield if block_given? %>
+	    <br>
+	    <br>
 		</div>
   </body>
 </html>
