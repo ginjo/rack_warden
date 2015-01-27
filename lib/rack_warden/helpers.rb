@@ -12,6 +12,10 @@ module RackWarden
 		def warden
 	    request.env['warden']
 		end
+		
+		def warden_options
+	    request.env['warden.options']
+		end
 	
 		def current_user
 	    warden.authenticated? && warden.user

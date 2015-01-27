@@ -21,7 +21,11 @@ module RackWarden
 			      def settings
 			        App.settings
 			      end
-			    end				
+			    end
+			    
+			    
+			    
+			    ###  CORE  ###
 					
 					get '/?' do
 					  default_page
@@ -96,8 +100,8 @@ module RackWarden
 					
 					post '/unauthenticated' do
 						# I had to remove the condition, since it was not updating return path when it should have.
-					  session[:return_to] = env['warden.options'][:attempted_path] if !request.xhr? && !env['warden.options'][:attempted_path][Regexp.new(settings.exclude_from_return_to)]
-					  App.logger.info "RW attempted path unauthenticated: #{env['warden.options'][:attempted_path]}"
+					  session[:return_to] = warden_options[:attempted_path] if !request.xhr? && !warden_options[:attempted_path][Regexp.new(settings.exclude_from_return_to)]
+					  App.logger.info "RW attempted path unauthenticated: #{warden_options[:attempted_path]}"
 					  App.logger.debug "RW will return-to #{session[:return_to]}"
 					  App.logger.debug warden
 					  # if User.count > 0
@@ -115,6 +119,7 @@ module RackWarden
 					
 					
 					
+					###  UTILITY  ###
 				
 					get "/testing" do
 						settings.logger.debug "RW /auth/testing request.cookies" + request.cookies.to_yaml
