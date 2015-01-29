@@ -53,7 +53,7 @@ module RackWarden
 	  end
 	  
 	  def account_widget
-	  	rack_warden.erb :'rw_account_widget.html'
+	  	rack_warden.erb :'rw_account_widget.html', :layout=>false
 	  end
 	  
 	  def flash_widget
@@ -64,7 +64,7 @@ module RackWarden
 	  	#rack_warden.settings.render_template :'rw_flash_widget.html'
 	  	#"FLASH WIDGET DISABLED"
 	  	#flash.rw_test
-	  	rack_warden.erb :'rw_flash_widget.html'
+	  	rack_warden.erb :'rw_flash_widget.html', :layout=>false
 	  end
 	
 	end # UniversalHelpers
@@ -117,7 +117,7 @@ module RackWarden
 	  end
 	
 	  def default_page
-			nested_erb :'rw_index.html', :'rw_layout_admin.html', settings.layout
+			nested_erb :'rw_index.html', :'rw_layout_admin.html'#, settings.layout
 	  end
 		
 	  def nested_erb(*list)
@@ -126,6 +126,9 @@ module RackWarden
 	  	list.inject(template) do |tmplt, lay|
 	  		#puts "RW LAYOUTS lay: #{lay}, rslt: #{tmplt}"
 	  		erb tmplt, :layout=>lay
+				# erb lay, :layout=>false do
+				# 	erb tmplt, :layout=>false
+				# end
 	  	end
 	  end
 	  

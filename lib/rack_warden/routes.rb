@@ -5,9 +5,9 @@ module RackWarden
 			
 				App.logger.debug "RW loading routes"
 				
-				before do
-					flash.rw_test = "Testing RW Flash #{Time.now}"
-				end
+				# before do
+				# 	flash.rw_test = "Testing RW Flash #{Time.now}"
+				# end
 				
 				if defined? ::RACK_WARDEN_STANDALONE
 					get '/?' do
@@ -33,7 +33,7 @@ module RackWarden
 					
 					get '/login' do
 					  if User.count > 0
-					    erb :'rw_login.html', :layout=>settings.layout
+					    erb :'rw_login.html'
 					  else
 					    flash.rw_error = warden.message || "Please create an admin account"
 					    redirect url_for('/new')
@@ -58,12 +58,12 @@ module RackWarden
 					
 					get '/new' do
 					  halt(403, "Not authorized") unless settings.allow_public_signup || !(User.count > 0) || authorized?
-					  erb :'rw_new_user.html', :layout=>settings.layout, :locals=>{:recaptcha_sitekey=>settings.recaptcha['sitekey']}
+					  erb :'rw_new_user.html', :locals=>{:recaptcha_sitekey=>settings.recaptcha['sitekey']}
 					end
 					
 					post '/create' do
 					  verify_recaptcha if settings.recaptcha[:secret]
-					  Halt("Could not create account", :layout=>settings.layout) unless params[:user]
+					  Halt("Could not create account") unless params[:user]
 					  params[:user].delete_if {|k,v| v.nil? || v==''}
 					  @user = User.new(params['user'])
 					  if @user.save
@@ -93,7 +93,7 @@ module RackWarden
 							return_to url_for(logged_in? ? '/' : '/login')
 						else
 							App.logger.info "RW /auth/activate failed for '#{@user}' with errors: #{$!}"
-							#halt "Could not activate", :layout=>settings.layout
+							#halt "Could not activate"
 							redirect_error "The activation code was not valid"
 						end
 					end
@@ -114,7 +114,7 @@ module RackWarden
 					end
 					
 					get "/error" do
-						erb :'rw_error.html', :layout => settings.layout
+						erb :'rw_error.html'
 					end				
 					
 					
@@ -134,13 +134,13 @@ module RackWarden
 									
 					get '/protected' do
 					  require_login
-					  erb :'rw_protected.html', :layout=>settings.layout
+					  erb :'rw_protected.html'
 					  #wrap_with(){erb :'rw_protected.html'}
 					end
 					
 					get "/dbinfo" do
 						require_authorization
-						#erb :'rw_dbinfo.html', :layout=>settings.layout
+						#erb :'rw_dbinfo.html'
 						nested_erb :'rw_dbinfo.html', :'rw_layout_admin.html', settings.layout
 					end
 					

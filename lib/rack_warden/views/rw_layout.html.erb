@@ -19,10 +19,10 @@
     <p>
 			<a href="<%=url('/', false)%>">Main Site</a> |
 			<a href="<%=url_for('/protected')%>">Test Protected Page</a> |
-			<%= erb :'rw_account_widget.html' %>
+			<%= erb :'rw_account_widget.html', :layout=>false %>
 		</p>
 
-		<%= erb :'rw_flash_widget.html' %>
+		<%= erb :'rw_flash_widget.html', :layout=>false %>
 
 		<div id="content">
 			<br>

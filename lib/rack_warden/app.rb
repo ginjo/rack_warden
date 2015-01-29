@@ -163,6 +163,9 @@ module RackWarden
   			# Eval the use-block from the parent app, in context of this app.
   			settings.instance_exec(self, &block) if block_given?
   			
+ 		    # Set global layout (remember to use :layout=>false in your calls to partials).
+		    settings.set :erb, :layout=>settings.layout
+  			
   			settings.initialize_logging
   			  			
   			logger.info "RW compiled views: #{settings.views.inspect}"
