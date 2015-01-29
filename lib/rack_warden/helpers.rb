@@ -117,18 +117,12 @@ module RackWarden
 	  end
 	
 	  def default_page
-			nested_erb :'rw_index.html', :'rw_layout_admin.html'#, settings.layout
+			nested_erb :'rw_index.html', :'rw_layout_admin.html', settings.layout
 	  end
 		
 	  def nested_erb(*list)
-	  	template = list.shift
-	  	counter =0
-	  	list.inject(template) do |tmplt, lay|
-	  		#puts "RW LAYOUTS lay: #{lay}, rslt: #{tmplt}"
+	  	list.inject do |tmplt, lay|
 	  		erb tmplt, :layout=>lay
-				# erb lay, :layout=>false do
-				# 	erb tmplt, :layout=>false
-				# end
 	  	end
 	  end
 	  

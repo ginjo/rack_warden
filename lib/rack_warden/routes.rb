@@ -5,6 +5,9 @@ module RackWarden
 			
 				App.logger.debug "RW loading routes"
 				
+				respond_to :html, :xml, :json, :txt
+				
+				
 				# before do
 				# 	flash.rw_test = "Testing RW Flash #{Time.now}"
 				# end
@@ -121,9 +124,10 @@ module RackWarden
 					
 					###  UTILITY  ###
 				
-					get "/testing" do
-						settings.logger.debug "RW /auth/testing request.cookies" + request.cookies.to_yaml
-						settings.logger.debug "RW /auth/testing response" + response.to_yaml
+					get "/testing.?:ext?" do
+						logger.debug "RW /auth/testing request.cookies" + request.cookies.to_yaml
+						logger.debug "RW /auth/testing response" + response.to_yaml
+						logger.debug "RW request headers #{headers.inspect}"
 						response.set_cookie '_auth_testing_cookie', :value=>"Hi Im a Cookie", :expires=>Time.now+60, :path=>'/'
 						respond_with :'rw_protected'
 					end
