@@ -5,7 +5,7 @@ module RackWarden
 			
 				App.logger.debug "RW loading routes"
 				
-				respond_to :xml, :json, :txt, :html, :yaml
+				respond_to :xml, :json, :js, :txt, :html, :yaml
 				
 				# Before does not have access to uri-embedded params yet.				
 # 				before do
@@ -39,6 +39,8 @@ module RackWarden
 					
 					get '/login' do
 						logger.debug "RW /login action"
+						# Trigger authentication on remember_me, in case they haven't hit a protected page yet.
+						warden.authenticate :remember_me
 					  if User.count > 0
 					    erb :'rw_login.html'
 					  else
@@ -75,6 +77,7 @@ module RackWarden
 					  @user = User.new(params['user'])
 					  if @user.save
 					    warden.set_user(@user) if settings.login_on_create
+					    # TODO: maybe put this line in the user model?
 					    @user.activate if settings.mail_options[:delivery_method] == :test
 					  	flash.rw_success = warden.message || "Account created"
 					  	App.logger.info "RW /auth/create succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"

@@ -41,10 +41,10 @@ module RackWarden
 		      	user = User.authenticate(params['user']['username'], params['user']['password'])
 		      	if user.is_a? User
 		      		success!(user)
-		      		if params['user']['remember_me'] == '1'
-			      		user.remember_me
-			      		###cookies['rack_warden_remember_me'] = { :value => user.remember_token , :expires => user.remember_token_expires_at }
-		      		end
+# 		      		if params['user']['remember_me'] == '1'
+# 			      		user.remember_me
+# 			      		###cookies['rack_warden_remember_me'] = { :value => user.remember_token , :expires => user.remember_token_expires_at }
+# 		      		end
 		        	App.logger.warn "RW user logged in '#{user.username}'"
 		        else
 		          fail!("Could not login")
@@ -70,7 +70,7 @@ module RackWarden
 		      	user = User.first(:remember_token => env['rack.request.cookie_hash']['rack_warden_remember_me'])
 		      	if user.is_a?(User) && !user.remember_token.to_s.empty?
 							success!(user)
-		      		user.remember_me
+		      		#user.remember_me
 		      		App.logger.warn "RW user logged in with remember_me token '#{user.username}'"
 		      	else
 		          App.logger.info "RW user failed remember_me token login '#{env['rack.request.cookie_hash']['rack_warden_remember_me']}'"
@@ -93,15 +93,17 @@ module RackWarden
 					App.logger.debug "RW after_authentication callback - opts: #{opts.inspect}"
 					App.logger.debug "RW after_authentication callback - auth.manager: #{auth.manager.inspect}"
 					#App.logger.debug "RW after_authentication callback - auth.cookies: #{auth.cookies.inspect}"
-					
-					App.logger.debug "RW after_authentication callback - remember_token cookie: #{auth.env['rack.request.cookie_hash']['rack_warden_remember_me']}"
-	      	if user.is_a?(User) && user.remember_token
+					App.logger.debug "RW after_authentication callback - get remember_token cookie: #{auth.env['rack.request.cookie_hash']['rack_warden_remember_me']}"
+	      	
+	      	if user.is_a?(User) && (user.remember_token || auth.params['user']['remember_me'] == '1')
+	      		App.logger.debug "RW after_authenticate user.remember_me '#{user.username}'"
 	      		user.remember_me
 						
 						# We have no path to response object here :(
 						#auth.response.set_cookie 'rack_warden_remember_me', :value => user.remember_token , :expires => user.remember_token_expires_at
 						# So we have to do this
 				  	auth.env['rack.cookies']['rack_warden_remember_me'] = { :value => user.remember_token , :expires => user.remember_token_expires_at }   #user.remember_me # sets its remember_token attribute to some large random value and returns the value
+						App.logger.debug "RW cookie set auth.env['rack.cookies']['rack_warden_remember_me']: #{auth.env['rack.cookies']['rack_warden_remember_me']}"
 					end
 				end
 				
@@ -112,6 +114,7 @@ module RackWarden
 				 	App.logger.debug "RW before_logout callback - remember_token cookie: #{auth.env['rack.request.cookie_hash']['rack_warden_remember_me']}"
 				  
 				  #auth.response.set_cookie 'rack_warden_remember_me', nil
+				  App.logger.debug "RW cookie unset 'rack_warden_remember_me': #{auth.env['rack.cookies']['rack_warden_remember_me']}"
 				  auth.env['rack.cookies']['rack_warden_remember_me'] = nil
 
 				  user.forget_me
