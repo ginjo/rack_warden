@@ -90,7 +90,7 @@ module RackWarden
 	  	initialize_logging
 	  		  	
 	    use Rack::Cookies
-	    register Sinatra::RespondWith
+	    register Sinatra::RespondWith  # Does not honor file extensions. Only works with accept header.
 	    register Sinatra::Namespace
 	  	
   		# Setup flash if not already

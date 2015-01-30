@@ -5,11 +5,11 @@ module RackWarden
 			
 				App.logger.debug "RW loading routes"
 				
-				respond_to :html, :xml, :json, :txt
+				respond_to :xml, :json, :txt, :html, :yaml
 				
-				
+				# Before does not have access to uri-embedded params yet.				
 				# before do
-				# 	flash.rw_test = "Testing RW Flash #{Time.now}"
+				# 	# flash.rw_test = "Testing RW Flash #{Time.now}"
 				# end
 				
 				if defined? ::RACK_WARDEN_STANDALONE
@@ -26,7 +26,7 @@ module RackWarden
 			      end
 			    end
 			    
-			    
+
 			    
 			    ###  CORE  ###
 					
@@ -128,8 +128,11 @@ module RackWarden
 						logger.debug "RW /auth/testing request.cookies" + request.cookies.to_yaml
 						logger.debug "RW /auth/testing response" + response.to_yaml
 						logger.debug "RW request headers #{headers.inspect}"
+						logger.debug "RW request.accept #{request.accept}"
+						logger.debug "RW env['sinatra.accept'] #{env['sinatra.accept']}"
+						logger.debug "RW mime_type(ext) #{mime_type(params[:ext])}"
 						response.set_cookie '_auth_testing_cookie', :value=>"Hi Im a Cookie", :expires=>Time.now+60, :path=>'/'
-						respond_with :'rw_protected'
+						respond_with :'rw_protected', RackWarden::User.all
 					end
 				
 					get "/is_running" do
