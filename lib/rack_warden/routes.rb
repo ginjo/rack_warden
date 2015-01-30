@@ -8,9 +8,12 @@ module RackWarden
 				respond_to :xml, :json, :txt, :html, :yaml
 				
 				# Before does not have access to uri-embedded params yet.				
-				# before do
-				# 	# flash.rw_test = "Testing RW Flash #{Time.now}"
-				# end
+# 				before do
+# 					# flash.rw_test = "Testing RW Flash #{Time.now}"
+# 					if request.path_info.to_s[/\.xml\??/]
+# 						env['sinatra.accept'] = 'application/xml'
+# 					end
+# 				end
 				
 				if defined? ::RACK_WARDEN_STANDALONE
 					get '/?' do
@@ -35,6 +38,7 @@ module RackWarden
 					end
 					
 					get '/login' do
+						logger.debug "RW /login action"
 					  if User.count > 0
 					    erb :'rw_login.html'
 					  else
@@ -132,7 +136,7 @@ module RackWarden
 						logger.debug "RW env['sinatra.accept'] #{env['sinatra.accept']}"
 						logger.debug "RW mime_type(ext) #{mime_type(params[:ext])}"
 						response.set_cookie '_auth_testing_cookie', :value=>"Hi Im a Cookie", :expires=>Time.now+60, :path=>'/'
-						respond_with :'rw_protected', RackWarden::User.all
+						respond_with :'rw_protected'
 					end
 				
 					get "/is_running" do
