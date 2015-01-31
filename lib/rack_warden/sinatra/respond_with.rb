@@ -92,6 +92,12 @@ module Sinatra
       end
 
       def on(type, &block)
+        # WBR
+        @app.logger.debug "RW respond_with.on type: #{type}"
+        @app.logger.debug "RW respond_with.on block: #{block}"
+        @app.logger.debug "RW respond_with.on @app.params: #{@app.params}"
+        @app.logger.debug "RW respond_with.on @app.settings.mime_types(type): #{@app.settings.mime_types(type)}"
+        
         @app.settings.mime_types(type).each do |mime|
           case mime
           when '*/*'            then @default     = block
@@ -103,13 +109,20 @@ module Sinatra
 
       def finish
         yield self if block_given?
-        # WBR
-        @app.logger.debug "RW respond_with @app.content_type: #{@app.content_type}"
-        mime_type = @app.content_type             ||
+        # WBR - adds format/extension of uri to front of mime-types.
+        # You must capture the format string in the params with your route declaration.
+        format_type= @app.settings.mime_types(@app.params['format'])[0]
+        @app.logger.debug "RW respond_with.finish format_type (WBR): #{format_type}, #{format_type.class}"
+        mime_type =  format_type                  ||
+        	@app.content_type                       ||
           @app.request.preferred_type(@map.keys)  ||
           @app.request.preferred_type             ||
           'text/html'
         type = mime_type.split(/\s*;\s*/, 2).first
+        @app.logger.debug "RW respond_with.finish type: #{type}"
+        @app.logger.debug "RW respond_with.finish @map: #{@map}"
+        @app.logger.debug "RW respond_with.finish @default: #{@default}"
+        @app.logger.debug "RW respond_with.finish @generic: #{@generic}"
         handlers = [@map[type], @generic[type[/^[^\/]+/]], @default].compact
         handlers.each do |block|
           if result = block.call(type)
@@ -135,8 +148,8 @@ module Sinatra
         format.on "*/*" do |type|
           exts = settings.ext_map[type]
           exts << :xml if type.end_with? '+xml'
-          # WBR
-          exts.unshift params[:format].to_sym if params[:format]
+          # WBR - not necessary, since the hack of #finish method above.
+          #exts.unshift params[:format].to_sym if params[:format]
           logger.debug "RW respond_with format: #{params[:format]}"
           
           logger.debug "RW respond_with exts: #{exts.inspect}"
