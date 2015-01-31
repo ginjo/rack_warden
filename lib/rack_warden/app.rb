@@ -90,9 +90,10 @@ module RackWarden
 	  	initialize_logging
 	  		  	
 	    use Rack::Cookies
-	    #register Sinatra::RespondWith  # Does not honor file extensions. Only works with accept header.
+	    register Sinatra::RespondWith  # Does not honor file extensions. Only works with accept header.
 	    register Sinatra::Namespace
-	  	
+	    #register Sinatra::RespondTo
+	    	  	
   		# Setup flash if not already
   		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
 			use Rack::Flash, :accessorize=>[:rw_error, :rw_success, :rw_test]

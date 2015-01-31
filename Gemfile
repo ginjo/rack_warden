@@ -12,3 +12,7 @@ gemspec
 #gem 'tux'
 #gem 'thin'
 
+# If you have trouble with failing dependencies in rails 2.3.
+#gem "i18n", "0.6.11"
+#gem "mime-types", "~> 1.25"
+#gem "nokogiri", "1.5.11"

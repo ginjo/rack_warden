@@ -5,7 +5,7 @@ module RackWarden
 			
 				App.logger.debug "RW loading routes"
 				
-				#respond_to :xml, :json, :js, :txt, :html, :yaml
+				respond_to :xml, :json, :js, :txt, :html, :yaml
 				
 				# Before does not have access to uri-embedded params yet.				
 # 				before do
@@ -42,7 +42,7 @@ module RackWarden
 						# Trigger authentication on remember_me, in case they haven't hit a protected page yet.
 						warden.authenticate :remember_me
 					  if User.count > 0
-					    erb :'rw_login.html'
+					    respond_with :'rw_login'
 					  else
 					    flash.rw_error = warden.message || "Please create an admin account"
 					    redirect url_for('/new')
@@ -67,7 +67,7 @@ module RackWarden
 					
 					get '/new' do
 					  halt(403, "Not authorized") unless settings.allow_public_signup || !(User.count > 0) || authorized?
-					  erb :'rw_new_user.html', :locals=>{:recaptcha_sitekey=>settings.recaptcha['sitekey']}
+					  respond_with :'rw_new_user', :locals=>{:recaptcha_sitekey=>settings.recaptcha['sitekey']}
 					end
 					
 					post '/create' do
@@ -124,7 +124,7 @@ module RackWarden
 					end
 					
 					get "/error" do
-						erb :'rw_error.html'
+						respond_with :'rw_error'
 					end				
 					
 					
@@ -139,8 +139,8 @@ module RackWarden
 						logger.debug "RW env['sinatra.accept'] #{env['sinatra.accept']}"
 						logger.debug "RW mime_type(ext) #{mime_type(params[:ext])}"
 						response.set_cookie '_auth_testing_cookie', :value=>"Hi Im a Cookie", :expires=>Time.now+60, :path=>'/'
-						#respond_with :'rw_protected'
-						erb :'rw_protected.html'
+						respond_with :'rw_protected'
+						#erb :'rw_protected.html'
 					end
 				
 					get "/is_running" do
@@ -149,8 +149,7 @@ module RackWarden
 									
 					get '/protected' do
 					  require_login
-					  erb :'rw_protected.html'
-					  #wrap_with(){erb :'rw_protected.html'}
+					  respond_with :'rw_protected'
 					end
 					
 					get "/dbinfo" do
@@ -163,6 +162,7 @@ module RackWarden
 					  require_authorization
 					  #erb :'rw_admin.html', :layout=>settings.layout
 					  nested_erb :'rw_admin.html', :'rw_layout_admin.html', settings.layout
+					  #respond_with :rw_admin
 					end
 					
 					get '/sessinfo' do

@@ -8,10 +8,13 @@ end
 require "sinatra/base"
 #require "sinatra/contrib" # not compatible with rails 2.3 because of rack dependency conflict.
 
-# from 3rd party gem
+# from 3rd party gems
 require "sinatra/namespace"
-require "sinatra/respond_to"
-require "rack/flash"  # what about rack/flash3 ?
+#require "sinatra/respond_to"
+require "rack/flash" # this somehow loads rack/flash3
+
+# Local file taken from sinatra-contrib project.
+require "sinatra/respond_with"
 
 require "rack/contrib/cookies"  # This is needed to set cookies in warden callbacks.
 require 'bcrypt'
