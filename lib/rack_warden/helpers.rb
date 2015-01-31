@@ -23,7 +23,7 @@ module RackWarden
 	
 		def logged_in?
 			App.logger.debug "RW logged_in? #{warden.authenticated?}"
-	    warden.authenticated?
+	    warden.authenticated? || warden.authenticate(:remember_me)
 		end
 		
 		def authorized?(options=request)
