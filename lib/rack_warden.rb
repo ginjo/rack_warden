@@ -6,8 +6,13 @@ module RackWarden
 end
 
 require "sinatra/base"
-require "sinatra/contrib"
-require "rack/flash"
+#require "sinatra/contrib" # not compatible with rails 2.3 because of rack dependency conflict.
+
+# from 3rd party gem
+require "sinatra/namespace"
+require "sinatra/respond_to"
+require "rack/flash"  # what about rack/flash3 ?
+
 require "rack/contrib/cookies"  # This is needed to set cookies in warden callbacks.
 require 'bcrypt'
 require 'data_mapper'

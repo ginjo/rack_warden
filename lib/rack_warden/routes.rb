@@ -5,7 +5,7 @@ module RackWarden
 			
 				App.logger.debug "RW loading routes"
 				
-				respond_to :xml, :json, :js, :txt, :html, :yaml
+				#respond_to :xml, :json, :js, :txt, :html, :yaml
 				
 				# Before does not have access to uri-embedded params yet.				
 # 				before do
@@ -139,7 +139,8 @@ module RackWarden
 						logger.debug "RW env['sinatra.accept'] #{env['sinatra.accept']}"
 						logger.debug "RW mime_type(ext) #{mime_type(params[:ext])}"
 						response.set_cookie '_auth_testing_cookie', :value=>"Hi Im a Cookie", :expires=>Time.now+60, :path=>'/'
-						respond_with :'rw_protected'
+						#respond_with :'rw_protected'
+						erb :'rw_protected.html'
 					end
 				
 					get "/is_running" do
