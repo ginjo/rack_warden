@@ -5,16 +5,18 @@
 	<table>
 		<thead>
 			<tr>
-				<th>Email</th>
-				<th>User</th>
 				<th>Id</th>
+				<th>User</th>
+				<th>Email</th>
+				<th>Activated</th>
 			</tr>
 		<tbody>
 			<% RackWarden::User.all(:limit=>100).each do |user| %>
 				<tr>
-					<td><%=user.email%></td>
-					<td><%=user.username%></td>
 					<td><%=user.id%></td>
+					<td><%=user.username%></td>
+					<td><%=user.email%></td>
+					<td><%=user.activated_at%></td>
 				</tr>
 			<% end %>
 		</tbody>
