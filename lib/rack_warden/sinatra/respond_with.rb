@@ -1,4 +1,4 @@
-require 'sinatra/json'
+require 'rack_warden/sinatra/json'
 require 'sinatra/base'
 
 module Sinatra
@@ -103,6 +103,8 @@ module Sinatra
 
       def finish
         yield self if block_given?
+        # WBR
+        @app.logger.debug "RW respond_with @app.content_type: #{@app.content_type}"
         mime_type = @app.content_type             ||
           @app.request.preferred_type(@map.keys)  ||
           @app.request.preferred_type             ||
@@ -133,6 +135,11 @@ module Sinatra
         format.on "*/*" do |type|
           exts = settings.ext_map[type]
           exts << :xml if type.end_with? '+xml'
+          # WBR
+          exts.unshift params[:format].to_sym if params[:format]
+          logger.debug "RW respond_with format: #{params[:format]}"
+          
+          logger.debug "RW respond_with exts: #{exts.inspect}"
           if template
             args = template_cache.fetch(type, template) { template_for(template, exts) }
             if args.any?

@@ -13,8 +13,8 @@ require "sinatra/namespace"
 #require "sinatra/respond_to"
 require "rack/flash" # this somehow loads rack/flash3
 
-# Local file taken from sinatra-contrib project.
-require "sinatra/respond_with"
+# Local files taken from sinatra-contrib project.
+require "rack_warden/sinatra/respond_with"
 
 require "rack/contrib/cookies"  # This is needed to set cookies in warden callbacks.
 require 'bcrypt'
