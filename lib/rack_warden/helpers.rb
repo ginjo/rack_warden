@@ -6,7 +6,8 @@ module RackWarden
 		def require_login
 			App.logger.debug "RW instance #{self}.require_login with rack_warden: #{rack_warden}, and warden: #{warden}"
 			#App.logger.debug "RW instance #{self}.require_login ancestors #{self.class.ancestors.inspect}"
-			logged_in? || warden.authenticate!
+			#logged_in? || warden.authenticate!
+			warden.authenticated? || warden.authenticate!
 	  end
 	
 		def warden
@@ -18,7 +19,8 @@ module RackWarden
 		end
 	
 		def current_user
-	    warden.authenticated? && warden.user
+	    #warden.authenticated? && warden.user
+	    logged_in? && warden.user
 		end
 	
 		def logged_in?
