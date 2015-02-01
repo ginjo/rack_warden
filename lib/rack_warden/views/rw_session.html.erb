@@ -11,6 +11,10 @@
 	<%= session.to_hash.to_yaml.to_html %>
 	<br><br>
 	
+	<b>Cookies:</b><br>
+	<%= env['rack.cookies'].to_yaml.to_html %>
+	<br><br>
+	
 	<b>Ruby ENV:</b><br>
 	<%= ENV.to_hash.to_yaml.to_html %>
 	<br><br>

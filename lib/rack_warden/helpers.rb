@@ -102,8 +102,8 @@ module RackWarden
 		def url_for(_url, _full_uri=false)
 			url(rw_prefix(_url), _full_uri)
 		end
-
-
+		
+		
 	
 		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])
 			secret = settings.recaptcha[:secret]

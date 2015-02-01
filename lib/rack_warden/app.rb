@@ -24,6 +24,7 @@ module RackWarden
     set :use_common_logger, false
     set :reset_logger, false
     set :sessions, true # Will use parent app sessions. Pass in :key=>'something' to enable RW-specific sessions (maybe).
+    set :remember_token_cookie_name, 'rack_warden_remember_token'
     set :user_table_name, 'rack_warden_users'
     set :views, File.expand_path("../views/", __FILE__) unless views
     set :initialized, false
@@ -90,9 +91,10 @@ module RackWarden
 	  	initialize_logging
 	  		  	
 	    use Rack::Cookies
-	    register Sinatra::RespondWith  # Does not honor file extensions. Only works with accept header.
+	    #register Sinatra::RespondWith  # Does not honor file extensions. Only works with accept header.
 	    register Sinatra::Namespace
 	    #register Sinatra::RespondTo
+	    register RespondWith
 	    	  	
   		# Setup flash if not already
   		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
@@ -178,13 +180,15 @@ module RackWarden
   	
 		# Store this app instance in the env.
 		def call(env)  
+			logger.debug "RW app.call extending env with Env."
+			env.extend Env
 			logger.debug "RW app.call next app: #{@app}"
-			#logger.debug "RW request env " + env.to_yaml
-			#logger.debug "RW env['rack.request.cookie_hash'] " + env['rack.request.cookie_hash'].to_yaml
+		  
 		  # Set this now, so you can access the rw app instance from the endpoint app.
 		  logger.debug "RW app.call storing app instance in env['rack_warden_instance'] #{self}"
 		  self.request= Rack::Request.new(env)
-		  env['rack_warden_instance'] = self
+		  env.rack_warden = self
+		  
 		  # Send to super, then build & process response.
 			# resp = Rack::Response.new *super(env).tap{|e| e.unshift e.pop}
 			# #resp.set_cookie :wbr_cookie, :value=>"Yay!", :expires=>Time.now+60*10

@@ -1,7 +1,7 @@
 require 'rack_warden/sinatra/json'
 require 'sinatra/base'
 
-module Sinatra
+module RackWarden
   #
   # = Sinatra::RespondWith
   #
@@ -111,9 +111,9 @@ module Sinatra
         yield self if block_given?
         # WBR - adds format/extension of uri to front of mime-types.
         # You must capture the format string in the params with your route declaration.
-        format_type= @app.settings.mime_types(@app.params['format'])[0]
+        format_type = @app.settings.mime_types(@app.params['format'])[0]
         @app.logger.debug "RW respond_with.finish format_type (WBR): #{format_type}, #{format_type.class}"
-        mime_type =  format_type                  ||
+        mime_type = format_type                   ||
         	@app.content_type                       ||
           @app.request.preferred_type(@map.keys)  ||
           @app.request.preferred_type             ||
@@ -262,6 +262,6 @@ module Sinatra
     end
   end
 
-  register RespondWith
-  Delegator.delegate :respond_to
+  #register RespondWith
+  #Delegator.delegate :respond_to
 end

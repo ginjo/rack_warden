@@ -14,7 +14,7 @@ require "sinatra/namespace"
 require "rack/flash" # this somehow loads rack/flash3
 
 # Local files taken from sinatra-contrib project.
-require "rack_warden/sinatra/respond_with"
+#require "rack_warden/sinatra/respond_with"
 
 require "rack/contrib/cookies"  # This is needed to set cookies in warden callbacks.
 require 'bcrypt'
@@ -30,11 +30,13 @@ autoload :Base64, 'base64'
 
 module RackWarden
   autoload :App, 'rack_warden/app'
+  autoload :Env, 'rack_warden/env'
   autoload :User, "rack_warden/models"
   autoload :Pref, "rack_warden/models"
   autoload :Mail, "rack_warden/mail"
   autoload :Routes, "rack_warden/routes"
   autoload :VERSION, "rack_warden/version"
+  autoload :RespondWith, "rack_warden/sinatra/respond_with"
   autoload :WardenConfig, "rack_warden/warden"
   autoload :UniversalHelpers, "rack_warden/helpers"
   autoload :RackWardenHelpers, "rack_warden/helpers"
