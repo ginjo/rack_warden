@@ -1,8 +1,20 @@
 <% @section_title = "Login" %>
-<form action="<%=url_for('/login')%>" method="post">
-  <p>Username or Email <input type="text" name="user[username]" /></p>
-  <p>Password <input type="password" name="user[password]" /></p>
-  <p>Remember me <input name="user[remember_me]" type="checkbox" value="1" /></p> 
+<form action="<%=url_for('/login')%>" method="post" class="rw">
+	<style scoped="scoped">    
+	  .rw label {font-size: .95em; color: grey; display: block;}
+	  .rw input {font-size: 1.15em; margin-bottom: 20px; padding:7px;}
+	</style>
+	
+	<label for="user_username">Username or Email</label>
+	<input type="text" name="user[username]" id="user_username"/>
+
+  <label for="user_password">Password</label>
+  <input type="password" name="user[password]" id="user_password" />
+
+  <label for="user_remember_me">Remember me
+  	<input name="user[remember_me]" type="checkbox" value="1" id="user_remember_me" />
+  </label>
+
   <input type="submit" value="Log In" />
 	<% if settings.allow_public_signup %>
 		or <a href="<%=url_for('/new')%>">Create a new account</a>

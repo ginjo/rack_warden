@@ -67,7 +67,7 @@ module RackWarden
 					
 					get '/new' do
 					  halt(403, "Not authorized") unless settings.allow_public_signup || !(User.count > 0) || authorized?
-					  respond_with :'rw_new_user', :locals=>{:recaptcha_sitekey=>settings.recaptcha['sitekey']}
+					  respond_with :'rw_new_user', :recaptcha_sitekey=>settings.recaptcha['sitekey']
 					end
 					
 					post '/create' do
