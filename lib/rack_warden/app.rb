@@ -76,7 +76,7 @@ module RackWarden
 			  # logger.info "RW DataMapper using log_file #{_log_file.inspect}"
 		  #end
 	    
-	    logger.info "RW initialized logging (level #{logger.level}) #{_log_file.inspect}"
+	    logger.debug "RW initialized logging (level #{logger.level}) #{_log_file.inspect}"
 	  rescue
 	  	puts "There was an error setting up logging: #{$!}"
 	  end

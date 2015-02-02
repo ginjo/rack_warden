@@ -14,10 +14,14 @@ module RackWarden
       end
       
       def setup_framework
-        App.logger.debug "RW setup_framework for sinatra"
+        App.logger.debug "RW setup_framework for sinatra app #{parent_app}"
   			parent_app.helpers(RackWarden::UniversalHelpers)
   			  			
         # Define class method 'require_login' on framework controller.
+        # TODO: I don't think the reject_conditions will work,
+        # unless you find a way to pass in the URI to the before block,
+        # and test the regexp against that.
+        App.logger.info "RW defining 'require_login(accept_conditions-regexp, reject_conditions-regexp)' on #{parent_app}"
 				parent_app.define_singleton_method :require_login do |*args|
 					accept_conditions = args[0] || (/.*/)
 					reject_conditions = args[1] || false

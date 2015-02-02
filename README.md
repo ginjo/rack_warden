@@ -2,9 +2,9 @@
 
 RackWarden is a ruby gatekeeper mini-app providing authentication and user management for rack based apps. Protecting your entire application with only a few lines of code, RackWarden uses its own controllers, views, models, and database. You can also drop in your own views and layouts, specify your own database, and use your existing users table for seamless custom integration.
 
-RackWarden is a Sinatra mini-app that uses Warden for authentication and DataMapper for database connections. It is based on the sinatra-warden-example at <https://github.com/sklise/sinatra-warden-example>.
+RackWarden is Rack middleware that uses Sinatra for UI, Warden for authentication, and DataMapper for database connections. It is based on the sinatra-warden-example at <https://github.com/sklise/sinatra-warden-example>.
 
-RackWarden is a work-in-progress. The gemspec, the files, the code, and the documentation can and will change over time. Follow on github for the latest updates.
+RackWarden is a work-in-progress. The gemspec, the files, the code, and the documentation are likely to change over time. Follow on [rubygems.org](https://rubygems.org/gems/rack_warden) or [github](https://github.com/ginjo/rack_warden) for the latest updates.
 
 
 ## Installation
@@ -21,7 +21,7 @@ Or install manually.
 
     $ gem install rack_warden
 
-If you are using a database other than sqlite, and you want RackWarden to use that database as well, install the corresponding DataMapper database adapter. The dm-sqlite-adapter is included in the RackWarden gemspec.
+If you are using a database other than sqlite, and you want RackWarden to use that database as well, install the corresponding DataMapper database adapter. For sqlite, the dm-sqlite-adapter is already included in the RackWarden gemspec.
 
     gem 'dm-mysql-adapter'
     gem 'dm-postgres-adapter'
@@ -63,7 +63,7 @@ RackWarden will look for a yaml configuration file named rack\_warden.yml in you
 
 You an also pass configuration settings to RackWarden through the ```use``` method of your framework. The params hash of ```use``` will be translated directly to RackWarden's settings. In addition to RackWarden's specific configuration options, you can also pass standard Sinatra settings.
 
-If you pass a block with the ```use``` method, the block will be evaluated in the context of the RackWarden::App class. Anything you do in that block is just as if you were writing code in the RackWarden::App class itself. While in the block, you also have access to the current instance of RackWarden::App.
+If you pass a block with the ```use``` method, the block will be evaluated in the context of the RackWarden::App class. Anything you do in that block is just as if you were writing code in the RackWarden::App class itself. While in the block, you also have access to the current _instance_ of RackWarden::App.
 
     use RackWarden::App do |rack_warden_app_instance|
       set :some_setting, 'some_value'
@@ -76,26 +76,29 @@ Note that with some frameworks, the RackWarden middleware instance will be lazy-
 
 Current list of settings specific to rack\_warden, with defaults.
 
-    set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
-    set :layout, :'rw_layout.html'
-    set :default_route, '/'
-    set :exclude_from_return_to, 'login|new|create'
-    set :repository_name, :default
-    set :database_config => nil
-    set :database_default =>  "sqlite3::memory:?cache=shared"
-    set :recaptcha, Hash.new
-    set :require_login, nil
-    set :allow_public_signup, false
-    set :logging, true
-    set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
-    set :log_file, ($0[/rails|irb|ruby|rack|server/i] && development? ? $stdout : nil)
-    set :log_level => ENV['RACK_WARDEN_LOG_LEVEL'] || (development? ? 'INFO' : 'WARN')
-    set :logger, nil
-    set :use_common_logger, false
-    set :reset_logger, false
-    set :sessions, true # Will use parent app sessions.
-    set :user_table_name, nil
-    set :views, File.expand_path("../views/", __FILE__) unless views
+	set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
+	set :layout, :'rw_layout.html'
+	set :default_route, '/'
+	set :exclude_from_return_to, 'login|logout|new|create'
+	set :repository_name, :default
+	set :database_config => nil
+	set :database_default =>  "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
+	set :recaptcha, Hash.new
+	set :require_login, nil
+	set :allow_public_signup, false
+	set :logging, true
+	set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
+	set :use_common_logger, false
+	set :sessions, true
+	set :remember_token_cookie_name, 'rack_warden_remember_token'
+	set :user_table_name, 'rack_warden_users'
+	set :views, File.expand_path("../views/", __FILE__) unless views
+	set :login_on_create, true
+	set :login_on_activate, false
+	set :rw_prefix, '/auth'
+	set :mail_options,
+			:delivery_method => :test,
+			:delivery_options => {:from => 'my@email.com'}
 
 ### :layout
 
@@ -172,6 +175,46 @@ Settings for Google's recaptcha service. If these settings exist, recaptcha will
 
 
 ## Customization
+
+### Actions
+
+
+# DOUBLE CHECK THIS SECTION TO MAKE SURE IT ACTUALLY WORKS THIS WAY!
+
+RackWarden adds a handful of helpers to your base controller class, giving you finer control over what actions (or routes) are protected. One of these helpers is ```require_login```. Run this helper in any action that you want protected behind a login session. If the user is not logged in, they will be redirected to the login action provided by RackWarden. Once they have successfully completed the login, the user will be redirected back to the protected page they were originally trying to access.
+
+The default for RackWarden is to enable the ```require_login``` helper on every action in your project. To disable this default, set ```:require_login``` (in your RackWarden configuration) to anything other than nil. Setting ```:require_login => false``` will disable automatic activation of the ```require_login``` helper entirely.
+
+You can also pass a regular expression (Sinatra) or a hash (Rails / ActionController) to ```require_login``` to filter what actions are protected, using your framework's before-filter ability.
+
+    # Exclude the 'index' route in Sinatra from RackWarden protection.
+    :require_login => !ruby/regexp /(?!index)/
+
+    # Exclude the 'index' action in Rails from RackWarden protection.
+    :require_login => :except=>[:index]
+
+To get finer control of inclusion/exclusion of routes & actions, use the class method ```require_login(filter)```. This creates a before filter in the context where you declare it.
+
+	# Rails
+	class Products < ActionController::Base
+		require_login :except=>[:index, :show]
+		...
+	end
+	
+	# Sinatra
+	class MyApp < Sinatra::Base
+		require_login /\/products\/index|\/products\/show/
+		...
+	end
+	
+	# Sinatra with Sinatra::Namespace extension
+	class MyApp < Sinatra::Base
+		namespace '/products' do
+			require_login /index|show/
+			...
+		end
+	end
+
 
 ### Views
 

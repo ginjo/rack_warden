@@ -8,12 +8,8 @@ module RackWarden
 				respond_to :xml, :json, :js, :txt, :html, :yaml
 				
 				# Before does not have access to uri-embedded params yet.				
-# 				before do
-# 					# flash.rw_test = "Testing RW Flash #{Time.now}"
-# 					if request.path_info.to_s[/\.xml\??/]
-# 						env['sinatra.accept'] = 'application/xml'
-# 					end
-# 				end
+				#before do
+				#end
 				
 				if defined? ::RACK_WARDEN_STANDALONE
 					get '/?' do
