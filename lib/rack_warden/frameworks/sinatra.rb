@@ -14,15 +14,11 @@ module RackWarden
       end
       
       module ClassMethods
-        # Define class method 'require_login' on Sinatra::Base subclass (the app).
-        # TODO: I don't think the reject_conditions will work,
-        # unless you find a way to pass in the URI to the before block,
-        # and test the regexp against that.
 				def require_login(*args)
-					#accept_conditions = args[0] || (/.*/)
-					#reject_conditions = args[1] || false
-					#before(accept_conditions){puts "RW class.require_login self #{self}, conditions #{accept_conditions}, reject #{reject_conditions}"; require_login unless reject_conditions}
-					before(*args){puts "RW class.require_login self #{self}, args #{args}"; require_login}
+					App.logger.debug "RW class.require_login self #{self}, args #{args}"
+					before(*args) do
+						require_login
+					end
 				end
       end
       

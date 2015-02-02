@@ -152,7 +152,7 @@ module RackWarden
         names.each { |n| define_method(n) { |*a, &b| prefixed(n, *a, &b) }}
       end
 
-      prefixed :before, :after, :delete, :get, :head, :options, :patch, :post, :put, :require_login
+      prefixed :before, :after, :delete, :get, :head, :options, :patch, :post, :put
 
       def helpers(*extensions, &block)
         class_eval(&block) if block_given?
@@ -258,7 +258,7 @@ module RackWarden
       end
 
       def prefixed(method, pattern = nil, conditions = {}, &block)
-        default = '*' if method == :before or method == :after or method == :require_login
+        default = '*' if method == :before or method == :after #or method == :require_login
         pattern, conditions = compile pattern, conditions, default
         result = base.send(method, pattern, conditions, &block)
         invoke_hook :route_added, method.to_s.upcase, pattern, block
