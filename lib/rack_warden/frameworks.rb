@@ -34,15 +34,15 @@ module RackWarden
       # Sets framework module with variables from env (the scope of the parent app's initializer),
       # and runs the framework selector logic.
       # Returns the framework module or nil.
-      def framework_selector(env)
+      def framework_selector(app)
       	App.logger.debug "RW framework_selector #{self}"
         #App.logger.debug "BASE.framework_selector #{self} env: #{env.eval 'self'} locals: #{env.eval 'local_variables'}"
-        @initialization_args = env.eval 'initialization_args'
-        @parent_app_instance = env.eval 'parent_app_instance'
+        #@initialization_args = env.eval 'initialization_args'
+        @parent_app_instance = app #env.eval 'parent_app_instance'
         @parent_app_class = @parent_app_instance.class
         @parent_app = @parent_app_instance.is_a?(Class) ? @parent_app_instance : @parent_app_class
-        @rack_warden_app_instance = env.eval 'self'
-        @rack_warden_app_class = @rack_warden_app_instance.class
+        #@rack_warden_app_instance = env.eval 'self'
+        #@rack_warden_app_class = @rack_warden_app_instance.class
         selector && self
       end
 

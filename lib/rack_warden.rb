@@ -72,6 +72,11 @@ module RackWarden
 		App.logger.warn "RW self.included into BASE #{base}, ID #{base.object_id}"
 		# Force initialize rack_warden, even if not all the settings are known yet.
 		#App.new base
-	end	
+	end
+	
+	def self.registered(app)
+		App.setup_framework app
+		app.use self
+	end
   
 end

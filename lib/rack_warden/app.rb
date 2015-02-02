@@ -100,8 +100,8 @@ module RackWarden
   		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
 			use Rack::Flash, :accessorize=>[:rw_error, :rw_success, :rw_test]
 				  	
-			include RackWarden::WardenConfig
-			include RackWarden::Routes
+			helpers RackWarden::WardenConfig
+			helpers RackWarden::Routes
 			
 	    helpers RackWardenHelpers
 	    helpers UniversalHelpers
@@ -129,6 +129,24 @@ module RackWarden
 			  nil
 			end
 		end
+		
+		def self.setup_framework(app, *args)
+				opts = args.last.is_a?(Hash) ? args.pop : {}
+				# Get framework module.
+  			framework_module = Frameworks::Base.select_framework(app)
+    		#logger.info "RW selected framework module #{framework_module}"
+    		
+    		# Prepend views from framework_module if framework_module exists.
+    		# TODO: should this line be elsewhere?
+  			settings.overlay_settings(:views=>framework_module.views_path) if framework_module && ![settings.views, opts[:views]].flatten.include?(false)
+  		  
+  		  # Overlay settings with opts.
+  			settings.overlay_settings opts				
+	
+				# Setup framework if framework_module exists.
+    		framework_module.setup_framework if framework_module
+		end
+		
   
 
     # WBR - This will receive params and a block from the parent "use" statement.
@@ -141,27 +159,18 @@ module RackWarden
   	# 	set :myvar, 'something'
   	#	end
   	#
+  	# TODO: Move most of this functionality to a class method, so it can be called from self.registered(app)
   	def initialize(parent_app_instance=nil, *args, &block)
   		super(parent_app_instance, &Proc.new{}) # Must send empty proc, not original proc, since we're calling original block here.
   	  initialization_args = args.dup
   		logger.info "RW new app instance with parent: #{@app}"
-  		# extract options.
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		if app && !settings.initialized
   		  logger.warn "RW initializing settings from app instance"
   		  
-  			# Get framework module.
-  			framework_module = Frameworks::Base.select_framework(binding)
-    		#logger.info "RW selected framework module #{framework_module}"
-    		
-    		# Prepend views from framework_module if framework_module exists.
-  			settings.overlay_settings(:views=>framework_module.views_path) if framework_module && ![settings.views, opts[:views]].flatten.include?(false)
   		  
-  		  # Overlay settings with opts.
-  			settings.overlay_settings opts				
-	
-				# Setup framework if framework_module exists.
-    		framework_module.setup_framework if framework_module
+  		  self.class.setup_framework(parent_app_instance, *initialization_args) unless Frameworks.selected_framework
+
     		    		
   			# Eval the use-block from the parent app, in context of this app.
   			settings.instance_exec(self, &block) if block_given?

@@ -19,6 +19,8 @@ module RackWarden
 
 				namespace settings.rw_prefix do
 				
+					# This is necessary for sinatra-namespace to do nested stuff,
+					# due to the namespace module only being half-baked.
 			    helpers do
 			      def settings
 			        App.settings
