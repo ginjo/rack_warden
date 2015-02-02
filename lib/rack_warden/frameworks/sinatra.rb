@@ -19,9 +19,10 @@ module RackWarden
         # unless you find a way to pass in the URI to the before block,
         # and test the regexp against that.
 				def require_login(*args)
-					accept_conditions = args[0] || (/.*/)
-					reject_conditions = args[1] || false
-					before(accept_conditions){puts "RW before self #{self}"; require_login unless reject_conditions}
+					#accept_conditions = args[0] || (/.*/)
+					#reject_conditions = args[1] || false
+					#before(accept_conditions){puts "RW class.require_login self #{self}, conditions #{accept_conditions}, reject #{reject_conditions}"; require_login unless reject_conditions}
+					before(*args){puts "RW class.require_login self #{self}, args #{args}"; require_login}
 				end
       end
       

@@ -9,7 +9,7 @@ require "sinatra/base"
 #require "sinatra/contrib" # not compatible with rails 2.3 because of rack dependency conflict.
 
 # from 3rd party gems
-require "sinatra/namespace"
+#require "sinatra/namespace"
 #require "sinatra/respond_to"
 require "rack/flash" # this somehow loads rack/flash3
 
@@ -37,6 +37,7 @@ module RackWarden
   autoload :Routes, "rack_warden/routes"
   autoload :VERSION, "rack_warden/version"
   autoload :RespondWith, "rack_warden/sinatra/respond_with"
+  autoload :Namespace, "rack_warden/sinatra/namespace"
   autoload :WardenConfig, "rack_warden/warden"
   autoload :UniversalHelpers, "rack_warden/helpers"
   autoload :RackWardenHelpers, "rack_warden/helpers"

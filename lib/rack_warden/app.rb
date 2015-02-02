@@ -92,7 +92,8 @@ module RackWarden
 	  		  	
 	    use Rack::Cookies
 	    #register Sinatra::RespondWith  # Does not honor file extensions. Only works with accept header.
-	    register Sinatra::Namespace
+	    #Namespace::NamespacedMethods.prefixed :require_login
+	    register Namespace
 	    #register Sinatra::RespondTo
 	    register RespondWith
 	    	  	
