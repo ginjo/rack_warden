@@ -21,7 +21,7 @@ module RackWarden
 				def require_login(*args)
 					accept_conditions = args[0] || (/.*/)
 					reject_conditions = args[1] || false
-					before(accept_conditions){require_login unless reject_conditions}
+					before(accept_conditions){puts "RW before self #{self}"; require_login unless reject_conditions}
 				end
       end
       
