@@ -107,6 +107,7 @@ module RackWarden
 	    helpers RackWardenHelpers
 	    helpers UniversalHelpers
 	    
+	    #Sinatra.register RackWarden
 	  end
 	  
 	  # Creates uri-friendly codes/keys/hashes from raw unfriendly strings (like BCrypt hashes). 
@@ -213,7 +214,11 @@ module RackWarden
 		# To run server with 'ruby app.rb'. Disable if using rack to serve.
 		# This really only applies to endpoints, but leaving it hear as example.
   	#run! if app_file == $0
-  end # App 
+  end # App
+  
+  # TODO: This is not working:
+  #Sinatra::Application.register self
 end # RackWarden
+
 
 

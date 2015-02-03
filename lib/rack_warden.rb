@@ -74,5 +74,7 @@ module RackWarden
 		App.setup_framework app
 		app.use self
 	end
+	
+	
   
 end
