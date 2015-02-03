@@ -134,7 +134,7 @@ module RackWarden
 		def self.setup_framework(app, *args)
 			opts = args.last.is_a?(Hash) ? args.pop : {}
 			# Get framework module.
-			framework_module = Frameworks::Base.select_framework(app)
+			framework_module = Frameworks.select_framework(app)
 			#logger.info "RW selected framework module #{framework_module}"
 			
 			# Prepend views from framework_module if framework_module exists.

@@ -2,7 +2,7 @@ module RackWarden
   module Frameworks
     module Rails
       
-      extend Base
+      extend Frameworks
 
       def selector
         App.logger.debug "RW Rails.selector parent_app.ancestors #{parent_app.ancestors}"

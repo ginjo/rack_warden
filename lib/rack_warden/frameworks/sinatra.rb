@@ -2,7 +2,7 @@ module RackWarden
   module Frameworks
     module Sinatra
       
-      extend Base
+      extend Frameworks
             
       def selector
         App.logger.debug "RW Sinatra.selector parent_app.ancestors #{parent_app.ancestors}"

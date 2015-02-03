@@ -36,8 +36,8 @@ module RackWarden
   # and namespace handles require_login.
   autoload :RespondWith, "rack_warden/sinatra/respond_with"
   autoload :Namespace, "rack_warden/sinatra/namespace"
+  autoload :Frameworks, "rack_warden/frameworks"
   module Frameworks
-    autoload :Base, 'rack_warden/frameworks'
     autoload :Sinatra, 'rack_warden/frameworks/sinatra'
     autoload :Rails, 'rack_warden/frameworks/rails'
   end
