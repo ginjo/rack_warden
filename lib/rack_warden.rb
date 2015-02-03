@@ -7,15 +7,7 @@ end
 
 require "sinatra/base"
 #require "sinatra/contrib" # not compatible with rails 2.3 because of rack dependency conflict.
-
-# from 3rd party gems
-#require "sinatra/namespace"
-#require "sinatra/respond_to"
 require "rack/flash" # this somehow loads rack/flash3
-
-# Local files taken from sinatra-contrib project.
-#require "rack_warden/sinatra/respond_with"
-
 require "rack/contrib/cookies"  # This is needed to set cookies in warden callbacks.
 require 'bcrypt'
 require 'data_mapper'
@@ -36,11 +28,14 @@ module RackWarden
   autoload :Mail, "rack_warden/mail"
   autoload :Routes, "rack_warden/routes"
   autoload :VERSION, "rack_warden/version"
-  autoload :RespondWith, "rack_warden/sinatra/respond_with"
-  autoload :Namespace, "rack_warden/sinatra/namespace"
   autoload :WardenConfig, "rack_warden/warden"
   autoload :UniversalHelpers, "rack_warden/helpers"
   autoload :RackWardenHelpers, "rack_warden/helpers"
+  # Autload patched versions of respond_with & namespace.
+  # respond_with handles uri dot-format extension,
+  # and namespace handles require_login.
+  autoload :RespondWith, "rack_warden/sinatra/respond_with"
+  autoload :Namespace, "rack_warden/sinatra/namespace"
   module Frameworks
     autoload :Base, 'rack_warden/frameworks'
     autoload :Sinatra, 'rack_warden/frameworks/sinatra'

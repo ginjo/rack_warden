@@ -6,10 +6,12 @@ module RackWarden
   	class Base
   		def self.inherited(model)
   			model.instance_eval do
+  			
 	  			App.logger.debug "RW #{self}.inherited with #{model}"
 			    include DataMapper::Resource
 			    include BCrypt
 			    def self.default_repository_name; App.repository_name; end
+			    
 		    end
 	    end
   	end

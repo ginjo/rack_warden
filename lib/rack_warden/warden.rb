@@ -32,6 +32,12 @@ module RackWarden
 
     module Warden::Strategies
     
+    	# TODO: Add basic-auth stragety.
+    	# From Rack documentation - this is all you need for basic auth in Sinatra.
+	  	# use Rack::Auth::Basic, "Protected Area" do |username, password|
+	  	#   username == 'foo' && password == 'bar'
+	  	# end
+    
 
 
 	    add(:password) do

@@ -82,7 +82,7 @@ module RackWarden
 	  end
 	  
 	  # Main RackWarden::App class setup.
-	  def self.initialize_app
+	  def self.initialize_app_class
       
 	  	initialize_logging
 	  	logger.warn "RW initializing RackWarden::App in process #{$0}"
@@ -91,10 +91,10 @@ module RackWarden
 	  	initialize_logging
 	  		  	
 	    use Rack::Cookies
-	    #register Sinatra::RespondWith  # Does not honor file extensions. Only works with accept header.
 	    Namespace::NamespacedMethods.prefixed :require_login
+	    Sinatra::Namespace::NamespacedMethods.prefixed :require_login if Sinatra.const_defined? :Namespace
+	    
 	    register Namespace
-	    #register Sinatra::RespondTo
 	    register RespondWith
 	    	  	
   		# Setup flash if not already
@@ -132,20 +132,20 @@ module RackWarden
 		end
 		
 		def self.setup_framework(app, *args)
-				opts = args.last.is_a?(Hash) ? args.pop : {}
-				# Get framework module.
-  			framework_module = Frameworks::Base.select_framework(app)
-    		#logger.info "RW selected framework module #{framework_module}"
-    		
-    		# Prepend views from framework_module if framework_module exists.
-    		# TODO: should this line be elsewhere?
-  			settings.overlay_settings(:views=>framework_module.views_path) if framework_module && ![settings.views, opts[:views]].flatten.include?(false)
-  		  
-  		  # Overlay settings with opts.
-  			settings.overlay_settings opts				
-	
-				# Setup framework if framework_module exists.
-    		framework_module.setup_framework if framework_module
+			opts = args.last.is_a?(Hash) ? args.pop : {}
+			# Get framework module.
+			framework_module = Frameworks::Base.select_framework(app)
+			#logger.info "RW selected framework module #{framework_module}"
+			
+			# Prepend views from framework_module if framework_module exists.
+			# TODO: should this line be elsewhere?
+			settings.overlay_settings(:views=>framework_module.views_path) if framework_module && ![settings.views, opts[:views]].flatten.include?(false)
+			
+			# Overlay settings with opts.
+			settings.overlay_settings opts				
+			
+			# Setup framework if framework_module exists.
+			framework_module.setup_framework if framework_module
 		end
 		
   
@@ -208,7 +208,7 @@ module RackWarden
 		end 
 		
 		# Only initialize app after all above have loaded.
-		initialize_app
+		initialize_app_class
 
 		# To run server with 'ruby app.rb'. Disable if using rack to serve.
 		# This really only applies to endpoints, but leaving it hear as example.

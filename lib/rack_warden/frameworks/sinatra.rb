@@ -27,7 +27,6 @@ module RackWarden
   			parent_app.helpers(RackWarden::UniversalHelpers)
         App.logger.info "RW registering class methods with #{parent_app}"
   			parent_app.register ClassMethods
-				# Add require_login to before filter of sinatra app.
   			parent_app.require_login(RackWarden::App.require_login) if RackWarden::App.require_login != false
     	end
     	
