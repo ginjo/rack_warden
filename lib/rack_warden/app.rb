@@ -92,7 +92,7 @@ module RackWarden
 	  		  	
 	    use Rack::Cookies
 	    Namespace::NamespacedMethods.prefixed :require_login
-	    Sinatra::Namespace::NamespacedMethods.prefixed :require_login if Sinatra.const_defined? :Namespace
+	    Sinatra::Namespace::NamespacedMethods.prefixed(:require_login) if Sinatra.const_defined?(:Namespace) && Sinatra::Namespace.const_defined?(:NamespacedMethods)
 	    
 	    register Namespace
 	    register RespondWith
