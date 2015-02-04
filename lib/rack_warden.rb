@@ -72,9 +72,11 @@ module RackWarden
 	
 	def self.registered(app)
 		App.setup_framework app
+		# TODO: Do we need to check installed middleware to make sure we only have one instance of RW,
+		# in case someone registers RW with multiple sinatra apps in the same ruby process (which seems to be a common practice)?
 		app.use self
 	end
 	
-	
+	Sinatra.register self
   
 end

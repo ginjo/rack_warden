@@ -6,6 +6,13 @@
 	<b>Ruby Process:</b><br>
 	<%= $0 %>
 	<br><br>
+
+
+	<b>Middleware:</b><br>
+	<%#= TopApp.middleware %><br>
+	<%#= InnerApp.middleware %>
+	<%= settings.middleware %>
+	<br><br>
 	
 	<b>Session:</b><br>
 	<%= session.to_hash.to_yaml.to_html %>

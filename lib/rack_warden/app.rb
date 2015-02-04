@@ -199,6 +199,9 @@ module RackWarden
 		  logger.debug "RW app.call storing app instance in env['rack_warden_instance'] #{self}"
 		  self.request= Rack::Request.new(env)
 		  env.rack_warden = self
+		  # TODO: Flesh this out with settings and a mini-dsl,
+		  # something like:  set :authenticate_with_middleware, {:require_login=>[<conditions>...], :skip_login=>[<conditions>...]}
+		  #request.path_info.to_s[/^\/auth/] || require_login
 		  
 		  # Send to super, then build & process response.
 			# resp = Rack::Response.new *super(env).tap{|e| e.unshift e.pop}

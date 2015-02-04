@@ -1,7 +1,6 @@
 module RackWarden
 
 	module UniversalHelpers
-	protected
 		
 		def require_login
 			App.logger.debug "RW instance #{self}.require_login with rack_warden: #{rack_warden}, and warden: #{warden}"
