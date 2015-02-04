@@ -40,6 +40,7 @@ module RackWarden
   module Frameworks
     autoload :Sinatra, 'rack_warden/frameworks/sinatra'
     autoload :Rails, 'rack_warden/frameworks/rails'
+    autoload :Rack, 'rack_warden/frameworks/rack'
   end
   
   # Make this module a pseudo-class appropriate for middlware stack. Use RackWarden for older rails apps (rather than 'RackWarden::App')

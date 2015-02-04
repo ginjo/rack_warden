@@ -15,6 +15,7 @@ module RackWarden
     set :database_default =>  "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
     set :recaptcha, Hash.new
     set :require_login, nil
+    set :rack_authentication, nil
     set :allow_public_signup, false
     set :logging, true
     set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
@@ -200,9 +201,15 @@ module RackWarden
 		  logger.debug "RW app.call storing app instance in env['rack_warden_instance'] #{self}"
 		  self.request= Rack::Request.new(env)
 		  env.rack_warden = self
-		  # TODO: Flesh this out with settings and a mini-dsl,
-		  # something like:  set :authenticate_with_middleware, {:require_login=>[<conditions>...], :skip_login=>[<conditions>...]}
-		  #request.path_info.to_s[/^\/auth/] || require_login
+			
+			# Authenticate here-and-now.		  
+		  if !request.path_info.to_s.match(/^\/auth/) && settings.rack_authentication
+		  logger.debug "RW rack_authentication for path_info: #{request.path_info}"
+		  Array(settings.rack_authentication).each do |rule|
+		  	logger.debug "RW rack_authentication rule #{rule}"
+		  	(require_login) if rule && request.path_info.to_s.match(Regexp.new rule.to_s)
+		  end
+		  end
 		  
 		  # Send to super, then build & process response.
 			# resp = Rack::Response.new *super(env).tap{|e| e.unshift e.pop}

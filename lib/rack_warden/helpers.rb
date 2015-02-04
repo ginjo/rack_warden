@@ -48,8 +48,7 @@ module RackWarden
 
 		# Returns the current rack_warden app instance stored in env.
 	  def rack_warden
-	  	App.logger.debug "RW rack_warden helper method self #{self}"
-	  	App.logger.debug "RW rack_warden helper method request.env['rack_warden_instance'] #{request.env['rack_warden_instance']}"
+	  	App.logger.debug "RW helper method 'rack_warden' request.env['rack_warden_instance'] #{request.env['rack_warden_instance']}"
 	  	request.env['rack_warden_instance'] #.tap {|rw| rw.request = request}    #request}
 	  end
 	  
@@ -58,13 +57,9 @@ module RackWarden
 	  end
 	  
 	  def flash_widget
-	  	#return "flash_widget DISABLED"
 	  	App.logger.debug "RW flash_widget self.flash #{self.flash}"
 	  	App.logger.debug "RW flash_widget rack.flash #{env['x-rack.flash']}"
 	  	App.logger.debug "RW flash_widget.rack_warden.flash #{rack_warden.request.env['x-rack.flash']}"
-	  	#rack_warden.settings.render_template :'rw_flash_widget.html'
-	  	#"FLASH WIDGET DISABLED"
-	  	#flash.rw_test
 	  	rack_warden.erb :'rw_flash_widget.html', :layout=>false
 	  end
 	
