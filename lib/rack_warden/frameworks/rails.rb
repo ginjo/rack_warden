@@ -27,7 +27,7 @@ module RackWarden
 				end
 				
     		# The way you pass arguments here is fragile. If it's not correct, it will bomb with "undefined method 'before'...".
-    		(ActionController::Base.require_login(rack_warden_app_class.require_login || {})) if rack_warden_app_class.require_login != false
+    		(ActionController::Base.require_login(RackWarden::App.require_login || {})) if RackWarden::App.require_login != false
       end
             
     end
