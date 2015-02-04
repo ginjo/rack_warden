@@ -5,6 +5,9 @@ module RackWarden
 			
 				App.logger.debug "RW loading routes"
 				
+				# Was moved here from App#initialize
+				#settings.set :erb, :layout=>settings.layout
+				
 				respond_to :xml, :json, :js, :txt, :html, :yaml
 				
 				# Before does not have access to uri-embedded params yet.				

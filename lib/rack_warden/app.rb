@@ -167,12 +167,13 @@ module RackWarden
   	  initialization_args = args.dup
   		logger.info "RW new app instance with parent: #{@app}"
   		opts = args.last.is_a?(Hash) ? args.pop : {}
+  		
+  		
+  		
   		if app && !settings.initialized
   		  logger.warn "RW initializing settings from app instance"
   		  
-  		  
-  		  self.class.setup_framework(parent_app_instance, *initialization_args) unless Frameworks.selected_framework
-
+  		  self.class.setup_framework(parent_app_instance, *initialization_args) #unless Frameworks.selected_framework
     		    		
   			# Eval the use-block from the parent app, in context of this app.
   			settings.instance_exec(self, &block) if block_given?
