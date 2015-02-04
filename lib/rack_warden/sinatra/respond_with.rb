@@ -1,7 +1,10 @@
 require 'rack_warden/sinatra/json'
 require 'sinatra/base'
+require 'erb'
 
 module RackWarden
+App.logger.debug "RW loading RespondWith"
+
   #
   # = Sinatra::RespondWith
   #
@@ -184,6 +187,7 @@ module RackWarden
       private
 
       def template_for(name, exts)
+      	logger.debug "RW respond_with#template_for name, exts: #{name}, #{exts}"
         # in production this is cached, so don't worry too much about runtime
         possible = []
         settings.template_engines[:all].each do |engine|
@@ -192,14 +196,20 @@ module RackWarden
         exts.each do |ext|
           settings.template_engines[ext].each { |e| possible << [e, name] }
         end
+        logger.debug "RW respond_with#template_for possible: #{possible.inspect}"
         possible.each do |engine, template|
           # not exactly like Tilt[engine], but does not trigger a require
           klass = Tilt.mappings[Tilt.normalize(engine)].first
+          logger.debug "RW respond_with#template_for klass : #{klass}"
           find_template(settings.views, template, klass) do |file|
+          	#logger.debug "RW respond_with#template_for find_template file: #{file}"
+          	#logger.debug "RW respond_with#template_for find_template engine: #{engine.inspect}"
+          	#logger.debug "RW respond_with#template_for find_template template: #{template.inspect}"
             next unless File.exist? file
             return settings.rendering_method(engine) << template.to_sym
           end
         end
+        
         [] # nil or false would not be cached
       end
     end

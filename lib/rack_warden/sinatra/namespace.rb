@@ -3,6 +3,7 @@ require 'sinatra/base'
 require 'rack_warden/sinatra/decompile'
 
 module RackWarden
+App.logger.debug "RW loading Namespace"
 
   # = Sinatra::Namespace
   #

@@ -20,8 +20,8 @@ module RackWarden
 	    Namespace::NamespacedMethods.prefixed :require_login
 	    Sinatra::Namespace::NamespacedMethods.prefixed(:require_login) if Sinatra.const_defined?(:Namespace) && Sinatra::Namespace.const_defined?(:NamespacedMethods)
 	    
-	    register Namespace
-	    register RespondWith
+	    register RackWarden::Namespace
+	    register RackWarden::RespondWith
 	    	  	
   		# Setup flash if not already
   		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
