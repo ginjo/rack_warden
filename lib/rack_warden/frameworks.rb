@@ -7,17 +7,29 @@ module RackWarden
     	
       # Select the framework of the parent app.
       def select_framework(env)
-        App.logger.debug "RW framework constants: #{Frameworks.constants}"
-        Frameworks.constants.dup.tap{|_constants| _constants.delete(:Base)}.each do |c|
-          r = Frameworks.const_get(c).framework_selector(env) #rescue nil
-          if r
-          	Frameworks.selected_framework = r
-          	App.logger.info "RW selected framework #{Frameworks.selected_framework}"
-            return r
-          end
+        App.logger.debug "RW framework constants: #{constants}"
+        self.constants.dup.tap{|_constants| _constants.delete(:Base)}.each do |c|
+          @selected_framework = self.const_get(c).framework_selector(env) #rescue nil
+          break if @selected_framework
         end
-        nil
+        @selected_framework ||= Rack
+      	App.logger.info "RW selected framework #{@selected_framework}"
+        @selected_framework
       end
+
+			# def select_framework(env)
+			#   App.logger.debug "RW framework constants: #{Frameworks.constants}"
+			#   Frameworks.constants.dup.tap{|_constants| _constants.delete(:Base)}.each do |c|
+			#     r = Frameworks.const_get(c).framework_selector(env) #rescue nil
+			#     if r
+			#     	Frameworks.selected_framework = r
+			#     	App.logger.info "RW selected framework #{Frameworks.selected_framework}"
+			#       return r
+			#     end
+			#   end
+			#   nil
+			# end
+
       
       # Extend target with target (like saying 'extend self' within target).
       def extended(target)
