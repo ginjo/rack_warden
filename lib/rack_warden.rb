@@ -29,6 +29,7 @@ module RackWarden
   autoload :Routes, "rack_warden/routes"
   autoload :VERSION, "rack_warden/version"
   autoload :WardenConfig, "rack_warden/warden"
+  autoload :AppClassMethods, "rack_warden/helpers"
   autoload :UniversalHelpers, "rack_warden/helpers"
   autoload :RackWardenHelpers, "rack_warden/helpers"
   # Autload patched versions of respond_with & namespace.

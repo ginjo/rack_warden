@@ -1,5 +1,127 @@
 module RackWarden
 
+
+	module AppClassMethods
+	
+		def self.registered(app)
+			app.initialize_app_class
+		end
+	
+	  # Main RackWarden::App class setup.
+	  def initialize_app_class
+      
+	  	initialize_logging
+	  	logger.warn "RW initializing RackWarden::App in process #{$0}"
+	  	logger.warn "RW running in #{environment} environment"
+	  	initialize_config_files
+	  	initialize_logging
+	  		  	
+	    use Rack::Cookies
+	    Namespace::NamespacedMethods.prefixed :require_login
+	    Sinatra::Namespace::NamespacedMethods.prefixed(:require_login) if Sinatra.const_defined?(:Namespace) && Sinatra::Namespace.const_defined?(:NamespacedMethods)
+	    
+	    register Namespace
+	    register RespondWith
+	    	  	
+  		# Setup flash if not already
+  		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
+			use Rack::Flash, :accessorize=>[:rw_error, :rw_success, :rw_test]
+				  	
+			helpers RackWarden::WardenConfig
+			helpers RackWarden::Routes
+			
+	    helpers RackWardenHelpers
+	    helpers UniversalHelpers
+	    
+	  end
+		
+		def setup_framework(app, *args)
+			opts = args.last.is_a?(Hash) ? args.pop : {}
+			# Get framework module.
+			framework_module = Frameworks.select_framework(app)
+			#logger.info "RW selected framework module #{framework_module}"
+			
+			# Prepend views from framework_module if framework_module exists.
+			# TODO: should this line be elsewhere?
+			settings.overlay_settings(:views=>framework_module.views_path) if framework_module && ![settings.views, opts[:views]].flatten.include?(false)
+			
+			# Overlay settings with opts.
+			settings.overlay_settings opts				
+			
+			# Setup framework if framework_module exists.
+			framework_module.setup_framework if framework_module
+		end
+
+    # Load config from file, if any exist.
+    def initialize_config_files(more_config={})
+	    Hash.new.tap do |hash|
+	      config_files.each {|c| hash.merge!(YAML.load_file(File.join(Dir.pwd, c))) rescue nil}
+	      hash.merge! more_config
+	      overlay_settings hash
+	    end
+    end
+    
+    # Apply new settings on top of existing settings, prepending new views to old views.
+    def overlay_settings(new_settings)
+    	new_views = new_settings.extract(:views).values
+    	logger.debug "RW overlay_settings new_views #{new_views.inspect}"
+	  	set :views, [new_views, views].flatten.compact.uniq
+    	set new_settings
+    end
+    	
+    # Initialize logging.
+    def initialize_logging(reset=reset_logger)
+	    # We take existing log file from settings, enable sync (disables buffering), then put it back in settings.
+    	_log_file = !logging && File.new('/dev/null', 'a') || !reset && settings.log_file || File.new(settings.log_path, 'a+')
+	    _log_file.sync = true
+	    set :log_file, _log_file
+	    set :logger, Logger.new(_log_file, 'daily') unless settings.logger && !reset
+	    logger.level = eval "Logger::#{log_level}"
+	    
+	    # Setup Rack::CommonLogger
+	    if use_common_logger
+	    	mw = @middleware.find {|m| Array(m)[0] == Rack::CommonLogger}
+		    #@middleware.delete_if {|m| Array(m)[0] == Rack::CommonLogger}
+		    mw ? mw[1]=[_log_file] : use(Rack::CommonLogger, _log_file)
+	    end
+	    
+		  #if logger.level < 2
+			  #DataMapper::Logger.new(_log_file)  #$stdout) #App.log_path)
+			  DataMapper.logger.instance_variable_set :@log, _log_file
+			  DataMapper.logger.instance_variable_set :@level, DataMapper::Logger::Levels[log_level.to_s.downcase.to_sym]
+			  # logger.info "RW DataMapper using log_file #{_log_file.inspect}"
+		  #end
+	    
+	    logger.debug "RW initialized logging (level #{logger.level}) #{_log_file.inspect}"
+	  rescue
+	  	puts "There was an error setting up logging: #{$!}"
+	  end
+
+	  # Creates uri-friendly codes/keys/hashes from raw unfriendly strings (like BCrypt hashes). 
+	  def uri_encode(string)
+	  	URI.encode(Base64.encode64(string))
+	  end
+	  
+	  def uri_decode(string)
+	  	Base64.decode64(URI.decode(string))
+	  end
+	  
+	  # Generic template rendering. Does not have automatic access to 'controller' environment.
+	  # Pass 'object' to be the context of rendered template.
+  	# See this for more info on using templates here http://stackoverflow.com/questions/5446283/how-to-use-sinatras-haml-helper-inside-a-model.
+	  def render_template(template_name, locals_hash={}, object=self )
+		  tmpl = settings.views.collect {|v| Tilt.new(File.join(v, template_name)) rescue nil}.compact[0]
+		  if tmpl
+		  	tmpl.render(object, locals_hash)
+		  else
+			  App.logger.info "RW self.render_template found no templates to render" 
+			  nil
+			end
+		end
+
+	end # AppClassMethods
+
+
 	module UniversalHelpers
 		
 		def require_login
