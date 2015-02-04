@@ -9,27 +9,13 @@ module RackWarden
       def select_framework(env)
         App.logger.debug "RW framework constants: #{constants}"
         self.constants.dup.tap{|_constants| _constants.delete(:Base)}.each do |c|
-          @selected_framework = self.const_get(c).framework_selector(env) #rescue nil
+          @selected_framework = self.const_get(c).framework_selector(env)
           break if @selected_framework
         end
         @selected_framework ||= Rack
       	App.logger.info "RW selected framework #{@selected_framework}"
         @selected_framework
       end
-
-			# def select_framework(env)
-			#   App.logger.debug "RW framework constants: #{Frameworks.constants}"
-			#   Frameworks.constants.dup.tap{|_constants| _constants.delete(:Base)}.each do |c|
-			#     r = Frameworks.const_get(c).framework_selector(env) #rescue nil
-			#     if r
-			#     	Frameworks.selected_framework = r
-			#     	App.logger.info "RW selected framework #{Frameworks.selected_framework}"
-			#       return r
-			#     end
-			#   end
-			#   nil
-			# end
-
       
       # Extend target with target (like saying 'extend self' within target).
       def extended(target)
@@ -40,7 +26,7 @@ module RackWarden
 
     ###  Methods extended into framework module  ###
 
-    attr_accessor :parent_app_instance, :parent_app_class, :parent_app, :rack_warden_app_instance, :rack_warden_app_class
+    attr_accessor :parent_app_instance, :parent_app_class, :parent_app
 
     # Sets framework module with variables from env (the scope of the parent app's initializer),
     # and runs the framework selector logic.
