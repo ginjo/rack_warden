@@ -123,9 +123,10 @@ module RackWarden
 
 
 	module UniversalHelpers
+	#protected ... might need this for rails, but not for sinatra.
 		
 		def require_login
-			App.logger.debug "RW instance #{self}.require_login with rack_warden: #{rack_warden}, and warden: #{warden}"
+			App.logger.debug "RW running #{self}.require_login with rack_warden: #{rack_warden}, and warden: #{warden}"
 			#App.logger.debug "RW instance #{self}.require_login ancestors #{self.class.ancestors.inspect}"
 			#logged_in? || warden.authenticate!
 			warden.authenticated? || warden.authenticate!
