@@ -31,7 +31,7 @@ See the [DataMapper](https://github.com/datamapper/dm-core/wiki/Adapters) site f
 ## Usage
 
 A few simple steps will have your entire app protected.
-If not using bundler, don't forget to ```require 'rack\_warden'```.
+If not using bundler, don't forget to ```require 'rack_warden'```.
 
 ### Sinatra
 
@@ -90,7 +90,7 @@ If you pass a block with the ```use``` method, the block will be evaluated in th
 
 You can also set RackWarden settings directly from inside your application.
 
-		RackWarden::App.set({:setting1 => val1, :setting2 => val2})
+    RackWarden::App.set({:setting1 => val1, :setting2 => val2})
     
 Note that with some frameworks, the RackWarden middleware instance will be lazy-loaded only when it is needed (usually with the first request). This is a function of the ruby framework you are using and is not under control of RackWarden. This means that some settings you pass with the ```use``` method (or block) may have 'missed the boat'. RackWarden tries to integrate these settings in lazy-loaded situations as best as it can. However, if you suspect your settings might not be taking, put your settings in the rack\_warden.yml config file. The config file will always be loaded with the RackWarden module. If you are using Sinatra, load up RackWarden with ```register RackWarden```, as that will initialize RackWarden as soon as your Sinatra project loads.
 
@@ -99,30 +99,30 @@ Note that with some frameworks, the RackWarden middleware instance will be lazy-
 
 Current list of settings specific to rack\_warden, with defaults.
 
-	set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
-	set :layout, :'rw_layout.html'
-	set :default_route, '/'
-	set :exclude_from_return_to, 'login|logout|new|create'
-	set :repository_name, :default
-	set :database_config => nil
-	set :database_default =>  "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
-	set :recaptcha, Hash.new
-	set :require_login, nil
-	set :rack_authentication, nil
-	set :allow_public_signup, false
-	set :logging, true
-	set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
-	set :use_common_logger, false
-	set :sessions, true
-	set :remember_token_cookie_name, 'rack_warden_remember_token'
-	set :user_table_name, 'rack_warden_users'
-	set :views, File.expand_path("../views/", __FILE__) unless views
-	set :login_on_create, true
-	set :login_on_activate, false
-	set :rw_prefix, '/auth'
-	set :mail_options,
-			:delivery_method => :test,
-			:delivery_options => {:from => 'my@email.com'}
+    set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
+    set :layout, :'rw_layout.html'
+    set :default_route, '/'
+    set :exclude_from_return_to, 'login|logout|new|create'
+    set :repository_name, :default
+    set :database_config => nil
+    set :database_default =>  "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
+    set :recaptcha, Hash.new
+    set :require_login, nil
+    set :rack_authentication, nil
+    set :allow_public_signup, false
+    set :logging, true
+    set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
+    set :use_common_logger, false
+    set :sessions, true
+    set :remember_token_cookie_name, 'rack_warden_remember_token'
+    set :user_table_name, 'rack_warden_users'
+    set :views, File.expand_path("../views/", __FILE__) unless views
+    set :login_on_create, true
+    set :login_on_activate, false
+    set :rw_prefix, '/auth'
+    set :mail_options,
+        :delivery_method => :test,
+        :delivery_options => {:from => 'my@email.com'}
 
 
 Some of the configuration settings in more detail.
@@ -211,17 +211,17 @@ The default for RackWarden is to enable the ```require_login``` helper on every 
 
 To control authentication inclusion/exclusion of routes & actions on a per-controller or per-application basis, use the class method ```require_login```. This creates a before filter in the context where you declare it. You can pass any options to ```require_login``` that are allowed by your framework's before filter.
 
-	# Rails
-	class Products < ActionController::Base
-		require_login :only=>[:new, :create, :edit, :update]
-		...
-	end
-	
-	# Sinatra
-	class MyApp < Sinatra::Base
-		require_login '/admin*', :agent => /Songbird/
-		...
-	end
+  # Rails
+  class Products < ActionController::Base
+    require_login :only=>[:new, :create, :edit, :update]
+    ...
+  end
+  
+  # Sinatra
+  class MyApp < Sinatra::Base
+    require_login '/admin*', :agent => /Songbird/
+    ...
+  end
 
 
 ### Views

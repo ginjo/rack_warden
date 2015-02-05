@@ -1,4 +1,4 @@
-<% @section_title = "Create Account" %>
+<h3>Create Account</h3>
 <p><%= @user.errors.to_yaml if @user && @user.errors %></p>
 <form action="<%=url_for('/create')%>" method="post" class="rw">
 	<style scoped="scoped">    
