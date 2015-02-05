@@ -31,11 +31,20 @@ See the [DataMapper](https://github.com/datamapper/dm-core/wiki/Adapters) site f
 ## Usage
 
 A few simple steps will have your entire app protected.
+If not using bundler, don't forget to ```require 'rack\_warden'```.
 
 ### Sinatra
 
+    # classic
+    register RackWarden
+
+    get "/" do
+      erb "All routes are now protected"
+    end    
+
+    # modular
     class MySinatraApp < Sinatra::Base
-      use RackWarden
+      register RackWarden
     
       get "/" do
         erb "All routes are now protected"
@@ -50,11 +59,21 @@ application.rb or environment.rb
     
     # All routes are now protected
     
+### Rack
+
+You can also use RackWarden with bare Rack applications. A ruby application framework is not necessary.
+
+config.ru
+
+    map "/" do
+      use RackWarden
+      run MyApp
+    end
 
 
 ## Configuration
 
-RackWarden will look for a yaml configuration file named rack\_warden.yml in your project root or in your project-root/config/ directory. You can specify any of RackWarden's settings here.
+RackWarden will look for a yaml configuration file named rack_warden.yml in your project root or in your project-root/config/ directory. You can specify any of RackWarden's settings here.
 
     ---
     database: sqlite3:///usr/local/some_other_database.sqlite3.db
@@ -68,8 +87,12 @@ If you pass a block with the ```use``` method, the block will be evaluated in th
     use RackWarden::App do |rack_warden_app_instance|
       set :some_setting, 'some_value'
     end
+
+You can also set RackWarden settings directly from inside your application.
+
+		RackWarden::App.set({:setting1 => val1, :setting2 => val2})
     
-Note that with some frameworks, the RackWarden middleware instance will be lazy-loaded only when it is needed (usually with the first request). This is a function of the ruby framework you are using and is not under control of RackWarden. This means that some settings you pass with the ```use``` method (or block) may have 'missed the boat'. RackWarden tries to integrate these settings in lazy-loaded situations as best as it can. However, if you suspect your settings might not be taking, put your settings in the rack\_warden.yml config file. The config file will always be loaded with the RackWarden module.
+Note that with some frameworks, the RackWarden middleware instance will be lazy-loaded only when it is needed (usually with the first request). This is a function of the ruby framework you are using and is not under control of RackWarden. This means that some settings you pass with the ```use``` method (or block) may have 'missed the boat'. RackWarden tries to integrate these settings in lazy-loaded situations as best as it can. However, if you suspect your settings might not be taking, put your settings in the rack\_warden.yml config file. The config file will always be loaded with the RackWarden module. If you are using Sinatra, load up RackWarden with ```register RackWarden```, as that will initialize RackWarden as soon as your Sinatra project loads.
 
 
 ## Configuration Options
@@ -85,6 +108,7 @@ Current list of settings specific to rack\_warden, with defaults.
 	set :database_default =>  "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
 	set :recaptcha, Hash.new
 	set :require_login, nil
+	set :rack_authentication, nil
 	set :allow_public_signup, false
 	set :logging, true
 	set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
@@ -99,6 +123,9 @@ Current list of settings specific to rack\_warden, with defaults.
 	set :mail_options,
 			:delivery_method => :test,
 			:delivery_options => {:from => 'my@email.com'}
+
+
+Some of the configuration settings in more detail.
 
 ### :layout
 
@@ -133,28 +160,28 @@ A database specification hash or url string.
 Parameters to pass to the before/before\_filter for require\_login.
 So if your main app is Sinatra,
 
-    require_login: /^\/admin/
+    require_login: '/admin*'
     
 is the same as
 
     class MySinatraApp
-      require_login /^\/admin/
+      require_login '/admin*'
     end
     
 which is the same as
 
     class MySinatraApp
-      before /^\/admin/ do
+      before '/admin*' do
         require_login
       end
     end
     
 For Rails, you would be passing a hash of :only or :except keys.
 
-    require_login: {:except => :index}
+    require_login: {:except => [:index, :show]}
     
 The default for :require\_login is nil, which means require login on every route or action.
-To disable automatic activation of require\_login, pass it ```false```.
+To disable automatic activation of require\_login, set it to ```false```.
 
 ### :allow\_public\_signup
 
@@ -178,41 +205,22 @@ Settings for Google's recaptcha service. If these settings exist, recaptcha will
 
 ### Actions
 
-
-# DOUBLE CHECK THIS SECTION TO MAKE SURE IT ACTUALLY WORKS THIS WAY!
-
 RackWarden adds a handful of helpers to your base controller class, giving you finer control over what actions (or routes) are protected. One of these helpers is ```require_login```. Run this helper in any action that you want protected behind a login session. If the user is not logged in, they will be redirected to the login action provided by RackWarden. Once they have successfully completed the login, the user will be redirected back to the protected page they were originally trying to access.
 
 The default for RackWarden is to enable the ```require_login``` helper on every action in your project. To disable this default, set ```:require_login``` (in your RackWarden configuration) to anything other than nil. Setting ```:require_login => false``` will disable automatic activation of the ```require_login``` helper entirely.
 
-You can also pass a regular expression (Sinatra) or a hash (Rails / ActionController) to ```require_login``` to filter what actions are protected, using your framework's before-filter ability.
-
-    # Exclude the 'index' route in Sinatra from RackWarden protection.
-    :require_login => !ruby/regexp /(?!index)/
-
-    # Exclude the 'index' action in Rails from RackWarden protection.
-    :require_login => :except=>[:index]
-
-To get finer control of inclusion/exclusion of routes & actions, use the class method ```require_login(filter)```. This creates a before filter in the context where you declare it.
+To control authentication inclusion/exclusion of routes & actions on a per-controller or per-application basis, use the class method ```require_login```. This creates a before filter in the context where you declare it. You can pass any options to ```require_login``` that are allowed by your framework's before filter.
 
 	# Rails
 	class Products < ActionController::Base
-		require_login :except=>[:index, :show]
+		require_login :only=>[:new, :create, :edit, :update]
 		...
 	end
 	
 	# Sinatra
 	class MyApp < Sinatra::Base
-		require_login /\/products\/index|\/products\/show/
+		require_login '/admin*', :agent => /Songbird/
 		...
-	end
-	
-	# Sinatra with Sinatra::Namespace extension
-	class MyApp < Sinatra::Base
-		namespace '/products' do
-			require_login /index|show/
-			...
-		end
 	end
 
 
