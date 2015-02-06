@@ -11,9 +11,10 @@ module RackWarden
     set :default_route, '/'
     set :exclude_from_return_to, 'login|logout|new|create|activate|unauthenticated|error'
     set :repository_name, :default
-    set :database_config => nil
-    set :database_default =>  "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
-    set :recaptcha, Hash.new
+    set :database_config, nil
+    set :database_default,  "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
+    set :disable_erubis, true
+    set :recaptcha, {}
     set :require_login, nil
     set :rack_authentication, nil
     set :allow_public_signup, false

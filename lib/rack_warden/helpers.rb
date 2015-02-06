@@ -23,9 +23,11 @@ module RackWarden
 	    register RackWarden::Namespace
 	    register RackWarden::RespondWith
 	    
-	    # RackWarden does not support erubis
-	    template_engines.delete :erubis
-	    Tilt.mappings['erb'].delete Tilt::ErubisTemplate
+	    # Erubis/tilt/respond_with don't play well together in older ruby/rails.
+	    if disable_erubis
+		    template_engines.delete :erubis
+		    Tilt.mappings['erb'].delete Tilt::ErubisTemplate
+			end
 	    	  	
   		# Setup flash if not already
   		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.

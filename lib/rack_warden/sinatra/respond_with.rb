@@ -1,6 +1,5 @@
 require 'rack_warden/sinatra/json'
 require 'sinatra/base'
-require 'erb'
 
 module RackWarden
 App.logger.debug "RW loading RespondWith"
