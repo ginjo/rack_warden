@@ -83,7 +83,7 @@ module RackWarden
 					  else
 					  	flash.rw_error = "#{warden.message} => #{@user.errors.entries.join('. ')}"
 					  	App.logger.info "RW /auth/create failed for '#{@user.username rescue nil}' #{@user.errors.entries}"
-					  	redirect back #url('/auth/new', false)
+					  	redirect back
 					  end
 					end
 					

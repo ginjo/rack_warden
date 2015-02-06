@@ -79,6 +79,9 @@ module RackWarden
 		app.use self
 	end
 	
+	#Loads the App module, as soon as this module loads.
+	App
+	
 	# Enable this for automatic sinatra top-level registration.
 	#Sinatra.register self
   

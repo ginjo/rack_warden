@@ -36,10 +36,8 @@ module RackWarden
     		:delivery_method => :test,
     		:delivery_options => {:from => 'my@email.com'} #, :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE
 
-    
 	  
-		register AppClassMethods
-		
+		register AppClassMethods		
   
 
     # WBR - This will receive params and a block from the parent "use" statement.
@@ -62,7 +60,7 @@ module RackWarden
   		
   		
   		if app && !settings.initialized
-  		  logger.warn "RW initializing settings from app instance"
+  		  logger.warn "RW initializing settings from app instance with args: #{initialization_args.inspect}"
   		  
   		  self.class.setup_framework(parent_app_instance, *initialization_args) #unless Frameworks.selected_framework
     		    		
@@ -70,6 +68,7 @@ module RackWarden
   			settings.instance_exec(self, &block) if block_given?
   			
  		    # Set global layout (remember to use :layout=>false in your calls to partials).
+ 		    logger.debug "RW App#initialize setting erb layout: #{settings.layout}"
 		    settings.set :erb, :layout=>settings.layout
   			
   			settings.initialize_logging

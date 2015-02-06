@@ -187,7 +187,7 @@ App.logger.debug "RW loading RespondWith"
       private
 
       def template_for(name, exts)
-      	logger.debug "RW respond_with#template_for name, exts: #{name}, #{exts}"
+      	logger.debug "RW respond_with#template_for name, exts: #{name}, #{exts.inspect}"
         # in production this is cached, so don't worry too much about runtime
         possible = []
         settings.template_engines[:all].each do |engine|
