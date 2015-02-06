@@ -79,7 +79,7 @@ module RackWarden
 					  	flash.rw_success = warden.message || "Account created"
 					  	App.logger.info "RW /auth/create succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"
 					    #redirect session[:return_to] || url(settings.default_route, false)
-					    return_to url_for(logged_in? ? '/' : '/login')
+					    return_to url_for(logged_in? ? settings.default_route : '/login')
 					  else
 					  	flash.rw_error = "#{warden.message} => #{@user.errors.entries.join('. ')}"
 					  	App.logger.info "RW /auth/create failed for '#{@user.username rescue nil}' #{@user.errors.entries}"
