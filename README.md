@@ -211,17 +211,17 @@ The default for RackWarden is to enable the ```require_login``` helper on every 
 
 To control authentication inclusion/exclusion of routes & actions on a per-controller or per-application basis, use the class method ```require_login```. This creates a before filter in the context where you declare it. You can pass any options to ```require_login``` that are allowed by your framework's before filter.
 
-  # Rails
-  class Products < ActionController::Base
-    require_login :only=>[:new, :create, :edit, :update]
-    ...
-  end
+    # Rails
+    class Products < ActionController::Base
+      require_login :only=>[:new, :create, :edit, :update]
+      ...
+    end
   
-  # Sinatra
-  class MyApp < Sinatra::Base
-    require_login '/admin*', :agent => /Songbird/
-    ...
-  end
+    # Sinatra
+    class MyApp < Sinatra::Base
+      require_login '/admin*', :agent => /Songbird/
+      ...
+    end
 
 
 ### Views
