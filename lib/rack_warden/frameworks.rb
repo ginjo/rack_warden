@@ -7,13 +7,13 @@ module RackWarden
     	
       # Select the framework of the parent app.
       def select_framework(env)
-        App.logger.debug "RW framework constants: #{constants}"
+        App.logger.debug "RW Frameworks.select_framework constants: #{constants}"
         self.constants.dup.tap{|_constants| _constants.delete(:Base)}.each do |c|
           @selected_framework = self.const_get(c).framework_selector(env)
           break if @selected_framework
         end
         @selected_framework ||= Rack
-      	App.logger.info "RW selected framework #{@selected_framework}"
+      	App.logger.info "RW Frameworks.select_framework selected #{@selected_framework}"
         @selected_framework
       end
       
@@ -21,7 +21,8 @@ module RackWarden
       def extended(target)
         target.extend target
       end
-    end
+    
+    end # class << self
     
 
     ###  Methods extended into framework module  ###
@@ -32,7 +33,7 @@ module RackWarden
     # and runs the framework selector logic.
     # Returns the framework module or nil.
     def framework_selector(app)
-    	App.logger.debug "RW framework_selector #{self}"
+    	App.logger.debug "RW Frameworks#framework_selector self: #{self}"
       @parent_app_instance = app #env.eval 'parent_app_instance'
       @parent_app_class = @parent_app_instance.class
       @parent_app = @parent_app_instance.is_a?(Class) ? @parent_app_instance : @parent_app_class

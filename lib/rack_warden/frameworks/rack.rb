@@ -5,7 +5,7 @@ module RackWarden
       extend Frameworks
             
       def selector
-        App.logger.debug "RW Rack.selector parent_app.ancestors #{parent_app.ancestors}"
+        App.logger.debug "RW Frameworks::Rack.selector" # "parent_app.ancestors #{parent_app.ancestors}"
         parent_app.ancestors.find{|x| x.to_s=='Rack::URLMap'}
       end
       
@@ -23,9 +23,9 @@ module RackWarden
       end
       
       def setup_framework
-        App.logger.debug "RW setup_framework for rack app #{parent_app}"
+        App.logger.debug "RW Frameworks::Rack.setup_framework for rack app: #{parent_app}"
   			parent_app.include(RackWarden::UniversalHelpers)
-        App.logger.info "RW registering class methods with #{parent_app}"
+        App.logger.info "RW Frameworks::Rack.setup_framework registering class methods with: #{parent_app}"
   			parent_app.extend ClassMethods
   			App.set :rack_authentication, '.*'
   			#parent_app.require_login(RackWarden::App.require_login) if RackWarden::App.require_login != false

@@ -5,7 +5,7 @@ module RackWarden
       extend Frameworks
 
       def selector
-        App.logger.debug "RW Frameworks::Rails.selector" # parent_app.ancestors #{parent_app.ancestors}
+        App.logger.debug "RW Frameworks::Rails.selector" # "parent_app.ancestors #{parent_app.ancestors}"
         parent_app.ancestors.find{|x| x.to_s[/Rails|ActionDispatch/]} or defined?(::Rails)
       end
       

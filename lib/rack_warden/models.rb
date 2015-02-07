@@ -7,7 +7,7 @@ module RackWarden
   		def self.inherited(model)
   			model.instance_eval do
   			
-	  			App.logger.debug "RW #{self}.inherited with #{model}"
+	  			App.logger.debug "RW Model::Base.inherited by #{model}"
 			    include DataMapper::Resource
 			    include BCrypt
 			    def self.default_repository_name; App.repository_name; end
@@ -31,25 +31,25 @@ module RackWarden
 		  end
 		  
 		  # Careful! This could expose sensitive db login info in the log files.
-		  App.logger.debug "RW selected DataMapper repository #{DataMapper.repository(App.repository_name).adapter.inspect}"
+		  App.logger.debug "RW RackWarden::Model.initialize_models selected DataMapper repository: #{DataMapper.repository(App.repository_name).adapter.inspect}"
 		  
 		  # Careful! This could expose sensitive db login info in the log files.
-		  App.logger.warn "RW using DataMapper repository #{DataMapper.repository(App.repository_name).adapter.options.dup.tap{|o| o.delete(:password); o.delete('password')}.inspect}"
+		  App.logger.warn "RW RackWarden::Model.initialize_models using DataMapper repository: #{DataMapper.repository(App.repository_name).adapter.options.dup.tap{|o| o.delete(:password); o.delete('password')}.inspect}"
 		
-			App.logger.warn "RW DataMapper logging to #{DataMapper.logger.log} (level #{DataMapper.logger.level})"
+			App.logger.warn "RW RackWarden::Model.initialize_models DataMapper logging to: #{DataMapper.logger.log} (level #{DataMapper.logger.level})"
 		
 		
 			# Load all models.
-		  App.logger.debug "RW requiring model files in #{File.join(File.dirname(__FILE__), 'models/*')}"
+		  App.logger.debug "RW RackWarden::Model.initialize_models requiring model files in #{File.join(File.dirname(__FILE__), 'models/*')}"
 		  Dir.glob(File.join(File.dirname(__FILE__), 'models/*')).each {|f| require f}
 			
 			# DataMapper finalize
-		  App.logger.debug "RW DataMapper.finalize"
+		  App.logger.debug "RW RackWarden::Model.initialize_models DataMapper.finalize"
 		  # Tell DataMapper the models are done being defined
 		  DataMapper.finalize
 		
 			# DataMapper auto upgrade.
-		  App.logger.warn "RW User.auto_upgrade!"
+		  App.logger.warn "RW RackWarden::Model.initialize_models User.auto_upgrade!"
 		  # Update the database to match the properties of User.
 		  #DataMapper.auto_upgrade!
 		  User.auto_upgrade!
@@ -73,7 +73,7 @@ module RackWarden
 	    #... sort out environment HERE
 	    rslt = conf[(RackWarden::App.environment || :development).to_s] || conf
 	    rslt[:adapter] = 'mysql' if rslt && [:adapter]=='mysql2'
-	    App.logger.debug "RW get_database_config rslt: #{rslt.inspect}"
+	    App.logger.debug "RW RackWarden::Model.get_database_config rslt: #{rslt.inspect}"
 	    return rslt
 	  end
 	  
