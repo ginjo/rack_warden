@@ -2,7 +2,7 @@ require 'sinatra/base'
 require 'backports'
 require 'uri'
 
-module Sinatra
+module RackWarden
 
   # = Sinatra::Decompile
   #

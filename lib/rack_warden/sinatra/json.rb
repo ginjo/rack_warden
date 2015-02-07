@@ -1,6 +1,7 @@
 require 'sinatra/base'
 require 'multi_json'
-module Sinatra
+
+module RackWarden
 
   # = Sinatra::JSON
   #
@@ -120,12 +121,12 @@ module Sinatra
     end #resolve_encoder_action  
   end #JSON
 
-  Base.set :json_encoder do
+  Sinatra::Base.set :json_encoder do
     ::MultiJson
   end
 
-  Base.set :json_content_type, :json
+  Sinatra::Base.set :json_content_type, :json
 
   # Load the JSON helpers in modular style automatically
-  Base.helpers JSON
+  Sinatra::Base.helpers JSON
 end

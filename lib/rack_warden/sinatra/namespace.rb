@@ -146,7 +146,7 @@ App.logger.debug "RW loading Namespace"
 
     module NamespacedMethods
       include SharedMethods
-      include Sinatra::Decompile
+      include Decompile
       attr_reader :base, :templates
 
       def self.prefixed(*names)

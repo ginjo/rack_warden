@@ -40,6 +40,25 @@ module RackWarden
 	    helpers UniversalHelpers
 	    
 	  end
+	  
+	  def initialize_settings_from_instance(parent_app_instance, rw_app_instance, *initialization_args)
+			logger.warn "RW initializing settings from app instance with args: #{initialization_args.inspect}"
+			
+			setup_framework(parent_app_instance, *initialization_args)
+			    		
+			# Eval the use-block from the parent app, in context of this app.
+			settings.instance_exec(rw_app_instance, &block) if block_given?
+			
+		  # Set global layout (remember to use :layout=>false in your calls to partials).
+		  logger.debug "RW App initialize setting erb layout: #{settings.layout}"
+			settings.set :erb, :layout=>settings.layout
+			
+			settings.initialize_logging
+			  			
+			logger.info "RW compiled views: #{settings.views.inspect}"
+			
+			settings.set :initialized, true	  
+	  end
 		
 		def setup_framework(app, *args)
 			opts = args.last.is_a?(Hash) ? args.pop : {}

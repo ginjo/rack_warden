@@ -61,22 +61,23 @@ module RackWarden
   		
   		
   		if app && !settings.initialized
-  		  logger.warn "RW initializing settings from app instance with args: #{initialization_args.inspect}"
-  		  
-  		  self.class.setup_framework(parent_app_instance, *initialization_args) #unless Frameworks.selected_framework
-    		    		
-  			# Eval the use-block from the parent app, in context of this app.
-  			settings.instance_exec(self, &block) if block_given?
-  			
- 		    # Set global layout (remember to use :layout=>false in your calls to partials).
- 		    logger.debug "RW App#initialize setting erb layout: #{settings.layout}"
-		    settings.set :erb, :layout=>settings.layout
-  			
-  			settings.initialize_logging
-  			  			
-  			logger.info "RW compiled views: #{settings.views.inspect}"
-    		
-    		settings.set :initialized, true
+  			self.class.initialize_settings_from_instance(parent_app_instance, self, *initialization_args)
+# 		  logger.warn "RW initializing settings from app instance with args: #{initialization_args.inspect}"
+# 		  
+# 		  self.class.setup_framework(parent_app_instance, *initialization_args) #unless Frameworks.selected_framework
+#   		    		
+# 			# Eval the use-block from the parent app, in context of this app.
+# 			settings.instance_exec(self, &block) if block_given?
+# 			
+# 		    # Set global layout (remember to use :layout=>false in your calls to partials).
+# 		    logger.debug "RW App#initialize setting erb layout: #{settings.layout}"
+# 	    settings.set :erb, :layout=>settings.layout
+# 			
+# 			settings.initialize_logging
+# 			  			
+# 			logger.info "RW compiled views: #{settings.views.inspect}"
+#   		
+#   		settings.set :initialized, true
   		end
 
   	end # initialize
@@ -86,19 +87,24 @@ module RackWarden
 			logger.debug "RW app.call extending env with Env."
 			env.extend Env
 			logger.debug "RW app.call next app: #{@app}"
+			
+			# Initialize if not already (may only be usefull for stand-alone mode (no parent app)).
+  		if !settings.initialized
+  			self.class.initialize_settings_from_instance(@app, self)
+  		end
 		  
 		  # Set this now, so you can access the rw app instance from the endpoint app.
 		  logger.debug "RW app.call storing app instance in env['rack_warden_instance'] #{self}"
-		  self.request= Rack::Request.new(env)
+		  self.request = Rack::Request.new(env)
 		  env.rack_warden = self
 			
 			# Authenticate here-and-now.		  
 		  if !request.path_info.to_s.match(/^\/auth/) && settings.rack_authentication
-		  logger.debug "RW rack_authentication for path_info: #{request.path_info}"
-		  Array(settings.rack_authentication).each do |rule|
-		  	logger.debug "RW rack_authentication rule #{rule}"
-		  	(require_login) if rule && request.path_info.to_s.match(Regexp.new rule.to_s)
-		  end
+			  logger.debug "RW rack_authentication for path_info: #{request.path_info}"
+			  Array(settings.rack_authentication).each do |rule|
+			  	logger.debug "RW rack_authentication rule #{rule}"
+			  	(require_login) if rule && request.path_info.to_s.match(Regexp.new rule.to_s)
+			  end
 		  end
 		  
 		  # Send to super, then build & process response.

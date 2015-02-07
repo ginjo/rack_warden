@@ -142,7 +142,7 @@ App.logger.debug "RW loading RespondWith"
     end
 
     module Helpers
-      include Sinatra::JSON
+      include JSON
 
       def respond_with(template, object = nil, &block)
         object, template = template, nil unless Symbol === template
