@@ -82,17 +82,17 @@ RackWarden will look for a yaml configuration file named rack_warden.yml in your
 
 You an also pass configuration settings to RackWarden through the ```use``` method of your framework. The params hash of ```use``` will be translated directly to RackWarden's settings. In addition to RackWarden's specific configuration options, you can also pass standard Sinatra settings.
 
-If you pass a block with the ```use``` method, the block will be evaluated in the context of the RackWarden::App class. Anything you do in that block is just as if you were writing code in the RackWarden::App class itself. While in the block, you also have access to the current _instance_ of RackWarden::App.
+If you pass a block with the ```use``` method of your framework, the block will be passed the RackWarden instance and evaluated.
 
     use RackWarden::App do |rack_warden_app_instance|
-      set :some_setting, 'some_value'
+      rack_warden_app_instance.settings.set :some_setting, some_value
     end
 
 You can also set RackWarden settings directly from inside your application.
 
     RackWarden::App.set({:setting1 => val1, :setting2 => val2})
     
-Note that with some frameworks, the RackWarden middleware instance will be lazy-loaded only when it is needed (usually with the first request). This is a function of the ruby framework you are using and is not under control of RackWarden. This means that some settings you pass with the ```use``` method (or block) may have 'missed the boat'. RackWarden tries to integrate these settings in lazy-loaded situations as best as it can. However, if you suspect your settings might not be taking, put your settings in the rack\_warden.yml config file. The config file will always be loaded with the RackWarden module. If you are using Sinatra, load up RackWarden with ```register RackWarden```, as that will initialize RackWarden as soon as your Sinatra project loads.
+Note that with some frameworks, the RackWarden middleware instance will be lazy-loaded only when it is needed (usually with the first request). This is a function of the ruby framework you are using and is not under control of RackWarden. This means that some settings you pass with the ```use``` method (or block) may have 'missed the boat'. RackWarden tries to integrate these settings in lazy-loaded situations as best as it can. However, if you suspect your settings might not be taking, put your settings in a rack\_warden.yml config file. The config file will always be loaded with the RackWarden module. If you are using Sinatra, load up RackWarden with ```register RackWarden```, as that will initialize RackWarden as soon as your Sinatra project loads.
 
 
 ## Configuration Options

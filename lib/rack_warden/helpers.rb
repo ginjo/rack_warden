@@ -11,8 +11,7 @@ module RackWarden
 	  def initialize_app_class
       
 	  	initialize_logging
-	  	logger.warn "RW initializing RackWarden::App in process #{$0}"
-	  	logger.warn "RW running in #{environment} environment"
+	  	logger.warn "RW AppClassMethods.initialize_app_class environment: #{environment}, process: #{$0}"
 	  	initialize_config_files
 	  	initialize_logging
 	  		  	
@@ -41,21 +40,24 @@ module RackWarden
 	    
 	  end
 	  
+	  # This should generally only run once, but that is left up to the caller (the app instance).
 	  def initialize_settings_from_instance(parent_app_instance, rw_app_instance, *initialization_args)
-			logger.warn "RW initializing settings from app instance with args: #{initialization_args.inspect}"
+			logger.warn "RW AppClassMethods.initialize_settings_from_instance parent_app_instance: #{parent_app_instance}, args: #{initialization_args.inspect}"
 			
 			setup_framework(parent_app_instance, *initialization_args)
 			    		
 			# Eval the use-block from the parent app, in context of this app.
-			settings.instance_exec(rw_app_instance, &block) if block_given?
+			#settings.instance_exec(rw_app_instance, &block) if block_given?
+			# Eval the use-block from the parent app, in context of the parent app instance.
+			yield rw_app_instance if block_given?
 			
 		  # Set global layout (remember to use :layout=>false in your calls to partials).
-		  logger.debug "RW App initialize setting erb layout: #{settings.layout}"
+		  logger.debug "RW AppClassMethods.initialize_settings_from_instance setting erb layout: #{settings.layout}"
 			settings.set :erb, :layout=>settings.layout
 			
 			settings.initialize_logging
 			  			
-			logger.info "RW compiled views: #{settings.views.inspect}"
+			logger.info "RW AppClassMethods.initialize_settings_from_instance compiled views: #{settings.views.inspect}"
 			
 			settings.set :initialized, true	  
 	  end
@@ -89,7 +91,7 @@ module RackWarden
     # Apply new settings on top of existing settings, prepending new views to old views.
     def overlay_settings(new_settings)
     	new_views = new_settings.extract(:views).values
-    	logger.debug "RW overlay_settings new_views #{new_views.inspect}"
+    	logger.debug "RW AppClassMethods.overlay_settings new_views #{new_views.inspect}"
 	  	set :views, [new_views, views].flatten.compact.uniq
     	set new_settings
     end
@@ -117,7 +119,7 @@ module RackWarden
 			  # logger.info "RW DataMapper using log_file #{_log_file.inspect}"
 		  #end
 	    
-	    logger.debug "RW initialized logging (level #{logger.level}) #{_log_file.inspect}"
+	    logger.debug "RW AppClassMethods.initialize_logging level: #{logger.level}, _log_file: #{_log_file.inspect}"
 	  rescue
 	  	puts "There was an error setting up logging: #{$!}"
 	  end
@@ -139,7 +141,7 @@ module RackWarden
 		  if tmpl
 		  	tmpl.render(object, locals_hash)
 		  else
-			  App.logger.info "RW self.render_template found no templates to render" 
+			  App.logger.info "RW AppClassMethods.render_template found no templates to render" 
 			  nil
 			end
 		end
@@ -151,8 +153,7 @@ module RackWarden
 	#protected ... might need this for rails, but not for sinatra.
 		
 		def require_login
-			App.logger.debug "RW running #{self}.require_login with rack_warden: #{rack_warden}, and warden: #{warden}"
-			#App.logger.debug "RW instance #{self}.require_login ancestors #{self.class.ancestors.inspect}"
+			App.logger.debug "RW UniversalHelpers...  #{self}#require_login with #{rack_warden}, and #{warden}"
 			#logged_in? || warden.authenticate!
 			warden.authenticated? || warden.authenticate!
 	  end
@@ -171,17 +172,17 @@ module RackWarden
 		end
 	
 		def logged_in?
-			App.logger.debug "RW logged_in? #{warden.authenticated?}"
+			App.logger.debug "RW UniversalHelpers#logged_in? #{warden.authenticated?}"
 	    warden.authenticated? || warden.authenticate(:remember_me)
 		end
 		
 		def authorized?(options=request)
-			App.logger.debug "RW authorized? user '#{current_user}'"
+			App.logger.debug "RW UniversalHelpers#authorized? user '#{current_user}'"
 			current_user && current_user.authorized?(options) || request.script_name[/login|new|create|logout/]
 		end
 
 		def require_authorization(authenticate_on_fail=false, options=request)
-			App.logger.debug "RW require_authorization"
+			App.logger.debug "RW UniversalHelpers#require_authorization"
 			logged_in? || warden.authenticate!
 			unless authorized?(options)
 				if authenticate_on_fail
@@ -196,7 +197,7 @@ module RackWarden
 
 		# Returns the current rack_warden app instance stored in env.
 	  def rack_warden
-	  	App.logger.debug "RW helper method 'rack_warden' request.env['rack_warden_instance'] #{request.env['rack_warden_instance']}"
+	  	App.logger.debug "RW UniversalHelpers.rack_warden #{request.env['rack_warden_instance']}"
 	  	request.env['rack_warden_instance'] #.tap {|rw| rw.request = request}    #request}
 	  end
 	  
@@ -205,9 +206,9 @@ module RackWarden
 	  end
 	  
 	  def flash_widget
-	  	App.logger.debug "RW flash_widget self.flash #{self.flash}"
-	  	App.logger.debug "RW flash_widget rack.flash #{env['x-rack.flash']}"
-	  	App.logger.debug "RW flash_widget.rack_warden.flash #{rack_warden.request.env['x-rack.flash']}"
+	  	App.logger.debug "RW UniversalHelpers#flash_widget self.flash #{self.flash}"
+	  	App.logger.debug "RW UniversalHelpers#flash_widget rack.flash #{env['x-rack.flash']}"
+	  	App.logger.debug "RW UniversalHelpers#flash_widget.rack_warden.flash #{rack_warden.request.env['x-rack.flash']}"
 	  	rack_warden.erb :'rw_flash_widget.html', :layout=>false
 	  end
 	
@@ -226,7 +227,7 @@ module RackWarden
 	
 	  # WBR - override. This passes block to be rendered to first template that matches.
 		def find_template(views, name, engine, &block)
-			logger.debug "RW find_template name: #{name}, engine: #{engine}, block: #{block}, views: #{views}"
+			logger.debug "RW RackWardenHelpers#find_template name: #{name}, engine: #{engine}, block: #{block}, views: #{views}"
 	    Array(views).each { |v| super(v, name, engine, &block) }
 	  end
 	  
@@ -252,7 +253,7 @@ module RackWarden
 		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])
 			secret = settings.recaptcha[:secret]
 	 		_recaptcha = ActiveSupport::JSON.decode(open("https://www.google.com/recaptcha/api/siteverify?secret=#{secret}&response=#{response}&remoteip=#{ip}").read)
-	    logger.warn "RW recaptcha #{_recaptcha.inspect}"
+	    logger.warn "RW RackWardenHelpers#verify_recaptcha #{_recaptcha.inspect}"
 	    unless _recaptcha['success']
 	    	flash.rw_error = "Please confirm you are human"
 	    	redirect back unless skip_redirect
