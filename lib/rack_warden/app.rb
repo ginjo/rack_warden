@@ -55,7 +55,7 @@ module RackWarden
   	def initialize(parent_app_instance=nil, *args, &block)
   		super(parent_app_instance, &Proc.new{}) # Must send empty proc, not original proc, since we're calling original block here.
   	  initialization_args = args.dup
-  		logger.info "RW new app instance with parent: #{@app}"
+  		logger.info "RW App#initialize parent: #{@app}"
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		
   		
@@ -84,9 +84,8 @@ module RackWarden
   	
 		# Store this app instance in the env.
 		def call(env)  
-			logger.debug "RW app.call extending env with Env."
+			logger.debug "RW App#call parent app: #{@app}"
 			env.extend Env
-			logger.debug "RW app.call next app: #{@app}"
 			
 			# Initialize if not already (may only be usefull for stand-alone mode (no parent app)).
   		if !settings.initialized
@@ -94,15 +93,15 @@ module RackWarden
   		end
 		  
 		  # Set this now, so you can access the rw app instance from the endpoint app.
-		  logger.debug "RW app.call storing app instance in env['rack_warden_instance'] #{self}"
+		  logger.debug "RW App#call storing app instance in env['rack_warden_instance']"
 		  self.request = Rack::Request.new(env)
 		  env.rack_warden = self
 			
 			# Authenticate here-and-now.		  
 		  if !request.path_info.to_s.match(/^\/auth/) && settings.rack_authentication
-			  logger.debug "RW rack_authentication for path_info: #{request.path_info}"
+			  logger.debug "RW App#call rack_authentication for path_info: #{request.path_info}"
 			  Array(settings.rack_authentication).each do |rule|
-			  	logger.debug "RW rack_authentication rule #{rule}"
+			  	logger.debug "RW App#call rack_authentication rule #{rule}"
 			  	(require_login) if rule && request.path_info.to_s.match(Regexp.new rule.to_s)
 			  end
 		  end
