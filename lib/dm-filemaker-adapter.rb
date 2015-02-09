@@ -4,6 +4,8 @@ module DataMapper
   module Adapters
 
     class FilemakerAdapter < AbstractAdapter
+    
+    # Property & field names must be declared lowercase, regardless of what they are in FMP.
 
 
     # Specific adapters extend this class and implement
@@ -119,38 +121,74 @@ module DataMapper
 			# def read(query)
 			#   raise NotImplementedError, "#{self.class}#read not implemented"
 			# end
+			#
+			### Uses Rfm::Connection
+			# def read(query)
+			# 	dm = query.model.dm
+			# 	#layout = Rfm.layout(query.model.layout_name, query.repository.adapter.options.symbolize_keys)
+			# 	#query.model.dm[:layout] = layout
+			# 
+			# 	params = query.options
+			# 	config = query.repository.adapter.options.symbolize_keys
+			# 	layout_name = query.model.layout_name
+			# 	dm[:params_before] = params
+			# 	dm[:config] = config
+			# 	dm[:layout_name] = layout_name
+			# 	
+			# 	prms = params.dup
+			# 	opts = {}
+			# 	opts[:skip_records] = prms.delete(:offset) if prms[:offset]
+			# 	opts[:max_records] = prms.delete(:limit) if prms[:limit]
+			# 	opts[:sort_field] = prms.delete(:order) if prms[:order]
+			# 	dm[:opts] = opts
+			# 
+			# 	#prms = {prms.keys[0].name => prms.values[0]} if prms.size ==1 && !prms.keys[0].is_a?(Symbol)
+			# 	prms.dup.each {|k,v| prms[k.name]=prms.delete(k) if !k.is_a?(String) && !k.is_a?(Symbol)}
+			# 	prms.merge!({"-db" => config[:database], "-lay" => layout_name})
+			# 	dm[:prms_after] = prms
+			# 
+			# 	connection = Rfm::Connection.new('-find', prms, opts, config)
+			# 	dm[:connection] = connection
+			# 	rslt = connection.parse(nil, Rfm::Resultset.new)
+			# 	dm[:result1] = rslt
+			# 	rslt.dup.each_with_index(){|r, i| rslt[i] = r.to_h}
+			# 	dm[:result2] = rslt
+			# 	rslt
+			# 	#Array(layout.any).to_a.flatten
+			# end
+			#
+			### Uses Rfm::Layout
 			def read(query)
 				dm = query.model.dm
-				#layout = Rfm.layout(query.model.layout_name, query.repository.adapter.options.symbolize_keys)
-				#query.model.dm[:layout] = layout
+				dm[:query] = query
 
-				params = query.options
-				config = query.repository.adapter.options.symbolize_keys
-				layout_name = query.model.layout_name
-				dm[:params_before] = params
-				dm[:config] = config
-				dm[:layout_name] = layout_name
+				_layout = layout(query)
 				
-				prms = params.dup
+				prms = query.options
 				opts = {}
-				opts[:skip_records] = prms.delete(:offset) if prms[:offset]
-				opts[:max_records] = prms.delete(:limit) if prms[:limit]
-				opts[:sort_field] = prms.delete(:order) if prms[:order]
-				dm[:opts] = opts
+				prms[:offset].tap {|x| opts[:skip_records] = x if x}
+				prms[:limit].tap {|x| opts[:max_records] = x if x}
+				prms[:order].tap {|x| opts[:sort_field] = x if x}
 
-				#prms = {prms.keys[0].name => prms.values[0]} if prms.size ==1 && !prms.keys[0].is_a?(Symbol)
-				prms.dup.each {|k,v| prms[k.name]=prms.delete(k) if !k.is_a?(String) && !k.is_a?(Symbol)}
-				prms.merge!({"-db" => config[:database], "-lay" => layout_name})
-				dm[:prms_after] = prms
-
-				connection = Rfm::Connection.new('-find', prms, opts, config)
-				dm[:connection] = connection
-				rslt = connection.parse(nil, Rfm::Resultset.new)
-				dm[:result1] = rslt
+				# replaces key-field object with key-field name in prms
+				#prms.dup.each {|k,v|  (prms[k.name]=prms.delete(k); puts prms.inspect) if !(k.is_a?(::String) || k.is_a?(::Symbol))}
+				
+				# translates property name to field name, if :field is defined on property
+				#prms.dup.each {|k,v| (prms[translate_field_name(query,k)]=prms.delete(k); puts prms.inspect) if translate_field_name(query,k)}
+				
+				prms = Hash.new.tap(){|h| query.conditions.operands.each {|k,v| h.merge!({k.subject.field.to_s => k.loaded_value})} }
+				
+				rslt = _layout.find(prms, opts)
 				rslt.dup.each_with_index(){|r, i| rslt[i] = r.to_h}
-				dm[:result2] = rslt
 				rslt
-				#Array(layout.any).to_a.flatten
+			end
+			
+			def layout(query)
+				Rfm.layout(query.model.storage_name, query.repository.adapter.options.symbolize_keys)
+			end
+			
+			def translate_field_name(query, name)
+				query.instance_variable_get(:@properties)[name].tap{|_name| _name.field if _name}
 			end
 			
 
