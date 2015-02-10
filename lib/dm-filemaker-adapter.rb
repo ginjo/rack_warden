@@ -4,21 +4,72 @@ module DataMapper
   module Adapters
 
     class FilemakerAdapter < AbstractAdapter
+    	class << self
+    		attr_accessor :inst
+    	end
+    	@inst = {}
     
-    # Property & field names must be declared lowercase, regardless of what they are in FMP.
+	    # Property & field names must be declared lowercase, regardless of what they are in FMP.
+	    
+	    # TODO:
+	    # √ Fix RFM so it handles full-path yaml file spec for sax parser template :template option.
+	    # • Fix 'read' so it handles rfm find(rec_id) types of queries.
+	    # • Make sure 'read' handles all kinds of rfm queries (hash, array of hashes, option hashes, any combo of these).
+	    # √ Handle rfm response, and figure out how to update dm resourse with response data. 
+	    # • Handle 'destroy' adapter method.
+	    # • Fix Rfm so ruby date/time values can be pushed to fmp using the layout object (currently only works with rfm models).
+	    # * Find out whats up with property :writer=>false not working for mod_id and record_id.
+	    # * Create accessors for rfm meta data, including layout meta.
+	    # * Handle rfm related sets (portals).
+	    # * Undo hard :limit setting in fmp_options method.
+	    # √ Reload doesn't work correctly. (hmm... now it does work).
+	    # * Move :template option to a more global place in dm-filemaker (possibly pushing it to Rfm.config ?).
 
+			# Create fmp layout object from model object.
+			def layout(model)
+				Rfm.layout(model.storage_name, options.symbolize_keys)   #query.repository.adapter.options.symbolize_keys)
+			end
+			
+			# Convert dm query object to fmp query params (hash)
+			def fmp_query(query)
+				Hash.new.tap(){|h| query.conditions.operands.each {|k,v| h.merge!({k.subject.field.to_s => k.loaded_value}) if k.loaded_value.to_s!=''} }
+			end
+			
+			# Convert dm attributes hash to regular hash
+			def fmp_attributes(attributes)
+				Hash.new.tap(){|h| attributes.each {|k,v| h.merge!({k.field.to_s => v})} }
+			end
+			
+			# Get fmp options hash from query
+			def fmp_options(query)
+				prms = query.options
+				opts = {}
+				prms[:offset].tap {|x| opts[:skip_records] = x if x}
+				prms[:limit].tap {|x| opts[:max_records] = x || 100}
+				prms[:order].tap {|x| opts[:sort_field] = x if x}
+				opts
+			end
+			
+			def merge_fmp_response(resource, record)
+				resource.model.properties.to_a.each do |property|
+					if record.key?(property.field.to_s)
+						resource[property.name] = record[property.field.to_s]
+					end
+				end			
+			end
 
-    # Specific adapters extend this class and implement
-    # methods for creating, reading, updating and deleting records.
-    #
-    # Adapters may only implement method for reading or (less common case)
-    # writing. Read only adapter may be useful when one needs to work
-    # with legacy data that should not be changed or web services that
-    # only provide read access to data (from Wordnet and Medline to
-    # Atom and RSS syndication feeds)
-    #
-    # Note that in case of adapters to relational databases it makes
-    # sense to inherit from DataObjectsAdapter class.
+			### From datamapper adapter source on github.
+	    # Specific adapters extend this class and implement
+	    # methods for creating, reading, updating and deleting records.
+	    #
+	    # Adapters may only implement method for reading or (less common case)
+	    # writing. Read only adapter may be useful when one needs to work
+	    # with legacy data that should not be changed or web services that
+	    # only provide read access to data (from Wordnet and Medline to
+	    # Atom and RSS syndication feeds)
+	    #
+	    # Note that in case of adapters to relational databases it makes
+	    # sense to inherit from DataObjectsAdapter class.
 			# class AbstractAdapter
 			#   include DataMapper::Assertions
 			#   extend DataMapper::Assertions
@@ -101,7 +152,17 @@ module DataMapper
       #
       # @api semipublic
       def create(resources)
-        raise NotImplementedError, "#{self.class}#create not implemented"
+      	self.class.inst[:self] = self
+      	self.class.inst[:resour] = resources
+				counter = 0
+				resources.each do |resource|
+					rslt = layout(resource.model).create(resource.attributes.delete_if {|k,v| v.to_s==''}, :template=>File.expand_path('../dm-fmresultset.yml', __FILE__).to_s)
+					merge_fmp_response(resource, rslt[0])
+					counter +=1
+				end
+				counter
+				
+        #raise NotImplementedError, "#{self.class}#create not implemented"
       end
 
       # Reads one or many resources from a datastore
@@ -162,35 +223,22 @@ module DataMapper
 				dm = query.model.dm
 				dm[:query] = query
 
-				_layout = layout(query)
+				_layout = layout(query.model)
 				
-				prms = query.options
-				opts = {}
-				prms[:offset].tap {|x| opts[:skip_records] = x if x}
-				prms[:limit].tap {|x| opts[:max_records] = x if x}
-				prms[:order].tap {|x| opts[:sort_field] = x if x}
+				opts = fmp_options(query)
+				
+				opts[:template] = File.expand_path('../dm-fmresultset.yml', __FILE__).to_s
 
-				# replaces key-field object with key-field name in prms
-				#prms.dup.each {|k,v|  (prms[k.name]=prms.delete(k); puts prms.inspect) if !(k.is_a?(::String) || k.is_a?(::Symbol))}
+				prms = fmp_query(query)
 				
-				# translates property name to field name, if :field is defined on property
-				#prms.dup.each {|k,v| (prms[translate_field_name(query,k)]=prms.delete(k); puts prms.inspect) if translate_field_name(query,k)}
+				dm[:opts] = opts
+				dm[:prms] = prms
 				
-				prms = Hash.new.tap(){|h| query.conditions.operands.each {|k,v| h.merge!({k.subject.field.to_s => k.loaded_value})} }
-				
-				rslt = _layout.find(prms, opts)
+				rslt = prms.empty? ? _layout.all(opts) : _layout.find(prms, opts)
+				dm[:rslt] = rslt.dup
 				rslt.dup.each_with_index(){|r, i| rslt[i] = r.to_h}
 				rslt
 			end
-			
-			def layout(query)
-				Rfm.layout(query.model.storage_name, query.repository.adapter.options.symbolize_keys)
-			end
-			
-			def translate_field_name(query, name)
-				query.instance_variable_get(:@properties)[name].tap{|_name| _name.field if _name}
-			end
-			
 
       # Updates one or many existing resources
       #
@@ -209,7 +257,18 @@ module DataMapper
       #
       # @api semipublic
       def update(attributes, collection)
-        raise NotImplementedError, "#{self.class}#update not implemented"
+      	#y :attributes=>attributes, :collection=>collection
+      	prms = fmp_attributes(attributes)
+				counter = 0
+				collection.each do |resource|
+					rslt = layout(resource.model).edit(resource.record_id, prms, :template=>File.expand_path('../dm-fmresultset.yml', __FILE__).to_s)
+					#y ['Model#update RFM result', rslt]
+					merge_fmp_response(resource, rslt[0])
+					resource.persistence_state = DataMapper::Resource::PersistenceState::Clean.new resource
+					counter +=1
+				end
+				counter        
+        #raise NotImplementedError, "#{self.class}#update not implemented"
       end
 
       # Deletes one or many existing resources
