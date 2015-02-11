@@ -1,7 +1,30 @@
 require 'rfm'
 
-module DataMapper
+# Property & field names in dm-filemaker-adapter models must be declared lowercase, regardless of what they are in FMP.
 
+# TODO:
+# √ Fix RFM so it handles full-path yaml file spec for sax parser template :template option.
+# • Fix 'read' so it handles rfm find(rec_id) types of queries.
+# • Make sure 'read' handles all kinds of rfm queries (hash, array of hashes, option hashes, any combo of these).
+# √ Handle rfm response, and figure out how to update dm resourse with response data. 
+# √ Handle 'destroy' adapter method.
+# • Fix Rfm so ruby date/time values can be pushed to fmp using the layout object (currently only works with rfm models).
+# * Find out whats up with property :writer=>false not working for mod_id and record_id.
+# * Create accessors for rfm meta data, including layout meta and resultset meta.
+# * Handle rfm related sets (portals).
+# * Undo hard :limit setting in fmp_options method.
+# √ Reload doesn't work correctly. (hmm... now it does work).
+# * Move :template option to a more global place in dm-filemaker (possibly pushing it to Rfm.config ?).
+# √ Create module to add methods to dm Model specifically for dm-filemaker (to be loaded with 'include DataMapper::Resource' somehow).
+# √ Find place to hook in creation of properties :record_id and :mod_id. Maybe DataMapper.finalize method?
+# * RFM: Make layout#count so it handles empty query (should do :all instead of :find), just like here in the dm adapter.
+# √ Fix to work with dm-aggregates.
+# √ Fix sort field - dm is inserting entire property object into uri (observe the query for 'model.last' to see whats going on).
+# * Fix sort direction.
+
+module DataMapper
+	[Resource, Model, Adapters]
+	
 	# All this to tack on class and instance methods to the model/resource.
 	module Resource
 	  class << self
@@ -17,7 +40,15 @@ module DataMapper
 	  	end
 	  end
 	end
-
+	
+	module Model
+		alias_method :finalize_orig, :finalize
+		def finalize(*args)
+			property :record_id, Integer, :lazy=>false, :accessor=>:private
+			property :mod_id, Integer, :lazy=>false, :accessor=>:private
+			finalize_orig
+		end
+	end
 
   module Adapters
     class FilemakerAdapter < AbstractAdapter
@@ -35,29 +66,6 @@ module DataMapper
     			model.layout
     		end
     	end
-
-    
-	    # Property & field names must be declared lowercase, regardless of what they are in FMP.
-	    
-	    # TODO:
-	    # √ Fix RFM so it handles full-path yaml file spec for sax parser template :template option.
-	    # • Fix 'read' so it handles rfm find(rec_id) types of queries.
-	    # • Make sure 'read' handles all kinds of rfm queries (hash, array of hashes, option hashes, any combo of these).
-	    # √ Handle rfm response, and figure out how to update dm resourse with response data. 
-	    # √ Handle 'destroy' adapter method.
-	    # • Fix Rfm so ruby date/time values can be pushed to fmp using the layout object (currently only works with rfm models).
-	    # * Find out whats up with property :writer=>false not working for mod_id and record_id.
-	    # * Create accessors for rfm meta data, including layout meta.
-	    # * Handle rfm related sets (portals).
-	    # * Undo hard :limit setting in fmp_options method.
-	    # √ Reload doesn't work correctly. (hmm... now it does work).
-	    # * Move :template option to a more global place in dm-filemaker (possibly pushing it to Rfm.config ?).
-	    # * Create module to add methods to dm Model specifically for dm-filemaker (to be loaded with 'include DataMapper::Resource' somehow).
-	    # • Find place to hook in creation of properties :record_id and :mod_id. Maybe DataMapper.finalize method?
-	    # • Fix Rfm layout#count so it handles empty query (should do :all instead of :find).
-	    # • Fix to work with dm-aggregates.
-	    # * Fix sort field - dm is inserting entire property object into uri (observe the query for 'model.last' to see whats going on).
-
   
 
 			# Create fmp layout object from model object.
@@ -81,8 +89,18 @@ module DataMapper
 				opts = {}
 				prms[:offset].tap {|x| opts[:skip_records] = x if x}
 				prms[:limit].tap {|x| opts[:max_records] = x || 100}
-				prms[:order].tap {|x| opts[:sort_field] = x if x}
+				prms[:order].tap do |orders|
+					opts[:sort_field] = orders.collect do |o|
+						o.target.name
+					end if orders
+				end
 				opts
+			end
+			
+			# This is supposed to convert property objects to field name. Not sure if it works.
+			def get_field_name(field)
+				return field.field if field.respond_to? :field
+				field
 			end
 			
 			def merge_fmp_response(resource, record)
@@ -136,11 +154,7 @@ module DataMapper
 			# end
 			#
 			def read(query)
-				unless query.model.respond_to?(:record_id)
-					query.model.property :record_id, Integer, :lazy=>false
-			  	query.model.property :mod_id, Integer, :lazy=>false
-			  	query.model.finalize
-				end
+				y query.options[:order]
 				_layout = layout(query.model)
 				opts = fmp_options(query)
 				opts[:template] = File.expand_path('../dm-fmresultset.yml', __FILE__).to_s
@@ -151,16 +165,11 @@ module DataMapper
 			end
 			
 			def aggregate(query)
-				unless query.model.respond_to?(:record_id)
-					query.model.property :record_id, Integer, :lazy=>false
-			  	query.model.property :mod_id, Integer, :lazy=>false
-			  	query.model.finalize
-				end
 				_layout = layout(query.model)
 				opts = fmp_options(query)
 				opts[:template] = File.expand_path('../dm-fmresultset.yml', __FILE__).to_s
 				prms = fmp_query(query)
-				prms.empty? ? _layout.all(:max_records=>0).foundset_count : _layout.count(prms)
+				[prms.empty? ? _layout.all(:max_records=>0).foundset_count : _layout.count(prms)]
 			end
 
       # Updates one or many existing resources
@@ -217,5 +226,5 @@ module DataMapper
 			protected :fmp_query, :fmp_attributes, :fmp_options, :merge_fmp_response
 
 		end # FilemakerAdapter
-  end
-end
+  end # Adapters
+end # DataMapper
