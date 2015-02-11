@@ -53,10 +53,13 @@ module DataMapper
   module Adapters
     class FilemakerAdapter < AbstractAdapter
     
+    
+			###  UTILITY METHODS  ###
+    
     	# Class methods extended onto model.
     	module ModelMethods
 	  		def layout
-	        Rfm.layout(storage_name, repository.adapter.options)
+	        Rfm.layout(storage_name, repository.adapter.options.symbolize_keys)
 	      end
       end
     	
@@ -68,9 +71,12 @@ module DataMapper
     	end
   
 
+			###  ADPTER METHODS  ###
+
 			# Create fmp layout object from model object.
 			def layout(model)
-				Rfm.layout(model.storage_name, options.symbolize_keys)   #query.repository.adapter.options.symbolize_keys)
+				#Rfm.layout(model.storage_name, options.symbolize_keys)   #query.repository.adapter.options.symbolize_keys)
+				model.layout
 			end
 			
 			# Convert dm query object to fmp query params (hash)
