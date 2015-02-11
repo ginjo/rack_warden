@@ -1,13 +1,52 @@
 require 'rfm'
+require 'forwardable'
 
 module DataMapper
+
+	module Resource
+	  class << self
+	  	alias_method :included_orig, :included
+	  	def included(klass)
+	  		included_orig(klass)
+	  		if klass.repository.adapter.to_s[/filemaker/i]
+	  			klass.instance_eval do
+	  				puts "#{klass.inspect}.instance_eval"
+	  				extend Forwardable
+		  			def_delegators 'repository.adapter', :layout
+		  			include repository.adapter.class::ResourceMethods
+	  			
+	  			end
+	  		end
+	  	end
+	  end
+	end
+
   module Adapters
 
     class FilemakerAdapter < AbstractAdapter
-    	class << self
-    		attr_accessor :inst
+    
+    	module ModelMethods
+    		repository.adapter
     	end
-    	@inst = {}
+    	
+    	# Instance method module will be included in Model, giving instance methods to each resource.
+    	module ResourceMethods
+    		def layout
+    			model.layout
+    		end
+    	end
+    	
+#     	def self.extended(*args)
+#     		puts "FilemakerAdapter-class Including FilemakerAdapter::ResourceMethods in #{args}"
+#     		#base.include ResourceMethods
+#     		super
+#     	end
+    
+    	# Storage space to attach instance objects to model class, for experimentation & testing only!
+			#     	class << self
+			#     		attr_accessor :inst
+			#     	end
+			#     	@inst = {}
     
 	    # Property & field names must be declared lowercase, regardless of what they are in FMP.
 	    
@@ -16,7 +55,7 @@ module DataMapper
 	    # • Fix 'read' so it handles rfm find(rec_id) types of queries.
 	    # • Make sure 'read' handles all kinds of rfm queries (hash, array of hashes, option hashes, any combo of these).
 	    # √ Handle rfm response, and figure out how to update dm resourse with response data. 
-	    # • Handle 'destroy' adapter method.
+	    # √ Handle 'destroy' adapter method.
 	    # • Fix Rfm so ruby date/time values can be pushed to fmp using the layout object (currently only works with rfm models).
 	    # * Find out whats up with property :writer=>false not working for mod_id and record_id.
 	    # * Create accessors for rfm meta data, including layout meta.
@@ -24,6 +63,11 @@ module DataMapper
 	    # * Undo hard :limit setting in fmp_options method.
 	    # √ Reload doesn't work correctly. (hmm... now it does work).
 	    # * Move :template option to a more global place in dm-filemaker (possibly pushing it to Rfm.config ?).
+	    # * Create module to add methods to dm Model specifically for dm-filemaker (to be loaded with 'include DataMapper::Resource' somehow).
+
+    	# Note that all methods defined in adapter class will also be extended onto Model,
+    	# so you might want to make some of them private.
+    	
 
 			# Create fmp layout object from model object.
 			def layout(model)
@@ -152,8 +196,8 @@ module DataMapper
       #
       # @api semipublic
       def create(resources)
-      	self.class.inst[:self] = self
-      	self.class.inst[:resour] = resources
+      	#self.class.inst[:self] = self
+      	#self.class.inst[:resour] = resources
 				counter = 0
 				resources.each do |resource|
 					rslt = layout(resource.model).create(resource.attributes.delete_if {|k,v| v.to_s==''}, :template=>File.expand_path('../dm-fmresultset.yml', __FILE__).to_s)
@@ -220,8 +264,8 @@ module DataMapper
 			#
 			### Uses Rfm::Layout
 			def read(query)
-				dm = query.model.dm
-				dm[:query] = query
+				#dm = query.model.dm
+				#dm[:query] = query
 
 				_layout = layout(query.model)
 				
@@ -231,11 +275,11 @@ module DataMapper
 
 				prms = fmp_query(query)
 				
-				dm[:opts] = opts
-				dm[:prms] = prms
+				#dm[:opts] = opts
+				#dm[:prms] = prms
 				
 				rslt = prms.empty? ? _layout.all(opts) : _layout.find(prms, opts)
-				dm[:rslt] = rslt.dup
+				#dm[:rslt] = rslt.dup
 				rslt.dup.each_with_index(){|r, i| rslt[i] = r.to_h}
 				rslt
 			end
@@ -286,7 +330,17 @@ module DataMapper
       #
       # @api semipublic
       def delete(collection)
-        raise NotImplementedError, "#{self.class}#delete not implemented"
+      	#y collection
+ 				counter = 0
+				collection.each do |resource|
+					rslt = layout(resource.model).delete(resource.record_id, :template=>File.expand_path('../dm-fmresultset.yml', __FILE__).to_s)
+					#y ['Model#delete RFM result', rslt]
+					#merge_fmp_response(resource, rslt[0])
+					#resource.persistence_state = DataMapper::Resource::PersistenceState::Clean.new resource
+					counter +=1
+				end
+				counter
+        #raise NotImplementedError, "#{self.class}#delete not implemented"
       end
 
 			#   # Create a Query object or subclass.
@@ -367,6 +421,7 @@ module DataMapper
 			#   @field_naming_convention    = NamingConventions::Field::Underscored
 			# end
 
+			#protected :fmp_query, :fmp_attributes, :fmp_options, :merge_fmp_response
 
 		end # FilemakerAdapter
   end
