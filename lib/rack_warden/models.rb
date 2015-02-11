@@ -4,17 +4,29 @@ module RackWarden
   	
   	# Any modles used by RackWarden should inherit from Base.
   	class Base
-  		def self.inherited(model)
-  			model.instance_eval do
-  			
-	  			App.logger.debug "RW Model::Base.inherited by #{model}"
-			    include DataMapper::Resource
-			    include BCrypt
-			    def self.default_repository_name; App.repository_name; end
-			    
+			@descendents, @field_map = [], {}
+			
+  		class << self
+	  		attr_accessor :descendents, :field_map
+	  		
+	  		def inherited(model)
+	  			descendents << model
+	  			model.instance_eval do
+		  			App.logger.debug "RW Model::Base.inherited by #{model}"
+				    include DataMapper::Resource
+				    include BCrypt
+				    def self.default_repository_name; App.repository_name; end
+			    end
 		    end
-	    end
-  	end
+		    
+		    def remap_fields(mapping=field_map)
+		    	field_map.each do |k,v|
+		    		properties[k.to_symbol].instance_variable_set :@field, v.to_s
+		    	end
+		    end
+	    
+	    end # self
+  	end # Base
 
 		# Load models, setup database adapter, setup db repository.
 	  def self.initialize_models
@@ -43,16 +55,22 @@ module RackWarden
 		  App.logger.debug "RW RackWarden::Model.initialize_models requiring model files in #{File.join(File.dirname(__FILE__), 'models/*')}"
 		  Dir.glob(File.join(File.dirname(__FILE__), 'models/*')).each {|f| require f}
 			
-			# DataMapper finalize
-		  App.logger.debug "RW RackWarden::Model.initialize_models DataMapper.finalize"
-		  # Tell DataMapper the models are done being defined
-		  DataMapper.finalize
-		
-			# DataMapper auto upgrade.
-		  App.logger.warn "RW RackWarden::Model.initialize_models User.auto_upgrade!"
-		  # Update the database to match the properties of User.
-		  #DataMapper.auto_upgrade!
-		  User.auto_upgrade!
+			
+			Base.descendents.each do |d|
+				# Remap fields with supplied hash
+				d.remap_fields
+			
+				# DataMapper finalize
+			  App.logger.debug "RW RackWarden::Model.initialize_models DataMapper.finalize"
+			  # Tell DataMapper the models are done being defined
+			  d.finalize
+			
+				# DataMapper auto upgrade.
+			  App.logger.warn "RW RackWarden::Model.initialize_models User.auto_upgrade!"
+			  # Update the database to match the properties of User.
+			  #DataMapper.auto_upgrade!
+			  d.auto_upgrade!
+		  end
 	  end
 	  
 	  

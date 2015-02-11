@@ -4,7 +4,8 @@ module RackWarden
   class User < Model::Base
 
     # DataMapper will build a user table name from the containing modules: rack_warden_users.
-    storage_names[App.repository_name] = App.user_table_name if App.user_table_name
+    self.storage_names[App.repository_name] = App.user_table_name if App.user_table_name
+    self.field_map = App.user_field_map
 
     property :id, Serial, :key => true
     property :username, String, :length => 128, :unique => true, :required => true, :default => lambda {|r,v| r.instance_variable_get :@email}
