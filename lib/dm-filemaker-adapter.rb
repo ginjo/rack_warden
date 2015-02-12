@@ -22,6 +22,12 @@ require 'rfm'
 # √ Fix to work with dm-aggregates.
 # √ Fix sort field - dm is inserting entire property object into uri (observe the query for 'model.last' to see whats going on).
 # * Fix sort direction.
+# √ read now handles compound queries:
+#		u = User.all(:username=>login, :id=>'>0') | U.all(:email=>login, :id=>'>0')
+# - But still need to fix compound 'get' query: User.get ['id1', 'id2']
+#		NO, dm can't do this.
+# * Handle searching by record_id. Will need to translate that into FMP query '-recid=idxxx'
+
 
 module DataMapper
 	[Resource, Model, Adapters]
@@ -43,6 +49,7 @@ module DataMapper
 	end
 	
 	module Model
+		attr_accessor :last_query
 		alias_method :finalize_orig, :finalize
 		def finalize(*args)
 			property :record_id, Integer, :lazy=>false
@@ -81,11 +88,17 @@ module DataMapper
 			end
 			
 			# Convert dm query object to fmp query params (hash)
-			def fmp_query(query)
-				Hash.new.tap(){|h| query.conditions.operands.each {|k,v| h.merge!({k.subject.field.to_s => k.loaded_value}) if k.loaded_value.to_s!=''} }
+			def fmp_query(conditions)
+				puts "#{conditions.class.name} #{conditions}"
+				if conditions.class.name[/OrOperation/]
+					conditions.operands.collect {|o| fmp_query o}
+				else
+					Hash.new.tap(){|h| conditions.operands.each {|k,v| h.merge!({k.subject.field.to_s => k.loaded_value}) if k.loaded_value.to_s!=''} }
+				end
 			end
 			
 			# Convert dm attributes hash to regular hash
+			# TODO: Should the result be string or symbol keys?
 			def fmp_attributes(attributes)
 				Hash.new.tap(){|h| attributes.each {|k,v| h.merge!({k.field.to_s => v})} }
 			end
@@ -98,7 +111,7 @@ module DataMapper
 				prms[:limit].tap {|x| opts[:max_records] = x || 100}
 				prms[:order].tap do |orders|
 					opts[:sort_field] = orders.collect do |o|
-						o.target.name
+						o.target.field
 					end if orders
 				end
 				opts
@@ -161,11 +174,12 @@ module DataMapper
 			# end
 			#
 			def read(query)
+				#query.model.last_query = query
 				#y query
 				_layout = layout(query.model)
 				opts = fmp_options(query)
 				opts[:template] = File.expand_path('../dm-fmresultset.yml', __FILE__).to_s
-				prms = fmp_query(query)
+				prms = fmp_query(query.conditions)
 				rslt = prms.empty? ? _layout.all(opts) : _layout.find(prms, opts)
 				rslt.dup.each_with_index(){|r, i| rslt[i] = r.to_h}
 				rslt
@@ -175,7 +189,7 @@ module DataMapper
 				_layout = layout(query.model)
 				opts = fmp_options(query)
 				opts[:template] = File.expand_path('../dm-fmresultset.yml', __FILE__).to_s
-				prms = fmp_query(query)
+				prms = fmp_query(query.conditions)
 				[prms.empty? ? _layout.all(:max_records=>0).foundset_count : _layout.count(prms)]
 			end
 
