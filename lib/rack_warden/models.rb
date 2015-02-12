@@ -21,7 +21,7 @@ module RackWarden
 		    
 		    def remap_fields(mapping=field_map)
 		    	field_map.each do |k,v|
-		    		properties[k.to_symbol].instance_variable_set :@field, v.to_s
+		    		properties[k.to_sym].instance_variable_set :@field, v.to_s
 		    	end
 		    end
 	    

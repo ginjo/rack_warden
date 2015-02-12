@@ -9,6 +9,7 @@ require 'rfm'
 # √ Handle rfm response, and figure out how to update dm resourse with response data. 
 # √ Handle 'destroy' adapter method.
 # • Fix Rfm so ruby date/time values can be pushed to fmp using the layout object (currently only works with rfm models).
+#		This is also necessary to do finds with dates.
 # * Find out whats up with property :writer=>false not working for mod_id and record_id.
 # * Create accessors for rfm meta data, including layout meta and resultset meta.
 # * Handle rfm related sets (portals).
@@ -44,8 +45,8 @@ module DataMapper
 	module Model
 		alias_method :finalize_orig, :finalize
 		def finalize(*args)
-			property :record_id, Integer, :lazy=>false, :accessor=>:private
-			property :mod_id, Integer, :lazy=>false, :accessor=>:private
+			property :record_id, Integer, :lazy=>false
+			property :mod_id, Integer, :lazy=>false
 			finalize_orig
 		end
 	end
@@ -160,7 +161,7 @@ module DataMapper
 			# end
 			#
 			def read(query)
-				y query.options[:order]
+				#y query
 				_layout = layout(query.model)
 				opts = fmp_options(query)
 				opts[:template] = File.expand_path('../dm-fmresultset.yml', __FILE__).to_s

@@ -7,7 +7,7 @@ module RackWarden
     self.storage_names[App.repository_name] = App.user_table_name if App.user_table_name
     self.field_map = App.user_field_map
 
-    property :id, Serial, :key => true
+    property :id, String, :key => true
     property :username, String, :length => 128, :unique => true, :required => true, :default => lambda {|r,v| r.instance_variable_get :@email}
     property :email, String, :length => 128, :unique => true, :required => true, :format=>:email_address
     property :encrypted_password, BCryptHash, :writer => :protected, :default => lambda {|r,v| BCrypt::Password.create(r.instance_variable_get :@password)}
@@ -20,6 +20,7 @@ module RackWarden
     
     attr_accessor :password, :password_confirmation
 		
+		before :create, :set_serial_id
 		before :create, :make_activation_code
 		after :create, :send_activation
     
@@ -63,8 +64,14 @@ module RackWarden
 	  # This is not currently used in RackWarden (has it's own auth logic section).
 	  def self.authenticate(login, password)
 	    # hides records with a nil activated_at
-	    #u = find :first, :conditions => ['login = ? and activated_at IS NOT NULL', login]
-	    u = first(:conditions => ['(username = ? or email = ?) and activated_at IS NOT NULL', login, login])
+	    if repository.adapter.to_s[/filemaker/i]
+		    # FMP
+		    #u = first(:username=>"=#{login}", :activated_at=>'>1/1/1980') || first(:email=>"=#{login}", :activated_at=>'>1/1/1980')
+		    u = first(:username=>"=#{login}") || first(:email=>"=#{login}")    
+		  else
+		    # SQL
+		    u = first(:conditions => ['(username = ? or email = ?) and activated_at IS NOT NULL', login, login])
+			end
 	    if u && u.authenticate(password)
 	    	# This bit clears a password_reset_code (this assumes it's not needed, cuz user just authenticated successfully).
 	    	(u.update_attributes(:password_reset_code => nil)) if u.password_reset_code
@@ -145,6 +152,10 @@ module RackWarden
 			  :subject	=>	"Signup confirmation",
 			  :body			=>	App.render_template('rw_activation.email.erb', :user=>self)
 			}).deliver!
+	  end
+	  
+	  def set_serial_id
+	  	@id ||= Time.now.to_i.to_s
 	  end
 
 	  
