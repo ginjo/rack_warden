@@ -8,7 +8,7 @@ require 'rfm'
 # • Make sure 'read' handles all kinds of rfm queries (hash, array of hashes, option hashes, any combo of these).
 # √ Handle rfm response, and figure out how to update dm resourse with response data. 
 # √ Handle 'destroy' adapter method.
-# • Fix Rfm so ruby date/time values can be pushed to fmp using the layout object (currently only works with rfm models).
+# - Fix Rfm so ruby date/time values can be pushed to fmp using the layout object.
 #		This is also necessary to do finds with dates.
 # * Find out whats up with property :writer=>false not working for mod_id and record_id.
 # * Create accessors for rfm meta data, including layout meta and resultset meta.
@@ -19,14 +19,17 @@ require 'rfm'
 # √ Create module to add methods to dm Model specifically for dm-filemaker (to be loaded with 'include DataMapper::Resource' somehow).
 # √ Find place to hook in creation of properties :record_id and :mod_id. Maybe DataMapper.finalize method?
 # * RFM: Make layout#count so it handles empty query (should do :all instead of :find), just like here in the dm adapter.
+#		Or should it do  '-view' when there are no criteria?
 # √ Fix to work with dm-aggregates.
 # √ Fix sort field - dm is inserting entire property object into uri (observe the query for 'model.last' to see whats going on).
-# * Fix sort direction.
+# • Fix sort direction.
 # √ read now handles compound queries:
 #		u = User.all(:username=>login, :id=>'>0') | U.all(:email=>login, :id=>'>0')
 # - But still need to fix compound 'get' query: User.get ['id1', 'id2']
 #		NO, dm can't do this.
+# √ Fix this:   User.all(:username=>login) | U.all(:email=>login)
 # * Handle searching by record_id. Will need to translate that into FMP query '-recid=idxxx'
+# • Handle operations other than EqualTo.
 
 
 module DataMapper
@@ -88,14 +91,49 @@ module DataMapper
 			end
 			
 			# Convert dm query object to fmp query params (hash)
-			def fmp_query(conditions)
-				puts "#{conditions.class.name} #{conditions}"
-				if conditions.class.name[/OrOperation/]
-					conditions.operands.collect {|o| fmp_query o}
+			def fmp_query(input)
+				puts "CONDITIONS input #{input.class.name} (#{input})"
+				if input.class.name[/OrOperation/]
+					input.operands.collect {|o| fmp_query o}
+				elsif input.class.name[/AndOperation/]
+					h = Hash.new
+					input.operands.each do |k,v|
+						r = fmp_query(k)
+						puts "CONDITIONS operand #{r}"
+						if r.is_a?(Hash)
+							h.merge!(r)
+						else
+							h=r
+							break
+						end
+					end
+					h
+				elsif input.class.name[/NullOperation/] || input.nil?
+					{}
 				else
-					Hash.new.tap(){|h| conditions.operands.each {|k,v| h.merge!({k.subject.field.to_s => k.loaded_value}) if k.loaded_value.to_s!=''} }
+					#puts "FMP_QUERY OPERATION #{input.class}"
+					val = input.loaded_value
+
+					if val.to_s != ''
+					
+						operation = input.class.name
+						operator = case
+						when operation[/EqualTo/]; '='
+						when operation[/GreaterThan/]; '>'
+						when operation[/LessThan/]; '<'
+						when operation[/Like/]; ''
+						when operation[/Null/]; ''
+						else ''
+						end
+					
+						val = val._to_fm if val.respond_to? :_to_fm
+						{input.subject.field.to_s => "#{operator}#{val}"}
+					else
+						{}
+					end
 				end
 			end
+			
 			
 			# Convert dm attributes hash to regular hash
 			# TODO: Should the result be string or symbol keys?
@@ -105,16 +143,18 @@ module DataMapper
 			
 			# Get fmp options hash from query
 			def fmp_options(query)
-				prms = query.options
-				opts = {}
-				prms[:offset].tap {|x| opts[:skip_records] = x if x}
-				prms[:limit].tap {|x| opts[:max_records] = x || 100}
-				prms[:order].tap do |orders|
-					opts[:sort_field] = orders.collect do |o|
-						o.target.field
-					end if orders
+				fm_options = {}
+				fm_options[:skip_records] = query.offset if query.offset
+				fm_options[:max_records] = query.limit if query.limit
+				if query.order
+					fm_options[:sort_field] = query.order.collect do |ord|
+						ord.target.field
+					end
+					fm_options[:sort_order] = query.order.collect do |ord|
+						ord.operator.to_s + 'end'
+					end
 				end
-				opts
+				fm_options
 			end
 			
 			# This is supposed to convert property objects to field name. Not sure if it works.
@@ -174,22 +214,24 @@ module DataMapper
 			# end
 			#
 			def read(query)
-				#query.model.last_query = query
+				query.model.last_query = query
 				#y query
 				_layout = layout(query.model)
 				opts = fmp_options(query)
 				opts[:template] = File.expand_path('../dm-fmresultset.yml', __FILE__).to_s
-				prms = fmp_query(query.conditions)
+				prms = fmp_query(query.conditions) #.to_set.first)
 				rslt = prms.empty? ? _layout.all(opts) : _layout.find(prms, opts)
 				rslt.dup.each_with_index(){|r, i| rslt[i] = r.to_h}
 				rslt
 			end
 			
 			def aggregate(query)
+				query.model.last_query = query
+				#y query
 				_layout = layout(query.model)
 				opts = fmp_options(query)
 				opts[:template] = File.expand_path('../dm-fmresultset.yml', __FILE__).to_s
-				prms = fmp_query(query.conditions)
+				prms = fmp_query(query.conditions) #.to_set.first)
 				[prms.empty? ? _layout.all(:max_records=>0).foundset_count : _layout.count(prms)]
 			end
 
@@ -249,3 +291,33 @@ module DataMapper
 		end # FilemakerAdapter
   end # Adapters
 end # DataMapper
+
+class Time
+	def _to_fm
+		d = strftime('%m/%d/%Y') unless Date.today == Date.parse(self.to_s)
+		t = strftime('%T')
+		d ? "#{d} #{t}" : t
+	end
+end # Time
+
+class DateTime
+	def _to_fm
+		d = strftime('%m/%d/%Y')
+		t =strftime('%T')
+		"#{d} #{t}"
+	end
+end # Time
+
+class Timestamp
+	def _to_fm
+		d = strftime('%m/%d/%Y')
+		t =strftime('%T')
+		"#{d} #{t}"
+	end
+end # Time
+
+class Date
+	def _to_fm
+		strftime('%m/%d/%Y')
+	end
+end # Time

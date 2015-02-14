@@ -67,7 +67,8 @@ module RackWarden
 	    if repository.adapter.to_s[/filemaker/i]
 		    # FMP
 		    #u = first(:username=>"=#{login}", :activated_at=>'>1/1/1980') || first(:email=>"=#{login}", :activated_at=>'>1/1/1980')
-		    u = first(:username=>"=#{login}") || first(:email=>"=#{login}")    
+		    u = all(:username=>login, :activated_at.gt=>'1/1/1980') | all(:email=>login, :activated_at.gt=>'1/1/1980')
+		    u = u.first if u.respond_to? :first
 		  else
 		    # SQL
 		    u = first(:conditions => ['(username = ? or email = ?) and activated_at IS NOT NULL', login, login])
