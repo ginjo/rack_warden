@@ -22,14 +22,16 @@ require 'rfm'
 #		Or should it do  '-view' when there are no criteria?
 # √ Fix to work with dm-aggregates.
 # √ Fix sort field - dm is inserting entire property object into uri (observe the query for 'model.last' to see whats going on).
-# • Fix sort direction.
+# √ Fix sort direction.
 # √ read now handles compound queries:
 #		u = User.all(:username=>login, :id=>'>0') | U.all(:email=>login, :id=>'>0')
 # - But still need to fix compound 'get' query: User.get ['id1', 'id2']
 #		NO, dm can't do this.
 # √ Fix this:   User.all(:username=>login) | U.all(:email=>login)
 # * Handle searching by record_id. Will need to translate that into FMP query '-recid=idxxx'
-# • Handle operations other than EqualTo.
+# √ Handle operations other than EqualTo.
+# • Ensure ruby dates & times can be entered in create and update actions.
+
 
 
 module DataMapper
