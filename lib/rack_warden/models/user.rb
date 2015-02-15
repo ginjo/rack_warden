@@ -7,13 +7,13 @@ module RackWarden
     self.storage_names[App.repository_name] = App.user_table_name if App.user_table_name
     self.field_map = App.user_field_map
 
-    property :id, String, :key => true
+    property :id, String, :key => true, :required=>false
     property :username, String, :length => 128, :unique => true, :required => true, :default => lambda {|r,v| r.instance_variable_get :@email}
     property :email, String, :length => 128, :unique => true, :required => true, :format=>:email_address
     property :encrypted_password, BCryptHash, :writer => :protected, :default => lambda {|r,v| BCrypt::Password.create(r.instance_variable_get :@password)}
     property :remember_token, BCryptHash
-    property :remember_token_expires_at, EpochTime
-    property :activated_at, EpochTime
+    property :remember_token_expires_at, DateTime
+    property :activated_at, DateTime
     property :activation_code, BCryptHash
     property :password_reset_code, BCryptHash
     

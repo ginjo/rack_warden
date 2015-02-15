@@ -4,8 +4,9 @@ require 'rfm'
 
 # TODO:
 # √ Fix RFM so it handles full-path yaml file spec for sax parser template :template option.
-# • Fix 'read' so it handles rfm find(rec_id) types of queries.
-# • Make sure 'read' handles all kinds of rfm queries (hash, array of hashes, option hashes, any combo of these).
+# * Fix 'read' so it handles rfm find(rec_id) types of queries.
+# * Handle searching by record_id. Will need to translate that into FMP query '-recid=idxxx'
+# √ Make sure 'read' handles all kinds of rfm queries (hash, array of hashes, option hashes, any combo of these).
 # √ Handle rfm response, and figure out how to update dm resourse with response data. 
 # √ Handle 'destroy' adapter method.
 # - Fix Rfm so ruby date/time values can be pushed to fmp using the layout object.
@@ -13,13 +14,11 @@ require 'rfm'
 # * Find out whats up with property :writer=>false not working for mod_id and record_id.
 # * Create accessors for rfm meta data, including layout meta and resultset meta.
 # * Handle rfm related sets (portals).
-# * Undo hard :limit setting in fmp_options method.
+# √ Undo hard :limit setting in fmp_options method.
 # √ Reload doesn't work correctly. (hmm... now it does work).
-# * Move :template option to a more global place in dm-filemaker (possibly pushing it to Rfm.config ?).
+# • Move :template option to a more global place in dm-filemaker (possibly pushing it to Rfm.config ?).
 # √ Create module to add methods to dm Model specifically for dm-filemaker (to be loaded with 'include DataMapper::Resource' somehow).
 # √ Find place to hook in creation of properties :record_id and :mod_id. Maybe DataMapper.finalize method?
-# * RFM: Make layout#count so it handles empty query (should do :all instead of :find), just like here in the dm adapter.
-#		Or should it do  '-view' when there are no criteria?
 # √ Fix to work with dm-aggregates.
 # √ Fix sort field - dm is inserting entire property object into uri (observe the query for 'model.last' to see whats going on).
 # √ Fix sort direction.
@@ -28,10 +27,12 @@ require 'rfm'
 # - But still need to fix compound 'get' query: User.get ['id1', 'id2']
 #		NO, dm can't do this.
 # √ Fix this:   User.all(:username=>login) | U.all(:email=>login)
-# * Handle searching by record_id. Will need to translate that into FMP query '-recid=idxxx'
 # √ Handle operations other than EqualTo.
 # • Ensure ruby dates & times can be entered in create and update actions.
 
+
+# * RFM: Make layout#count so it handles empty query (should do :all instead of :find), just like here in the dm adapter.
+#		Or should it do  '-view' when there are no criteria?
 
 
 module DataMapper
@@ -54,7 +55,7 @@ module DataMapper
 	end
 	
 	module Model
-		attr_accessor :last_query
+		#attr_accessor :last_query
 		alias_method :finalize_orig, :finalize
 		def finalize(*args)
 			property :record_id, Integer, :lazy=>false
@@ -65,6 +66,8 @@ module DataMapper
 
   module Adapters
     class FilemakerAdapter < AbstractAdapter
+    	@fmresultset_template_path = File.expand_path('../dm-fmresultset.yml', __FILE__).to_s
+    	class << self; attr_accessor :fmresultset_template_path; end
     
     
 			###  UTILITY METHODS  ###
@@ -94,14 +97,14 @@ module DataMapper
 			
 			# Convert dm query object to fmp query params (hash)
 			def fmp_query(input)
-				puts "CONDITIONS input #{input.class.name} (#{input})"
+				#puts "CONDITIONS input #{input.class.name} (#{input})"
 				if input.class.name[/OrOperation/]
 					input.operands.collect {|o| fmp_query o}
 				elsif input.class.name[/AndOperation/]
 					h = Hash.new
 					input.operands.each do |k,v|
 						r = fmp_query(k)
-						puts "CONDITIONS operand #{r}"
+						#puts "CONDITIONS operand #{r}"
 						if r.is_a?(Hash)
 							h.merge!(r)
 						else
@@ -140,7 +143,17 @@ module DataMapper
 			# Convert dm attributes hash to regular hash
 			# TODO: Should the result be string or symbol keys?
 			def fmp_attributes(attributes)
-				Hash.new.tap(){|h| attributes.each {|k,v| h.merge!({k.field.to_s => v})} }
+				#puts "ATTRIBUTES"
+				y attributes
+				fm_params = Hash.new
+				attributes.to_h.each do |k,v|
+					fm_params[k.field] = v.respond_to?(:_to_fm) ? v._to_fm : v
+				end
+				# fm_params = Hash.new
+				# resource.dirty_attributes.each do |a,v|
+				# 	fm_params[a.field] = v.respond_to?(:_to_fm) ? v._to_fm : v
+				# end
+				fm_params
 			end
 			
 			# Get fmp options hash from query
@@ -173,6 +186,9 @@ module DataMapper
 				end			
 			end
 
+
+			###  CORE ADAPTER METHODS  ###
+
       # Persists one or many new resources
       #
       # @example
@@ -188,9 +204,11 @@ module DataMapper
       #
       # @api semipublic
       def create(resources)
+      	#resources[0].model.last_query = resources
 				counter = 0
 				resources.each do |resource|
-					rslt = layout(resource.model).create(resource.attributes.delete_if {|k,v| v.to_s==''}, :template=>File.expand_path('../dm-fmresultset.yml', __FILE__).to_s)
+					fm_params = fmp_attributes resource.dirty_attributes
+					rslt = layout(resource.model).create(fm_params, :template=>self.class.fmresultset_template_path)
 					merge_fmp_response(resource, rslt[0])
 					counter +=1
 				end
@@ -216,25 +234,28 @@ module DataMapper
 			# end
 			#
 			def read(query)
-				query.model.last_query = query
+				#query.model.last_query = query
 				#y query
 				_layout = layout(query.model)
 				opts = fmp_options(query)
-				opts[:template] = File.expand_path('../dm-fmresultset.yml', __FILE__).to_s
+				opts[:template] = self.class.fmresultset_template_path
 				prms = fmp_query(query.conditions) #.to_set.first)
 				rslt = prms.empty? ? _layout.all(opts) : _layout.find(prms, opts)
 				rslt.dup.each_with_index(){|r, i| rslt[i] = r.to_h}
 				rslt
 			end
 			
+			# Takes a query and returns number of matched records.
+			# An empty query will return the total record count
 			def aggregate(query)
-				query.model.last_query = query
+				#query.model.last_query = query
 				#y query
 				_layout = layout(query.model)
 				opts = fmp_options(query)
-				opts[:template] = File.expand_path('../dm-fmresultset.yml', __FILE__).to_s
+				opts[:template] = self.class.fmresultset_template_path
 				prms = fmp_query(query.conditions) #.to_set.first)
-				[prms.empty? ? _layout.all(:max_records=>0).foundset_count : _layout.count(prms)]
+				#[prms.empty? ? _layout.all(:max_records=>0).foundset_count : _layout.count(prms)]
+				[prms.empty? ? _layout.view.total_count : _layout.count(prms)]
 			end
 
       # Updates one or many existing resources
@@ -254,10 +275,11 @@ module DataMapper
       #
       # @api semipublic
       def update(attributes, collection)
-      	prms = fmp_attributes(attributes)
+      	#collection[0].model.last_query = [attributes, collection]
+      	fm_params = fmp_attributes(attributes)
 				counter = 0
 				collection.each do |resource|
-					rslt = layout(resource.model).edit(resource.record_id, prms, :template=>File.expand_path('../dm-fmresultset.yml', __FILE__).to_s)
+					rslt = layout(resource.model).edit(resource.record_id, fm_params, :template=>self.class.fmresultset_template_path)
 					merge_fmp_response(resource, rslt[0])
 					resource.persistence_state = DataMapper::Resource::PersistenceState::Clean.new resource
 					counter +=1
@@ -282,7 +304,7 @@ module DataMapper
       def delete(collection)
  				counter = 0
 				collection.each do |resource|
-					rslt = layout(resource.model).delete(resource.record_id, :template=>File.expand_path('../dm-fmresultset.yml', __FILE__).to_s)
+					rslt = layout(resource.model).delete(resource.record_id, :template=>self.class.fmresultset_template_path)
 					counter +=1
 				end
 				counter
@@ -323,3 +345,4 @@ class Date
 		strftime('%m/%d/%Y')
 	end
 end # Time
+
