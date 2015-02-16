@@ -206,9 +206,9 @@ module RackWarden
 	  end
 	  
 	  def flash_widget
-	  	App.logger.debug "RW UniversalHelpers#flash_widget self.flash #{self.flash}"
-	  	App.logger.debug "RW UniversalHelpers#flash_widget rack.flash #{env['x-rack.flash']}"
-	  	App.logger.debug "RW UniversalHelpers#flash_widget.rack_warden.flash #{rack_warden.request.env['x-rack.flash']}"
+			# App.logger.debug "RW UniversalHelpers#flash_widget self.flash #{self.flash}"
+			# App.logger.debug "RW UniversalHelpers#flash_widget rack.flash #{env['x-rack.flash']}"
+			# App.logger.debug "RW UniversalHelpers#flash_widget.rack_warden.flash #{rack_warden.request.env['x-rack.flash']}"
 	  	rack_warden.erb :'rw_flash_widget.html', :layout=>false
 	  end
 	
