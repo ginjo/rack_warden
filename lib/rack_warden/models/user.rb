@@ -7,7 +7,7 @@ module RackWarden
     self.storage_names[App.repository_name] = App.user_table_name if App.user_table_name
     self.field_map = App.user_field_map
 
-    property :id, String, :key => true, :required=>false
+    property :id, String, :key=>true, :unique=>true, :default => lambda {|r,v| Time.now.to_f.to_s.delete('.').to_i.to_s(36)}
     property :username, String, :length => 128, :unique => true, :required => true, :default => lambda {|r,v| r.instance_variable_get :@email}
     property :email, String, :length => 128, :unique => true, :required => true, :format=>:email_address
     property :encrypted_password, BCryptHash, :writer => :protected, :default => lambda {|r,v| BCrypt::Password.create(r.instance_variable_get :@password)}
@@ -26,6 +26,7 @@ module RackWarden
     
     ###  VALIDATION  ###
     
+    validates_presence_of			:id, :unless => :new?
     validates_presence_of 		:password, :password_confirmation, :if => :password_required?
 		validates_confirmation_of :password, :if => :password_required?
 		validates_length_of				:password, :min => 8, :if => :password
@@ -35,7 +36,7 @@ module RackWarden
 						
 		# check validity of password if we have a new resource, or there is a plaintext password provided
     def password_required?
-      password || new?
+      password || (new? && !encrypted_password)
     end
 				
 	  # Validation returns nil if valid
@@ -64,15 +65,15 @@ module RackWarden
 	  # This is not currently used in RackWarden (has it's own auth logic section).
 	  def self.authenticate(login, password)
 	    # hides records with a nil activated_at
-	    if repository.adapter.to_s[/filemaker/i]
+	    #if repository.adapter.to_s[/filemaker/i]
 		    # FMP
 		    #u = first(:username=>"=#{login}", :activated_at=>'>1/1/1980') || first(:email=>"=#{login}", :activated_at=>'>1/1/1980')
-		    u = all(:username=>login, :activated_at.gt=>'1/1/1980') | all(:email=>login, :activated_at.gt=>'1/1/1980')
-		    u = u.first if u.respond_to? :first
-		  else
+		    u = all(:username=>login, :activated_at.gt=>'1/1/1980') | all(:email.like=>login, :activated_at.gt=>'1/1/1980')
+		    u = u.respond_to?(:first) ? u.first : u
+		  #else
 		    # SQL
-		    u = first(:conditions => ['(username = ? or email = ?) and activated_at IS NOT NULL', login, login])
-			end
+		    #u = first(:conditions => ['(username = ? or email = ?) and activated_at IS NOT NULL', login, login])
+			#end
 	    if u && u.authenticate(password)
 	    	# This bit clears a password_reset_code (this assumes it's not needed, cuz user just authenticated successfully).
 	    	(u.update_attributes(:password_reset_code => nil)) if u.password_reset_code
