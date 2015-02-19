@@ -2,12 +2,16 @@
 module RackWarden
 
   class User < Model::Base
-
+		raise_on_save_failure = true
     # DataMapper will build a user table name from the containing modules: rack_warden_users.
     self.storage_names[App.repository_name] = App.user_table_name if App.user_table_name
     self.field_map = App.user_field_map
 
-    property :id, String, :key=>true, :unique=>true, :default => lambda {|r,v| Time.now.to_f.to_s.delete('.').to_i.to_s(36)}
+		# These work, but turns out the Serial type works too.
+    #property :id, String, :key=>true, :unique=>true, :default => lambda {|r,v| Time.now.to_f.to_s.delete('.').to_i.to_s(36)}
+    #validates_presence_of			:id, :unless => :new?
+    
+    property :id, Serial
     property :username, String, :length => 128, :unique => true, :required => true, :default => lambda {|r,v| r.instance_variable_get :@email}
     property :email, String, :length => 128, :unique => true, :required => true, :format=>:email_address
     property :encrypted_password, BCryptHash, :writer => :protected, :default => lambda {|r,v| BCrypt::Password.create(r.instance_variable_get :@password)}
@@ -20,13 +24,14 @@ module RackWarden
     
     attr_accessor :password, :password_confirmation
 		
-		before :create, :set_serial_id
+		# No longer needed, since Serial now appears to work with Integer & String field types.
+		# before :create, :set_serial_id
+		
 		before :create, :make_activation_code
 		after :create, :send_activation
     
     ###  VALIDATION  ###
     
-    validates_presence_of			:id, :unless => :new?
     validates_presence_of 		:password, :password_confirmation, :if => :password_required?
 		validates_confirmation_of :password, :if => :password_required?
 		validates_length_of				:password, :min => 8, :if => :password
@@ -156,9 +161,10 @@ module RackWarden
 			}).deliver!
 	  end
 	  
-	  def set_serial_id
-	  	@id ||= Time.now.to_i.to_s
-	  end
+	  # No longer needed, since Serial works.
+		# def set_serial_id
+		# 	@id ||= Time.now.to_f.to_s.delete('.').to_i.to_s(36)
+		# end
 
 	  
 	  ### Reset Password ###
