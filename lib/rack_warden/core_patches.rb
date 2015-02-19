@@ -18,3 +18,9 @@ class Hash
 		end
 	end
 end
+
+class Time
+	def _to_unique_id
+		self.to_f.to_s.delete('.').to_i.to_s(36)
+	end
+end

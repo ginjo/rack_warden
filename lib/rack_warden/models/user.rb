@@ -7,8 +7,8 @@ module RackWarden
     self.storage_names[App.repository_name] = App.user_table_name if App.user_table_name
     self.field_map = App.user_field_map
 
-		# These work, but turns out the Serial type works too.
-    #property :id, String, :key=>true, :unique=>true, :default => lambda {|r,v| Time.now.to_f.to_s.delete('.').to_i.to_s(36)}
+		# If your key id field is a string with no auto-enter options, use this.
+    #property :id, String, :key=>true, :unique=>true, :default => lambda {|r,v| Time.now._to_unique_id}
     #validates_presence_of			:id, :unless => :new?
     
     property :id, Serial
@@ -23,9 +23,6 @@ module RackWarden
     
     
     attr_accessor :password, :password_confirmation
-		
-		# No longer needed, since Serial now appears to work with Integer & String field types.
-		# before :create, :set_serial_id
 		
 		before :create, :make_activation_code
 		after :create, :send_activation
@@ -161,10 +158,6 @@ module RackWarden
 			}).deliver!
 	  end
 	  
-	  # No longer needed, since Serial works.
-		# def set_serial_id
-		# 	@id ||= Time.now.to_f.to_s.delete('.').to_i.to_s(36)
-		# end
 
 	  
 	  ### Reset Password ###
