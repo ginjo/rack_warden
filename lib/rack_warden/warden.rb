@@ -112,7 +112,7 @@ module RackWarden
 					# We have no path to response object here :(
 					#auth.response.set_cookie 'rack_warden_remember_me', :value => user.remember_token , :expires => user.remember_token_expires_at
 					# So we have to do this
-			  	auth.env.remember_token = { :value => user.remember_token , :expires => user.remember_token_expires_at }   #user.remember_me # sets its remember_token attribute to some large random value and returns the value.
+			  	auth.env.remember_token = { :value => user.remember_token , :expires => user.remember_token_expires_at.to_time }   #user.remember_me # sets its remember_token attribute to some large random value and returns the value.
 					App.logger.debug "RW cookie set auth.env.remember_token: #{auth.env.remember_token}"
 				end
 			end
