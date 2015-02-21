@@ -28,7 +28,7 @@ module RackWarden
     set :sessions, true # Will use parent app sessions. Pass in :key=>'something' to enable RW-specific sessions (maybe).
     set :remember_token_cookie_name, 'rack_warden_remember_token'
     set :user_table_name, 'rack_warden_users'
-    set :user_field_map, {}
+    set :field_maps, {}
     set :views, File.expand_path("../views/", __FILE__) unless views
     set :initialized, false
     set :login_on_create, true

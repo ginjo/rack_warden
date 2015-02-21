@@ -4,10 +4,10 @@ module RackWarden
   	
   	# Any modles used by RackWarden should inherit from Base.
   	class Base
-			@descendents, @field_map = [], {}
+			@descendents = []
 			
   		class << self
-	  		attr_accessor :descendents, :field_map
+	  		attr_accessor :descendents
 	  		
 	  		def inherited(model)
 	  			descendents << model
@@ -20,9 +20,21 @@ module RackWarden
 		    end
 		    
 		    def remap_fields(mapping=field_map)
-		    	field_map.each do |k,v|
-		    		properties[k.to_sym].instance_variable_set :@field, v.to_s
+		    	puts "REMAP_FIELDS in #{self} with mapping #{mapping}"
+		    	if mapping.is_a?(Array)
+		    		mapping.each {|m| remap_fields(m)}
+		    	elsif mapping.is_a?(Proc)
+		    		mapping.call(self)
+		    	elsif mapping.is_a?(Hash)
+			    	mapping.each do |k,v|
+			    		properties[k.to_sym].instance_variable_set :@field, v.to_s
+			    	end
 		    	end
+		    end
+		    
+		    def field_map
+		    	name = self.name.split(':').last.to_s.downcase
+		    	App.field_maps[name.to_sym]
 		    end
 	    
 	    end # self

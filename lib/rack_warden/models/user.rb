@@ -5,7 +5,7 @@ module RackWarden
 		raise_on_save_failure = true
     # DataMapper will build a user table name from the containing modules: rack_warden_users.
     self.storage_names[App.repository_name] = App.user_table_name if App.user_table_name
-    self.field_map = App.user_field_map
+    #self.field_map = App.user_field_map
 
 		# If your key id field is a string with no auto-enter options, use this.
     #property :id, String, :key=>true, :unique=>true, :default => lambda {|r,v| Time.now._to_unique_id}
@@ -16,8 +16,8 @@ module RackWarden
     property :email, String, :length => 128, :unique => true, :required => true, :format=>:email_address
     property :encrypted_password, BCryptHash, :writer => :protected, :default => lambda {|r,v| BCrypt::Password.create(r.instance_variable_get :@password)}
     property :remember_token, BCryptHash
-    property :remember_token_expires_at, DateTime
-    property :activated_at, DateTime
+    property :remember_token_expires_at, Time
+    property :activated_at, Time
     property :activation_code, BCryptHash
     property :password_reset_code, BCryptHash
     
@@ -29,6 +29,7 @@ module RackWarden
     
     ###  VALIDATION  ###
     
+    validates_presence_of			:id, :unless => :new?
     validates_presence_of 		:password, :password_confirmation, :if => :password_required?
 		validates_confirmation_of :password, :if => :password_required?
 		validates_length_of				:password, :min => 8, :if => :password
