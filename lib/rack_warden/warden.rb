@@ -127,7 +127,7 @@ module RackWarden
 			  App.logger.debug "RW cookie unset 'rack_warden_remember_token': #{auth.env.remember_token}"
 			  auth.env.remember_token = nil
 
-			  user.forget_me
+			  user && user.forget_me
 			end
 			
 		end # Warden::Manager
