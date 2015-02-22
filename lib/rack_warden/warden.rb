@@ -121,6 +121,7 @@ module RackWarden
 				App.logger.debug "RW before_logout callback - self: #{self}"
 				App.logger.debug "RW before_logout callback - auth: #{auth.instance_variables}"
 				App.logger.debug "RW before_logout callback - opts: #{opts.inspect}"
+				App.logger.debug "RW before_logout callback - user: #{user.inspect}"
 			  
 			  #auth.response.set_cookie 'rack_warden_remember_me', nil
 			  App.logger.debug "RW cookie unset 'rack_warden_remember_token': #{auth.env.remember_token}"

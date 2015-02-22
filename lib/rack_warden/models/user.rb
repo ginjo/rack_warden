@@ -16,8 +16,8 @@ module RackWarden
     property :email, String, :length => 128, :unique => true, :required => true, :format=>:email_address
     property :encrypted_password, BCryptHash, :writer => :protected, :default => lambda {|r,v| BCrypt::Password.create(r.instance_variable_get :@password)}
     property :remember_token, BCryptHash
-    property :remember_token_expires_at, Time
-    property :activated_at, Time
+    property :remember_token_expires_at, DateTime
+    property :activated_at, DateTime
     property :activation_code, BCryptHash
     property :password_reset_code, BCryptHash
     
@@ -71,7 +71,9 @@ module RackWarden
 	    #if repository.adapter.to_s[/filemaker/i]
 		    # FMP
 		    #u = first(:username=>"=#{login}", :activated_at=>'>1/1/1980') || first(:email=>"=#{login}", :activated_at=>'>1/1/1980')
-		    u = all(:username=>login, :activated_at.gt=>'1/1/1980') | all(:email.like=>login, :activated_at.gt=>'1/1/1980')
+		    u = all(:username=>login, :activated_at.gt=>Time.new('1970-01-01 00:00:00')) | all(:email.like=>login, :activated_at.gt=>Time.new('1970-01-01 00:00:00'))
+		    puts "USER.authenticate"
+		    puts u
 		    u = u.respond_to?(:first) ? u.first : u
 		  #else
 		    # SQL

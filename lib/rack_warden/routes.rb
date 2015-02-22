@@ -56,9 +56,11 @@ module RackWarden
 					
 					get '/logout' do
 					  #warden.raw_session.inspect
-					  warden.authenticated? # Hack so warden will log out. See  https://github.com/hassox/warden/issues/76.
-					  warden.logout
-					  flash.rw_success = 'You have been logged out'
+					  #warden.authenticated? # Hack so warden will log out. See  https://github.com/hassox/warden/issues/76.
+					  if current_user
+						  warden.logout
+						  flash.rw_success = 'You have been logged out'
+						end
 					  redirect url(settings.default_route, false)
 					end
 					
