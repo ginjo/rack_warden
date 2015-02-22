@@ -20,7 +20,7 @@ module RackWarden
 		    end
 		    
 		    def remap_fields(mapping=field_map)
-		    	puts "REMAP_FIELDS in #{self} with mapping #{mapping}"
+		    	App.logger.debug "REMAP_FIELDS in #{self} with mapping #{mapping}"
 		    	if mapping.is_a?(Array)
 		    		mapping.each {|m| remap_fields(m)}
 		    	elsif mapping.is_a?(Proc)

@@ -72,8 +72,7 @@ module RackWarden
 		    # FMP
 		    #u = first(:username=>"=#{login}", :activated_at=>'>1/1/1980') || first(:email=>"=#{login}", :activated_at=>'>1/1/1980')
 		    u = all(:username=>login, :activated_at.gt=>Time.new('1970-01-01 00:00:00')) | all(:email.like=>login, :activated_at.gt=>Time.new('1970-01-01 00:00:00'))
-		    puts "USER.authenticate"
-		    puts u
+		    App.logger.debug "USER.authenticate #{u.inspect}"
 		    u = u.respond_to?(:first) ? u.first : u
 		  #else
 		    # SQL
