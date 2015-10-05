@@ -282,7 +282,7 @@ module RackWarden
 	  
 	  def account_bar
 	  	return unless current_user
-	  	"<b>#{current_user.username}</b>"
+	  	"<b>#{current_user.username rescue ('no username for current user: ' + current_user.inspect.to_s)}</b>"
 	  end
 
 	end # RackWardenHelpers
