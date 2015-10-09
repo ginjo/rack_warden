@@ -44,8 +44,6 @@ module RackWarden
 		
 		###  OMNIAUTH CODE  ###
 		
-		Dotenv.load
-		
     #use Rack::Session::Cookie # Why not Rack::Cookies?
     use OmniAuth::Strategies::Developer
   

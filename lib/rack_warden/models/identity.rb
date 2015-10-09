@@ -1,12 +1,15 @@
 module RackWarden
   ###  OMNIAUTH CODE  ###
   #
-  IDENTITIES=[]
+
   #
   class Identity
     extend Forwardable
     
-    attr_accessor :auth_hash
+    STORE=[]
+    File.open('identities.yml', 'a').close
+    
+    attr_accessor :auth_hash, :user_id
     def_delegators :auth_hash, :uid, :provider, :info, :credentials, :extra, :[]
     
     def self.locate_or_new(identifier) # or auth_hash
@@ -19,18 +22,26 @@ module RackWarden
       identity = super(auth_hash) if (auth_hash['uid'] && auth_hash['provider'])
       if identity
         #puts "Identity.new SUCCEEDED"
-        (IDENTITIES << identity) 
+        (STORE << identity) &&
+        write
       else
         #puts "Identity.new FAILED"
       end
       identity
     end
     
+    def self.write
+      File.open('identities.yml', 'w') { |f|
+        f.puts STORE.to_yaml
+      }
+    end
+      
+    
     def self.locate(identifier) # id or auth_hash
       #puts "Identity.locate: #{identifier.class}"
       auth_hash = (identifier.respond_to?(:uid) || identifier.is_a?(Hash)) ? identifier : {}
       uid = auth_hash['uid'] || identifier.to_s
-      identity = IDENTITIES.find{|i| i.uid.to_s == uid.to_s}
+      identity = STORE.find{|i| i.uid.to_s == uid.to_s}
       if identity && auth_hash['provider'] && auth_hash['uid']
         identity.auth_hash = auth_hash
       end
@@ -57,7 +68,10 @@ module RackWarden
     
     def username; name; end
   
+    
   end # Identity
+  Identity::STORE.replace(YAML.load_file('identities.yml') || [])
   ###  END OMNIAUTH CODE  ###
   
 end # RackWarden
+
