@@ -7,6 +7,9 @@ end
 
 ###  OMNIAUTH CODE  ###
 
+require 'dotenv'
+Dotenv.load
+
 require 'forwardable'
 require 'omniauth'
 require 'omniauth-github'

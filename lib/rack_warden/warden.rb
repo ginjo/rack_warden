@@ -13,7 +13,7 @@ module RackWarden
           config.serialize_into_session{|user| user.id }
           # Now tell Warden how to take what we've stored in the session
           # and get a User from that information.
-          config.serialize_from_session{|id| User.get(id) }
+          config.serialize_from_session{|id| User.get(id) || Identity.get(id)}
         
           config.scope_defaults :default,
             # "strategies" is an array of named methods with which to
