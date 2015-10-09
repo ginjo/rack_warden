@@ -90,6 +90,26 @@ module RackWarden
 	      end # authenticate!
 			end # remember_me
 			
+			###  OMNIAUTH CODE  ###
+      add(:omniauth) do
+        
+        def valid?
+          env['omniauth.auth'].is_a?(Hash) || env['omniauth.auth'].is_a?(OmniAuth::AuthHash)
+        end
+        
+        def authenticate!
+          identity = Identity.locate_or_new(env['omniauth.auth'])
+          if identity.uid
+            #puts "Strategy#authenticate! SUCCESS"
+            success!(identity)
+          else
+            #puts "Strategy#authenticate! FAIL"
+            fail!("Could not login")
+          end
+        end
+      end
+      ###  END OMNIAUTH CODE  ###
+			
 		end # Warden::Strategies
 		
 		
@@ -106,7 +126,7 @@ module RackWarden
 				#App.logger.debug "RW after_authentication callback - auth methods: #{auth.methods.sort}"
 				#App.logger.debug "RW after_authentication callback - opts: #{opts.inspect}"
 				#App.logger.debug "RW after_authentication callback - auth.manager: #{auth.manager.inspect}"
-				App.logger.debug "RW after_authentication callback - user: #{user.username}"
+				#App.logger.debug "RW after_authentication callback - user: #{user.username}"
       	
       	if user.is_a?(User) && (user.remember_token || auth.params['user']['remember_me'] == '1')
       		App.logger.debug "RW after_authenticate user.remember_me '#{user.username}'"

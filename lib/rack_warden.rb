@@ -5,6 +5,15 @@ module RackWarden
   $LOAD_PATH.unshift(PATH) unless $LOAD_PATH.include?(PATH)
 end
 
+###  OMNIAUTH CODE  ###
+
+require 'forwardable'
+require 'omniauth'
+require 'omniauth-github'
+require 'omniauth-google-oauth2'
+
+###  END OMNIAUTH CODE  ###
+
 require "sinatra/base"
 #require "sinatra/contrib" # not compatible with rails 2.3 because of rack dependency conflict.
 require "rack/flash" # this somehow loads rack/flash3
@@ -26,6 +35,7 @@ module RackWarden
   autoload :Env, 'rack_warden/env'
   autoload :User, "rack_warden/models"
   autoload :Pref, "rack_warden/models"
+  autoload :Identity, "rack_warden/models/identity"  # OMNIAUTH
   autoload :Mail, "rack_warden/mail"
   autoload :Routes, "rack_warden/routes"
   autoload :VERSION, "rack_warden/version"
