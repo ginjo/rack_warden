@@ -6,15 +6,10 @@ module RackWarden
 end
 
 ###  OMNIAUTH CODE  ###
-
-require 'dotenv'
-Dotenv.load
-
 require 'forwardable'
 require 'omniauth'
 require 'omniauth-github'
 require 'omniauth-google-oauth2'
-
 ###  END OMNIAUTH CODE  ###
 
 require "sinatra/base"

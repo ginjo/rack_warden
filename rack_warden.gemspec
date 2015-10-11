@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "dm-sqlite-adapter"
   spec.add_dependency "mail"
   spec.add_dependency "multi_json"
+  spec.add_dependency "omniauth"
   spec.add_dependency "rack-contrib"
   spec.add_dependency "rack-flash3"
   spec.add_dependency "sinatra"
