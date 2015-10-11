@@ -127,6 +127,17 @@ module RackWarden
 					end				
 					
 					
+    		  ###  OMNIAUTH  ###
+          # See this for omniauth.auth hash standardized schema:
+          # https://github.com/intridea/omniauth/wiki/Auth-Hash-Schema
+          %w(get post).each do |method|
+            send(method, "/auth/:provider/callback") do
+              #puts "GET/POST /auth/:provider/callback"
+              warden.authenticate!(:omniauth)
+              erb "<pre>#{current_user.to_yaml}</pre>"
+            end
+          end							
+					
 					
 					###  UTILITY  ###
 				

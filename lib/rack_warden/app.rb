@@ -25,7 +25,7 @@ module RackWarden
     set :logger, nil
     set :use_common_logger, false
     set :reset_logger, false
-    set :sessions, true # Will use parent app sessions. Pass in :key=>'something' to enable RW-specific sessions (maybe).
+    #set :sessions, true # Will use parent app sessions. Pass in :key=>'something' to enable RW-specific sessions (maybe). See class helpers for newer session declaration.
     set :remember_token_cookie_name, 'rack_warden_remember_token'
     set :user_table_name, 'rack_warden_users'
     set :field_maps, {}
@@ -40,36 +40,7 @@ module RackWarden
 
 	  
 		register AppClassMethods
-		
-		
-		###  OMNIAUTH CODE  ###
-		
-    #use Rack::Session::Cookie # Why not Rack::Cookies?
-    use OmniAuth::Strategies::Developer
-  
-    use OmniAuth::Builder do
-      # GitHub API v3 lets you set scopes to provide granular access to different types of data:
-      provider :github, ENV['GITHUB_KEY'], ENV['GITHUB_SECRET'], :scope=> 'user:email'  #, scope: "user,repo,gist"
-      # Per the omniauth sinatra example @ https://github.com/intridea/omniauth/wiki/Sinatra-Example
-      #provider :open_id, :store => OpenID::Store::Filesystem.new('/tmp')
-      #provider :identity, :fields => [:email]
-      # See google api docs: https://developers.google.com/identity/protocols/OAuth2
-      provider :google_oauth2, ENV['GOOGLE_KEY'], ENV['GOOGLE_SECRET']
-    end
-		
-		
-    # See this for omniauth.auth hash standardized schema:
-    # https://github.com/intridea/omniauth/wiki/Auth-Hash-Schema
-    %w(get post).each do |method|
-      send(method, "/auth/:provider/callback") do
-        #puts "GET/POST /auth/:provider/callback"
-        warden.authenticate!(:omniauth)
-        erb "<pre>#{current_user.to_yaml}</pre>"
-      end
-    end		
 
-		### END OMNIAUTH CODE  ###
-  
 
     # WBR - This will receive params and a block from the parent "use" statement.
     # This middleware app has been modified to process the parent use-block in

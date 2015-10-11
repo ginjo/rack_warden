@@ -1,10 +1,61 @@
+# MANAGERS=[]
+# WARDENS=[]
+# class Warden::Manager
+#   class << self
+#     alias_method :new_original, :new
+#     def new(*args)
+#       m = super(*args)
+#       MANAGERS << m
+#       m
+#     end
+#   end
+# end
+# class Warden::Proxy
+#   class << self
+#     alias_method :new_original, :new
+#     def new(*args)
+#       w = super(*args)
+#       WARDENS << w
+#       store_object(w.env['rack.session'])
+#       w
+#     end
+#   end
+# end
+# 
+# def store_object(obj)
+#   File.open("/Users/wbr/Desktop/WardenSessions/#{obj.object_id}.yml",'w') do |h| 
+#      h.write obj.to_h.inspect
+#   end
+# end
+
+
+
+
+# For more info on the methods available in warden proxy, see the following.
+# http://www.rubydoc.info/github/hassox/warden/Warden/Proxy
+# http://www.rubydoc.info/github/hassox/warden/Warden/Strategies
+# http://www.rubydoc.info/github/hassox/warden/Warden/Manager
+#
 module RackWarden
 
 	module WardenConfig
 		
 		def self.included(base)
 			App.logger.warn "RW loading Warden config into #{base}"
-			base.instance_eval do			
+			base.instance_eval do
+			
+    		###  OMNIAUTH CODE  ###
+        use OmniAuth::Strategies::Developer
+        use OmniAuth::Builder do
+          # GitHub API v3 lets you set scopes to provide granular access to different types of data:
+          provider :github, ENV['GITHUB_KEY'], ENV['GITHUB_SECRET'], :scope=> 'user:email'  #, scope: "user,repo,gist"
+          # Per the omniauth sinatra example @ https://github.com/intridea/omniauth/wiki/Sinatra-Example
+          #provider :open_id, :store => OpenID::Store::Filesystem.new('/tmp')
+          #provider :identity, :fields => [:email]
+          # See google api docs: https://developers.google.com/identity/protocols/OAuth2
+          provider :google_oauth2, ENV['GOOGLE_KEY'], ENV['GOOGLE_SECRET']
+        end
+    		### END OMNIAUTH CODE  ###
 			
 		    use Warden::Manager do |config|
           # Tell Warden how to save our User info into a session.

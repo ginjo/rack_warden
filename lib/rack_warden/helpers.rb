@@ -16,6 +16,13 @@ module RackWarden
 	  	initialize_logging
 	  		  	
 	    use Rack::Cookies
+	    
+	    # WBR recently switched to this from settings.set(:sessions=>true)
+      use Rack::Session::Cookie, :key => 'rack_warden',
+        :path => '/',
+        :expire_after => 14400, # In seconds
+        :secret => 'skj3l4kgjsl3kkgjlsd0f98slkjrewlksufdjlksefk'
+	    
 	    RackWarden::Namespace::NamespacedMethods.prefixed :require_login
 	    Sinatra::Namespace::NamespacedMethods.prefixed(:require_login) if Sinatra.const_defined?(:Namespace) && Sinatra::Namespace.const_defined?(:NamespacedMethods)
 	    
