@@ -13,7 +13,7 @@ module RackWarden
     set :repository_name, :default
     set :database_config, nil
     set :database_default,  "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
-    set :disable_erubis, true
+    set :disable_erubis, false # Had to be true for Tilt 1.3, or if erubis is loaded
     set :recaptcha, {}
     set :require_login, nil
     set :rack_authentication, nil

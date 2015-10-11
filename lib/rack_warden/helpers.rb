@@ -33,7 +33,11 @@ module RackWarden
 	    # Erubis/tilt/respond_with don't play well together in older ruby/rails.
 	    if disable_erubis
 		    template_engines.delete :erubis
-		    Tilt.mappings['erb'].delete Tilt::ErubisTemplate
+		    # TODO: Make these handle & report errors better
+		    # Tilt 1.3
+		    (Tilt.mappings['erb'].delete Tilt::ErubisTemplate rescue nil) ||
+		    # Tilt 2.0
+		    (Tilt.default_mapping['erb'].delete Tilt::ErubisTemplate rescue nil)
 			end
 	    	  	
   		# Setup flash if not already

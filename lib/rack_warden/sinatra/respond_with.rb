@@ -198,7 +198,10 @@ App.logger.debug "RW loading RespondWith"
         logger.debug "RW respond_with#template_for possible: #{possible.inspect}"
         possible.each do |engine, template|
           # not exactly like Tilt[engine], but does not trigger a require
-          klass = Tilt.mappings[Tilt.normalize(engine)].first
+          # WBR: Handles Tilt 1.3 & 2.0.
+          klass = (Tilt.mappings[Tilt.normalize(engine)].first rescue nil) ||
+            (Tilt.default_mapping[Tilt.normalize(engine)].first rescue nil)
+          
           logger.debug "RW respond_with#template_for klass : #{klass}"
           find_template(settings.views, template, klass) do |file|
           	#logger.debug "RW respond_with#template_for find_template file: #{file}"
