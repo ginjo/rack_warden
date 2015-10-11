@@ -25,7 +25,14 @@ module RackWarden
     set :logger, nil
     set :use_common_logger, false
     set :reset_logger, false
-    #set :sessions, true # Will use parent app sessions. Pass in :key=>'something' to enable RW-specific sessions (maybe). See class helpers for newer session declaration.
+    #set :sessions, true # Will use parent app sessions.
+      #   Pass in :key=>'something' to enable RW-specific sessions (maybe).
+      #   See class helpers for newer session declaration.
+      #   Really? Is all this true?
+    set :sessions, :key => 'rack_warden',
+        :path => '/',
+        :expire_after => 14400, # In seconds
+        :secret => 'skj3l4kgjsl3kkgjlsd0f98slkjrewlksufdjlksefk'
     set :remember_token_cookie_name, 'rack_warden_remember_token'
     set :user_table_name, 'rack_warden_users'
     set :field_maps, {}
