@@ -65,7 +65,7 @@ module RackWarden
 		###  CLASS  ###
 
 	  # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
-	  # This is not currently used in RackWarden (has it's own auth logic section).
+	  # This is not currently used in RackWarden (has it's own auth logic section). WHAT?!?! Yes it is used in current RW.
 	  def self.authenticate(login, password)
 	    # hides records with a nil activated_at
 	    #if repository.adapter.to_s[/filemaker/i]
@@ -110,6 +110,7 @@ module RackWarden
       end
     end
     
+    # TODO: Fill this out with whatever you want.
 	  def authorized?(options={})
 	  	#options[:request].script_name[/login|new|create|logout/] ||
 	  	self.id==1 || self.username == 'wbr'

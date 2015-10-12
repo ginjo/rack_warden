@@ -63,7 +63,7 @@ module RackWarden
               warden.authenticate!(:omniauth)
               erb "<pre>#{current_user.to_yaml}</pre>"
               # The .. is to go up one level above the rw_prefix.
-              return_to '/../profile'
+              return_to '/protected'
             end
           end		
 					
