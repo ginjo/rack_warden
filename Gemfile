@@ -11,6 +11,7 @@ gemspec
 #gem 'shotgun'
 #gem 'tux'
 #gem 'thin'
+#gem 'puma'
 
 # If you have trouble with failing dependencies or templating errors in rails 2.3,
 # you may need to activate any or all of these.
