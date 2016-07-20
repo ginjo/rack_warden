@@ -29,6 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "rack-contrib"
   spec.add_dependency "rack-flash3"
   spec.add_dependency "sinatra"
+  spec.add_dependency "sinatra-contrib"
   spec.add_dependency "warden"
   
 

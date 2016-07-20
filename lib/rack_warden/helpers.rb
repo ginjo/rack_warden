@@ -13,7 +13,7 @@ module RackWarden
 	  	initialize_logging
 	  	logger.warn "RW AppClassMethods.initialize_app_class environment: #{environment}, process: #{$0}"
 	  	initialize_config_files
-	  	initialize_logging
+	  	initialize_logging  # again, in case log settings changed in config files.
 	  		  	
 	    use Rack::Cookies
 	    
@@ -24,20 +24,25 @@ module RackWarden
       #   :expire_after => 14400, # In seconds
       #   :secret => 'skj3l4kgjsl3kkgjlsd0f98slkjrewlksufdjlksefk'
 	    
-	    RackWarden::Namespace::NamespacedMethods.prefixed :require_login
+	    #RackWarden::Namespace::NamespacedMethods.prefixed :require_login
 	    Sinatra::Namespace::NamespacedMethods.prefixed(:require_login) if Sinatra.const_defined?(:Namespace) && Sinatra::Namespace.const_defined?(:NamespacedMethods)
 	    
-	    register RackWarden::Namespace
-	    register RackWarden::RespondWith
+	    #register RackWarden::Namespace
+	    #register RackWarden::RespondWith
+	    register Sinatra::Namespace
+	    register Sinatra::RespondWith
 	    
 	    # Erubis/tilt/respond_with don't play well together in older ruby/rails.
 	    if disable_erubis
+        logger.warn "Disabling erubis due to conflicts with Tilt and respond_with."
 		    template_engines.delete :erubis
+		    RackWarden::RespondWith::ENGINES[:html].delete :erubis
+		    RackWarden::RespondWith::ENGINES[:all].delete :erubis
 		    # TODO: Make these handle & report errors better
 		    # Tilt 1.3
-		    (Tilt.mappings['erb'].delete Tilt::ErubisTemplate rescue nil) ||
+		    (Tilt.mappings['erb'].delete(Tilt::ErubisTemplate) rescue nil) ||
 		    # Tilt 2.0
-		    (Tilt.default_mapping['erb'].delete Tilt::ErubisTemplate rescue nil)
+		    (Tilt.default_mapping['erb'].delete(Tilt::ErubisTemplate) rescue nil)
 			end
 	    	  	
   		# Setup flash if not already

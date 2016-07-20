@@ -13,7 +13,7 @@ require 'omniauth-google-oauth2'
 ###  END OMNIAUTH CODE  ###
 
 require "sinatra/base"
-#require "sinatra/contrib" # not compatible with rails 2.3 because of rack dependency conflict.
+require "sinatra/contrib" # not compatible with rails 2.3 because of rack dependency conflict.
 require "rack/flash" # this somehow loads rack/flash3
 require "rack/contrib/cookies"  # This is needed to set cookies in warden callbacks.
 require 'bcrypt'
@@ -44,8 +44,8 @@ module RackWarden
   # Autload patched versions of respond_with & namespace.
   # respond_with handles uri dot-format extension,
   # and namespace handles require_login.
-  autoload :RespondWith, "rack_warden/sinatra/respond_with"
-  autoload :Namespace, "rack_warden/sinatra/namespace"
+  #autoload :RespondWith, "rack_warden/sinatra/respond_with"
+  #autoload :Namespace, "rack_warden/sinatra/namespace"
   autoload :Frameworks, "rack_warden/frameworks"
   module Frameworks
     autoload :Sinatra, 'rack_warden/frameworks/sinatra'
