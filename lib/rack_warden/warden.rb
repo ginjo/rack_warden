@@ -167,12 +167,12 @@ module RackWarden
               success!(get_user(identity))
             else
               #puts "Strategy#authenticate! FAIL"
-              fail!("Could not login")
+              fail!("Could not authenticate omniauth identity")
             end
           rescue Exception
             RackWarden::App.logger.warn "RW strategy for omniauth has raised an exception."
             RackWarden::App.logger.warn "RW #{$!}"
-            fail!("Could not login")
+            fail!("Could not authenticate omniauth identity, exception raised")
             raise $!
           end
         end
