@@ -284,7 +284,8 @@ module RackWarden
 	  end
 	
 	  def default_page
-			nested_erb :'rw_index.html', :'rw_layout_admin.html', settings.layout
+			#nested_erb :'rw_index.html', :'rw_layout.html', settings.layout
+			respond_with :rw_index
 	  end
 		
 	  def nested_erb(*list)

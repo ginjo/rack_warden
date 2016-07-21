@@ -1,12 +1,13 @@
 <!-- A partial layout for admin. -->
 <%# @section_title = "RackWarden Admin" %>
-<h2>Account Management</h2>
+<h2>RackWarden Admin</h2>
 <p>
-	<a href="<%=url_for('/')%>">RackWarden Home</a> |
-	<a href="<%=url_for('/admin')%>">User Accounts</a> |
-	<a href="<%=url_for('/dbinfo')%>">Database Info</a> |
-	<a href="<%=url_for('/sessinfo')%>">Session Info</a> |
-	<%=account_widget%>
+	<a href="<%=url_for('/admin')%>">RackWarden Admin Home</a> |
+	<a href="<%=url_for('/admin/users')%>">User Accounts</a> |
+  <a href="<%=url_for('/admin/identities')%>">Identities</a> |
+	<a href="<%=url_for('/admin/dbinfo')%>">Database Info</a> |
+	<a href="<%=url_for('/admin/sessinfo')%>">Session Info</a>
+	<%#=account_widget%>
 </p>
 
 <br>

@@ -166,25 +166,46 @@ module RackWarden
 					  respond_with :'rw_protected'
 					end
 					
-					get "/dbinfo" do
-						require_authorization
-						#erb :'rw_dbinfo.html'
-						nested_erb :'rw_dbinfo.html', :'rw_layout_admin.html', settings.layout
+					get '/account' do
+					  require_login
+					  if authorized?
+              nested_erb :'rw_account.html', :'rw_layout_admin.html', settings.layout
+            else
+              respond_with :rw_account
+            end
 					end
 					
 					get '/admin' do
 					  require_authorization
 					  #erb :'rw_admin.html', :layout=>settings.layout
-					  nested_erb :'rw_admin.html', :'rw_layout_admin.html', settings.layout
+					  nested_erb :'rw_index.html', :'rw_layout_admin.html', settings.layout
 					  #respond_with :rw_admin
 					end
 					
-					get '/sessinfo' do
+					get "/admin/dbinfo" do
+						require_authorization
+						#erb :'rw_dbinfo.html'
+						nested_erb :'rw_dbinfo.html', :'rw_layout_admin.html', settings.layout
+					end		
+					
+					get "/admin/users" do
+						require_authorization
+						#erb :'rw_dbinfo.html'
+						nested_erb :'rw_users.html', :'rw_layout_admin.html', settings.layout
+					end		
+
+					get "/admin/identities" do
+						require_authorization
+						#erb :'rw_dbinfo.html'
+						nested_erb :'rw_identities.html', :'rw_layout_admin.html', settings.layout
+					end
+
+					get '/admin/sessinfo' do
 						require_authorization
 						nested_erb :'rw_session.html', :'rw_layout_admin.html', settings.layout
 					end
 					
-          get '/debug' do
+          get '/admin/debug' do
             require_authorization
             content_type :text
             env['rack.session'].to_yaml
