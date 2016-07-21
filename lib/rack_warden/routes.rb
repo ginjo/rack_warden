@@ -72,6 +72,7 @@ module RackWarden
 					  #warden.authenticated? # Hack so warden will log out. See  https://github.com/hassox/warden/issues/76.
 					  if current_user
 						  warden.logout
+						  session['omniauth_auth'] = nil
 						  flash.rw_success = 'You have been logged out'
 						end
 					  redirect url(settings.default_route, false)

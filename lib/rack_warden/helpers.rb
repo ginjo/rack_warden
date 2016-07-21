@@ -187,6 +187,11 @@ module RackWarden
 	    #warden.authenticated? && warden.user
 	    logged_in? && warden.user
 		end
+		
+		def current_identity
+		  puts "Getting current_identity:  #{session['omniauth_auth']}"
+		  Identity.locate(session['omniauth_auth'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
+		end
 	
 		def logged_in?
 			App.logger.debug "RW UniversalHelpers#logged_in? #{warden.authenticated?}"

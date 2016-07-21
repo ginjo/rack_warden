@@ -43,10 +43,15 @@ module RackWarden
 		def self.included(base)
 			App.logger.warn "RW loading Warden config into #{base}"
 			base.instance_eval do
-			
+        App.logger.debug "RW evaluating WardenConfig code within #{base} instance"
+        
+        
     		###  OMNIAUTH CODE  ###
+    		###  See http://www.rubydoc.info/github/intridea/omniauth/OmniAuth/Builder
+    		###
         use OmniAuth::Strategies::Developer
         use OmniAuth::Builder do
+          App.logger.debug "RW setting up providers within #{self}"
           # GitHub API v3 lets you set scopes to provide granular access to different types of data:
           provider :github, ENV['GITHUB_KEY'], ENV['GITHUB_SECRET'], :scope=> 'user:email'  #, scope: "user,repo,gist"
           # Per the omniauth sinatra example @ https://github.com/intridea/omniauth/wiki/Sinatra-Example
@@ -55,9 +60,9 @@ module RackWarden
           # See google api docs: https://developers.google.com/identity/protocols/OAuth2
           provider :google_oauth2, ENV['GOOGLE_KEY'], ENV['GOOGLE_SECRET']
           provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'], scope: 'identity.basic,identity.email,identity.team,identity.avatar'
-          #provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'], scope: 'identify,team:read,incoming-webhook,channels:read' #,users:read'
+          #provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'], scope: 'identify,team:read,incoming-webhook,channels:read', :name=>'slack_full' #,users:read'
         end
-    		### END OMNIAUTH CODE  ###
+    		###  END OMNIAUTH CODE  ###
 			
 		    use Warden::Manager do |config|
           # Tell Warden how to save our User info into a session.
@@ -81,8 +86,8 @@ module RackWarden
           config.failure_app = self
 		    end
 		
-			end # self.included
-		end # WardenConfig
+			end # base.instance_eval
+		end # self.included
 
 
 
@@ -151,14 +156,24 @@ module RackWarden
         end
         
         def authenticate!
-          identity = Identity.locate_or_new(env['omniauth.auth'])
-          puts env['omniauth.auth'].to_yaml
-          if identity.uid
-            #puts "Strategy#authenticate! SUCCESS"
-            success!(get_user(identity))
-          else
-            #puts "Strategy#authenticate! FAIL"
+          begin
+            identity = Identity.locate_or_new(env['omniauth.auth'])
+            #puts env['omniauth.auth'].to_yaml
+            if identity.uid
+              session['omniauth_auth'] = identity.uid
+              #env['rack.session']['omniauth_auth'] = identity
+              #session['omniauth_auth'] = "TEST-IDENTITY"
+              #puts "Strategy#authenticate! SUCCESS"
+              success!(get_user(identity))
+            else
+              #puts "Strategy#authenticate! FAIL"
+              fail!("Could not login")
+            end
+          rescue Exception
+            RackWarden::App.logger.warn "RW strategy for omniauth has raised an exception."
+            RackWarden::App.logger.warn "RW #{$!}"
             fail!("Could not login")
+            raise $!
           end
         end
         
