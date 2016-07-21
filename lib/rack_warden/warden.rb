@@ -54,6 +54,8 @@ module RackWarden
           #provider :identity, :fields => [:email]
           # See google api docs: https://developers.google.com/identity/protocols/OAuth2
           provider :google_oauth2, ENV['GOOGLE_KEY'], ENV['GOOGLE_SECRET']
+          provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'], scope: 'identity.basic,identity.email,identity.team,identity.avatar'
+          #provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'], scope: 'identify,team:read,incoming-webhook,channels:read' #,users:read'
         end
     		### END OMNIAUTH CODE  ###
 			
@@ -150,6 +152,7 @@ module RackWarden
         
         def authenticate!
           identity = Identity.locate_or_new(env['omniauth.auth'])
+          puts env['omniauth.auth'].to_yaml
           if identity.uid
             #puts "Strategy#authenticate! SUCCESS"
             success!(get_user(identity))
