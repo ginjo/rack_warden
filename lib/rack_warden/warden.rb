@@ -53,13 +53,13 @@ module RackWarden
         use OmniAuth::Builder do
           App.logger.debug "RW setting up providers within #{self}"
           # GitHub API v3 lets you set scopes to provide granular access to different types of data:
-          provider :github, ENV['GITHUB_KEY'], ENV['GITHUB_SECRET'], :scope=> 'user:email'  #, scope: "user,repo,gist"
+          provider :github, ENV['GITHUB_KEY'], ENV['GITHUB_SECRET'], :scope=> 'user:email' if App.omniauth_adapters.include?('omniauth-github') #, scope: "user,repo,gist"
           # Per the omniauth sinatra example @ https://github.com/intridea/omniauth/wiki/Sinatra-Example
           #provider :open_id, :store => OpenID::Store::Filesystem.new('/tmp')
           #provider :identity, :fields => [:email]
           # See google api docs: https://developers.google.com/identity/protocols/OAuth2
-          provider :google_oauth2, ENV['GOOGLE_KEY'], ENV['GOOGLE_SECRET']
-          provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'], scope: 'identity.basic,identity.email,identity.team,identity.avatar'
+          provider :google_oauth2, ENV['GOOGLE_KEY'], ENV['GOOGLE_SECRET'] if App.omniauth_adapters.include?('omniauth-google-oauth2')
+          provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'], scope: 'identity.basic,identity.email,identity.team,identity.avatar' if App.omniauth_adapters.include?('omniauth-slack')
           #provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'], scope: 'identify,team:read,incoming-webhook,channels:read', :name=>'slack_full' #,users:read'
         end
     		###  END OMNIAUTH CODE  ###
