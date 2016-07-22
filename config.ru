@@ -1,8 +1,8 @@
-::RACK_WARDEN_STANDALONE = true
-
 require 'bundler'
 
 Bundler.require
+
+RackWarden::STANDALONE = true
 
 require File.expand_path('../lib/rack_warden', __FILE__)
 

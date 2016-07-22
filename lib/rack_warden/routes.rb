@@ -11,7 +11,7 @@ module RackWarden
 				#before do
 				#end
 				
-				if defined? ::RACK_WARDEN_STANDALONE
+				if defined? STANDALONE
 					get '/?' do
 						default_page
 					end

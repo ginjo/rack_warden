@@ -38,14 +38,14 @@ module RackWarden
       
     
     def self.locate(identifier) # id or auth_hash
-      puts "Identity.locate: #{identifier.class} \"#{identifier}\""
+      #puts "Identity.locate: #{identifier.class} \"#{identifier}\""
       auth_hash = (identifier.respond_to?(:uid) || identifier.is_a?(Hash)) ? identifier : {}
       uid = (auth_hash[:uid] || auth_hash['uid'] || auth_hash.uid || identifier) rescue identifier
       identity = STORE.find{|i| i.uid.to_s == uid.to_s}
       if identity && auth_hash['provider'] && auth_hash['uid']
         identity.auth_hash = auth_hash
       end
-      puts "Identity.locate found: #{identity.class}"
+      #puts "Identity.locate found: #{identity.class}"
       identity
     end
     

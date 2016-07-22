@@ -3,7 +3,9 @@ module RackWarden
   PATH = File.expand_path(File.dirname(__FILE__))
   #puts "RW PATH #{PATH}"
   $LOAD_PATH.unshift(PATH) unless $LOAD_PATH.include?(PATH)
+  if ENV['RACK_WARDEN_STANDALONE']; STANDALONE=true; end
 end
+
 
 ###  OMNIAUTH CODE  ###
 require 'forwardable'
