@@ -157,7 +157,7 @@ module RackWarden
 						#erb :'rw_protected.html'
 					end
 				
-					get "/is_running" do
+					get "/is_alive" do
 						"YES"
 					end
 									

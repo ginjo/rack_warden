@@ -10,9 +10,9 @@ end
 ###  OMNIAUTH CODE  ###
 require 'forwardable'
 require 'omniauth'
-require 'omniauth-github'
-require 'omniauth-google-oauth2'
-require 'omniauth-slack'
+#require 'omniauth-github'
+#require 'omniauth-google-oauth2'
+#require 'omniauth-slack'
 ###  END OMNIAUTH CODE  ###
 
 require "sinatra/base"
