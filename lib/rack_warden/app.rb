@@ -44,7 +44,7 @@ module RackWarden
     set :mail_options,
     		:delivery_method => :test,
     		:delivery_options => {:from => 'my@email.com'} #, :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE
-
+    set :omniauth_adapters, Gem.loaded_specs.keys.select{|k| k =~ /omniauth/ && k}
 	  
 		register AppClassMethods
 

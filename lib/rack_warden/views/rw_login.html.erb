@@ -22,13 +22,19 @@
 	
 	<!-- OMNIAUTH CODE -->
 	
-  	<br>OR<br>
-  	
-    <a href='/auth/developer'>Sign in with Developer (demo strategy)</a><br><br>
-    <a href='/auth/github'>Sign in with Github</a><br><br>
-    <a href='/auth/google_oauth2'>Sign in with Google</a><br><br>
-    <a href='/auth/slack'>Sign in with Slack</a><br><br>
-  
+    <p>
+  	OR login with any of these oAuth services
+  	</p>
+  	<ul>
+      <li><a href='/auth/developer'>Sign in with Developer (demo strategy)</a></li>
+    	<% settings.omniauth_adapters.each do |a|
+    	   s = a.split(/^[^-]*-/)[1]
+    	   next if (s.to_s.empty? || s.to_s == 'oauth2')
+    	   s = s.gsub(/-/, '_')
+    	 %>
+      <li><a href='/auth/<%=s%>'>Sign in with <%=s.upcase%></a></li>
+    <% end %>
+    </ul>
   <!-- END OMNIAUTH CODE -->
   
 </form>
