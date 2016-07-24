@@ -80,7 +80,7 @@ module RackWarden
             # The action is a route to send the user to when
             # warden.authenticate! returns a false answer. We'll show
             # this route below.
-            :action => 'auth/unauthenticated'
+            :action => "#{App.rw_prefix}/unauthenticated"
           # When a user tries to log in and cannot, this specifies the
           # app to send the user to.
           config.failure_app = self
