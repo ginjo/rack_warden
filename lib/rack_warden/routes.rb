@@ -136,6 +136,14 @@ module RackWarden
 					  # end
 					end
 					
+					get '/failure' do
+            @message = params['message']
+            @origin = params['origin']
+            @strategy = params['stragety']
+            flash[:rw_error] = "<pre>#{params.to_yaml}</pre>"
+            redirect('/')
+          end
+					
 					get "/error" do
 						respond_with :'rw_error'
 					end					

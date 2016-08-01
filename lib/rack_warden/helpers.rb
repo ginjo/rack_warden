@@ -115,6 +115,7 @@ module RackWarden
     	
     # Initialize logging.
     def initialize_logging(reset=reset_logger)
+      #puts "RW - initializing logging with log_path:#{settings.log_path}, log_file:#{settings.log_file}, logger:#{settings.logger}"
 	    # We take existing log file from settings, enable sync (disables buffering), then put it back in settings.
     	_log_file = !logging && File.new('/dev/null', 'a') || !reset && settings.log_file || File.new(settings.log_path, 'a+')
 	    _log_file.sync = true
@@ -138,7 +139,7 @@ module RackWarden
 	    
 	    logger.debug "RW AppClassMethods.initialize_logging level: #{logger.level}, _log_file: #{_log_file.inspect}"
 	  rescue
-	  	puts "There was an error setting up logging: #{$!}"
+	  	puts "RW - There was an error setting up logging: #{$!}"
 	  end
 
 	  # Creates uri-friendly codes/keys/hashes from raw unfriendly strings (like BCrypt hashes). 
