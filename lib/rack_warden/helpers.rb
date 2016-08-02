@@ -66,6 +66,7 @@ module RackWarden
 			# Eval the use-block from the parent app, in context of this app.
 			#settings.instance_exec(rw_app_instance, &block) if block_given?
 			# Eval the use-block from the parent app, in context of the parent app instance.
+			logger.debug "RW yielding to initialization block if block_given? (block_given? #{block_given?})"
 			yield rw_app_instance if block_given?
 			
 		  # Set global layout (remember to use :layout=>false in your calls to partials).
@@ -107,10 +108,16 @@ module RackWarden
     
     # Apply new settings on top of existing settings, prepending new views to old views.
     def overlay_settings(new_settings)
+      existing_views = settings.views
     	new_views = new_settings.extract(:views).values
-    	logger.debug "RW AppClassMethods.overlay_settings new_views #{new_views.inspect}"
-	  	set :views, [new_views, views].flatten.compact.uniq
+    	logger.debug "RW AppClassMethods.overlay_settings App.object_id #{settings.object_id}"
+    	logger.debug "RW existing_views #{existing_views.inspect}"
+    	logger.debug "RW new_views #{new_views.inspect}"
+    	# TODO: Should these next two steps be reversed? 2016-08-02
+	  	set :views, [new_views, existing_views].flatten.compact.uniq
     	set new_settings
+	  	logger.debug "RW compiled_views"
+	  	logger.debug views.to_yaml
     end
     	
     # Initialize logging.
@@ -121,7 +128,7 @@ module RackWarden
 	    _log_file.sync = true
 	    set :log_file, _log_file
 	    set :logger, Logger.new(_log_file, 'daily') unless settings.logger && !reset
-	    logger.level = eval "Logger::#{log_level}"
+	    logger.level = eval "Logger::#{log_level.upcase}"
 	    
 	    # Setup Rack::CommonLogger
 	    if use_common_logger
