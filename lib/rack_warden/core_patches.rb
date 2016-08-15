@@ -17,6 +17,11 @@ class Hash
 			self.delete_if {|k,v| (args.include?(k) || args.include?(k.to_s) || args.include?(k.to_s.downcase) || args.include?(k.to_sym)) || args.include?(k.to_s.downcase.to_sym) ? other[k]=v : nil}
 		end
 	end
+	
+	# Another cool way to extract without altering original:
+  # def extract(*keys)
+  #   Hash[[keys, self.values_at(*keys)].transpose]
+  # end
 end
 
 class Time
