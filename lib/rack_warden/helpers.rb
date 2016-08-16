@@ -302,8 +302,10 @@ module RackWarden
 	  	end
 	  end
 	  
+	  # Redirect to session[:return_to] or the provided fallback.
 	  def return_to(fallback=settings.default_route)
-	  	redirect session[:return_to] || url_for(fallback)
+      # This use to use url_for(fallback), but namespaced actions would return_to to bogus places.
+	  	redirect session[:return_to] || fallback
 	  end
 	  
 	  def redirect_error(message="Error")

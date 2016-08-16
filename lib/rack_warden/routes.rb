@@ -61,7 +61,7 @@ module RackWarden
             send(method, "/:provider/callback") do
               #puts "GET/POST /auth/:provider/callback"
               warden.authenticate!(:omniauth)
-              erb "<pre>#{current_user.to_yaml}</pre>"
+              #erb "<pre>#{current_user.to_yaml}</pre>"
               # The .. is to go up one level above the rw_prefix.
               return_to #'/protected'
             end
@@ -70,12 +70,13 @@ module RackWarden
 					get '/logout' do
 					  #warden.raw_session.inspect
 					  #warden.authenticated? # Hack so warden will log out. See  https://github.com/hassox/warden/issues/76.
+					  redirect_uri = params[:redirect]
 					  if current_user
 						  warden.logout
 						  session['omniauth_auth'] = nil
 						  flash.rw_success = 'You have been logged out'
 						end
-					  redirect url(settings.default_route, false)
+					  redirect url(redirect_uri || settings.default_route, false)
 					end
 					
 					get '/new' do

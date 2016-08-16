@@ -40,6 +40,8 @@ module RackWarden
 
 	module WardenConfig
 		
+		# TODO: Document here what class/module is including this module?
+		# 
 		def self.included(base)
 			App.logger.warn "RW loading Warden config into #{base}"
 			base.instance_eval do
@@ -51,7 +53,7 @@ module RackWarden
     		###
         use OmniAuth::Strategies::Developer
         use OmniAuth::Builder do
-          App.logger.debug "RW setting up providers within #{self}"
+          App.logger.debug "RW setting up omniauth providers within #{self}"
           # GitHub API v3 lets you set scopes to provide granular access to different types of data:
           provider :github, ENV['GITHUB_KEY'], ENV['GITHUB_SECRET'], :scope=> 'user:email' if App.omniauth_adapters.include?('omniauth-github') #, scope: "user,repo,gist"
           # Per the omniauth sinatra example @ https://github.com/intridea/omniauth/wiki/Sinatra-Example
@@ -173,6 +175,7 @@ module RackWarden
             RackWarden::App.logger.warn "RW strategy for omniauth has raised an exception."
             RackWarden::App.logger.warn "RW #{$!}"
             fail!("Could not authenticate omniauth identity, exception raised")
+            # Should this really throw an exception here? Isn't there a friendly failure action?
             raise $!
           end
         end
