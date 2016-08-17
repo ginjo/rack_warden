@@ -4,6 +4,12 @@ module RackWarden
   #puts "RW PATH #{PATH}"
   $LOAD_PATH.unshift(PATH) unless $LOAD_PATH.include?(PATH)
   if ENV['RACK_WARDEN_STANDALONE']; STANDALONE=true; end
+  
+  # NEW: Get gem root path.
+  # This will only work in ruby 2+
+  def self.root
+    File.dirname __dir__
+  end
 end
 
 
@@ -26,7 +32,6 @@ require 'yaml'
 require 'erb'
 require 'tilt/erb'  # An error somwhere suggested this be explicity required.
 require 'rack_warden/core_patches'
-require 'rack_warden/rom'
 require 'rack_warden/rom'
 
 autoload :Mail, 'mail'

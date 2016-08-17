@@ -1,10 +1,23 @@
+require 'dry-types'
+
 module RackWarden
 
+  puts "LOADING User"
   class User < Dry::Types::Struct #Struct.new(*UserKeys) do
     constructor_type(:schema) #I think this makes it less strict (allows missing keys).
-    
+        
     attr_accessor :password, :password_confirmation
 
+    # Send class methods to UserRepo.
+    def self.method_missing(*args)
+      begin
+        repo.send(*args)
+      #rescue NoMethodError
+      #  super(*args)
+      end
+    end
+    
+    # Clean this up, maybe put in base model class.
     def self.initialize_attributes(attrbts=RomContainer.relation(:users).schema.attributes.tap{|a| a.delete(:encrypted_password)})
       #puts "\nInitializing attributes for User model"
       attrbts.merge!({:encrypted_password => Types::BCryptPassword})

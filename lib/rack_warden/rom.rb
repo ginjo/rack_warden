@@ -145,7 +145,7 @@ module RackWarden
         column :info, String
         column :credentials, String
         column :extra, String
-        column :created_at, DateTime
+        column :created_at, DateTime, :default=>Time.now
       end
       #puts "RackWarden created new table in database: #{identities_rel.dataset}"
     rescue
@@ -262,62 +262,12 @@ module RackWarden
   UserRepo = UserRepoClass.new(RomContainer)
   IdentityRepo = IdentityRepoClass.new(RomContainer)
   
-    
   
+  #require 'rack_warden/models/user'
+  #require 'rack_warden/models/identity'
   
-  #####  DEBUG  #####
-  
-  # if DEBUG
-  # 
-  #   # Then you can do either of these
-  #   #
-  #   # This returns raw data
-  #   debug "\nRaw data from external relation"
-  #   debug { SlackSpace::RomContainer.relation(:another_users_relation).first.to_yaml }
-  #   #
-  #   # This returns a ROM::Struct[RackWardenUser], bypassing the repo 'users' method overload.
-  #   RepoUser = SlackSpace::UserRepo.relations[:users].first
-  #   debug "\nROM::Struct data from repository" do
-  #     RepoUser.to_yaml
-  #   end  
-  #   
-  #   
-  #   # Pre-testing-cleanup
-  #   rslt = UserRepo.query("username like '%test%'").delete
-  #   debug "\nDeleted test records: #{rslt}"
-  #   
-  #   # Create a record
-  #   new_user = SlackSpace::UserRepo.create username: 'slackspace_test', email: 'my@fictitious.email.com'
-  #   debug "\nCreated new record" do
-  #     new_user.to_yaml
-  #   end
-  #   
-  #   
-  #   # Find the new record using repo methods
-  #   new_user_found = UserRepo.query(:email=>'my@fictitious.email.com').one
-  #   debug "\nFound new record" do
-  #     new_user_found.to_yaml
-  #   end
-  #   
-  #   
-  #   # Modify a record
-  #   debug "\nModifying record"
-  #   #new_user_found.username = "testing"
-  #   new_user_found.password = new_user_found.password_confirmation = 'water'
-  #   
-  #   
-  #   # Save changes
-  #   TestUser = new_user_found
-  #   TestUserSaved = TestUser.save
-  #   #TestUser.delete
-  #   
-  #   debug "\nUpdated record 'save' response: #{TestUserSaved}"
-  #   debug "\nUpdated record"
-  #   debug { TestUser.to_yaml }
-  #   
-  # end # if
-  
-  require 'rack_warden/models/user'
-  require 'rack_warden/models/identity'
+  # See http://stackoverflow.com/questions/10132949/finding-the-gem-root
+  Dir.glob(File.join(RackWarden.root, 'lib/rack_warden/models/', '**', '*.rb'), &method(:require))
+
 
 end # SlackSpace

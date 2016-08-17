@@ -2,6 +2,7 @@ module RackWarden
 
   # TODO: Make sure OmniAuth classes are loaded before loading auth_hash yaml.
   # TODO: Use this as base, when you build rom into rack_warden.
+  puts "LOADING Identity"
   class Identity < Dry::Types::Struct
     constructor_type(:schema) # relaxes strickness of missing keys & values
     
