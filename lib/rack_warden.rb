@@ -26,6 +26,8 @@ require 'yaml'
 require 'erb'
 require 'tilt/erb'  # An error somwhere suggested this be explicity required.
 require 'rack_warden/core_patches'
+require 'rack_warden/rom'
+require 'rack_warden/rom'
 
 autoload :Mail, 'mail'
 autoload :URI, 'open-uri'
@@ -34,9 +36,9 @@ autoload :Base64, 'base64'
 module RackWarden
   autoload :App, 'rack_warden/app'
   autoload :Env, 'rack_warden/env'
-  autoload :User, "rack_warden/models"
-  autoload :Pref, "rack_warden/models"
-  autoload :Identity, "rack_warden/models/identity"  # OMNIAUTH
+  #autoload :User, "rack_warden/models"
+  #autoload :Pref, "rack_warden/models"
+  #autoload :Identity, "rack_warden/models/identity"  # OMNIAUTH
   autoload :Mail, "rack_warden/mail"
   autoload :Routes, "rack_warden/routes"
   autoload :VERSION, "rack_warden/version"

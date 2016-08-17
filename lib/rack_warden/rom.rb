@@ -1,0 +1,323 @@
+require 'rom-repository'
+require 'rom-sql'
+
+
+module RackWarden
+
+  DbPath = File.join(Dir.getwd, 'rack_warden.sqlite3.db')
+
+
+  #####  TYPES  #####
+
+  module Types
+    include Dry::Types.module
+    
+    def self.ensure_bcrypt(dat)
+      return if dat.to_s.empty?
+      begin
+        BCrypt::Password.new(dat)
+      rescue BCrypt::Errors::InvalidHash
+        BCrypt::Password.create(dat)
+      end
+    end
+        
+    BCryptPassword = Dry::Types::Definition.new(BCrypt::Password).constructor do |dat|
+      #puts "\nBCryptPassword constructor with data: #{dat}"
+      ensure_bcrypt(dat)
+    end
+    
+    BCryptString = Dry::Types::Definition.new(String).constructor do |dat|
+      #puts "\nBCryptString constructor with data: #{dat}"
+      ensure_bcrypt(dat).to_s
+    end
+    
+    ToYaml = Dry::Types::Definition.new(String).constructor do |dat|
+      #puts "\nToYaml constructor with data: #{dat}"
+      dat.to_yaml
+    end
+    
+    FromYaml = Dry::Types::Definition.new(Hash).constructor do |dat|
+      #puts "FromYaml constructor with data: #{dat}"
+      YAML.load(dat.to_s)
+    end
+  end # Types
+  
+
+
+
+  #####  CONFIG & RELATIONS  #####
+
+  # For RackWarden, you will likely have a separate one of these for each adapter.
+  RomConfig = ROM::Configuration.new(:sql, "sqlite://#{DbPath}") do |config|
+    types = ROM::Types
+        
+    users_rel = config.relation :users do
+      #dataset :rack_warden_users     
+      schema(:rack_warden_users) do
+        
+        # Macros for default values. The password functions
+        # really belong in the relation or model, not in the schema.
+        #UUID = types::String.default { SecureRandom.uuid }
+        #attribute :id, UUID
+        #pswd = types::String.default {SecureRandom.hex}
+        #bcrypt = types::String.default {|r,v| BCrypt::Password.create(r.instance_variable_get :@password)}
+        
+        attribute :id, types::Int
+        attribute :username, types::String
+        attribute :email, types::String
+        attribute :encrypted_password, Types::BCryptString
+        attribute :remember_token, Types::BCryptString
+        attribute :remember_token_expires_at, types::DateTime
+        attribute :activated_at, types::DateTime
+        attribute :activation_code, Types::BCryptString
+        attribute :password_reset_code, Types::BCryptString
+        
+        primary_key :id        
+      end # schema
+      
+      ### Hide database-specific calls behind generic methods
+      def query(conditions)
+        where(conditions)
+        # This would be 'find(conditions)' for rom-fmp
+      end
+      
+      def by_id(_id)
+        where(:id => _id)
+      end
+    
+      # collect a list of all user ids
+      def ids
+        pluck(:id)
+      end      
+    end # users_rel
+    
+    # Can this go in repo? I don't think so.
+    # Doesn't seem to work here either.  
+    # config.commands(:users) do
+    #   # declares that we can create, update, and delete users.
+    #   define(:create) do; as(:User); end
+    #   define(:update) do; as(:User); end
+    #   define(:delete)
+    # end
+    
+    
+    identities_rel = config.relation :identities do
+      #dataset :rack_warden_identities    
+      schema(:rack_warden_identities) do
+        attribute :id, Types::Int
+        attribute :user_id, Types::String
+        attribute :email, Types::String
+        attribute :provider, Types::String
+        attribute :uid, Types::String
+        attribute :info, Types::ToYaml
+        attribute :credentials, Types::ToYaml
+        attribute :extra, Types::ToYaml
+        attribute :created_at, Types::DateTime
+        primary_key :id
+        primary_key :provider, :uid, :email
+      end
+    end # identities_rel
+    
+    # Doesn't seem to work.
+    # config.commands(:identities) do
+    #   # declares that we can create, update, and delete users.
+    #   define(:create) do; as(:Identity); end
+    #   define(:update) do; as(:Identity); end
+    #   define(:delete)
+    # end
+    
+    begin
+      #config.default.connection.drop_table?(identities_rel.dataset.to_sym) && config.default.connection.drop_table(identities_rel.dataset.to_sym)
+      #puts "RackWarden creating new table in database: #{identities_rel.dataset}"
+      #config.default.connection.create_table?(identities_rel.dataset.to_s) && config.default.connection.create_table(identities_rel.dataset.to_s) do
+      config.default.connection.create_table?(identities_rel.dataset.to_s) do
+        # rel.schema.attributes.each do |k,v|
+        #   name = k.to_sym
+        #   type = v.primitive.is_a?(Dry::Types::Definition) ? v.primitive.primitive : v.primitive
+        #   puts "column #{name}, #{type}"
+        #   column name, type
+        # end
+        primary_key :id, Integer
+        column :user_id, String
+        column :email, String
+        column :provider, String
+        column :uid, String
+        column :info, String
+        column :credentials, String
+        column :extra, String
+        column :created_at, DateTime
+      end
+      #puts "RackWarden created new table in database: #{identities_rel.dataset}"
+    rescue
+      puts "RackWarden trouble creating Identities table: #{$!}"
+    end
+    
+  end # RomConfig
+  
+
+
+  #####  REPOS  #####
+  
+  ## Put domain-specific methods in this class.
+  # TODO: Make this a base repo to inherit from.
+  class UserRepoClass < ROM::Repository[:users]
+    
+    # You can also bring other relations into this repo (mostly for associations & aggregates).
+    #relations :users, :sequence
+        
+    commands :create, :update => :by_pk, :delete => :by_pk  #by_pk is a rom-sql thing
+        
+    # Always return any call to users relation as a User 
+    def users
+      super.as(User)
+    end
+    
+    def query(conditions)
+      users.query(conditions)
+    end
+    
+    def ids
+      users.ids
+    end
+    
+    def by_id(_id)
+      users.by_id(_id).one
+    end
+    
+    def first
+      users.first
+    end
+    
+    ## Make it easier to save changed models.
+    def save_attributes(_id, _attrs)
+      #puts "UserRepoClass#save_attributes"
+      #puts [_id, _attrs].to_yaml
+      _changeset = changeset(_id, _attrs)
+      case
+      when _changeset.update?
+        #puts "\nChangeset diff #{_changeset.diff}"
+        saved = update(_id, _changeset)
+      when _changeset.create?
+        saved = create(_changeset)
+      end
+      #puts "\nResponse from updater"
+      #puts saved.to_yaml
+      saved
+    end
+  
+  end # UserRepoClass
+  
+  
+  class IdentityRepoClass < ROM::Repository[:identities]
+    
+    commands :create, :update=>:by_id, :delete=>:by_id
+        
+    def identities
+      super.as(Identity)
+    end
+    
+    def query(*args)
+      identities.where(*args)
+    end
+    
+    def by_primary_key(provider, uid, email)
+      identities.where(uid: uid, provider: provider, email: email).one
+    end
+    
+    def first
+      identities.first
+    end
+    
+    def self.load_legacy_yaml
+      # This isn't working.
+      identities = YAML.load_file 'identities.yml'
+      identities.each do |identity|
+        auth_hash = identity.instance_variable_get(:@auth_hash)
+        IdentityRepo.create(auth_hash.merge({user_id: identity.user_id, email: auth_hash.info.email}))
+      end
+      puts "RackWarden::Identity loaded records into sqlite3::memory"
+      
+      ## So try this, it works.
+      # ii = YAML.load_file 'identities.yml'
+      # h = ii.last.instance_variable_get(:@auth_hash)
+      # r = RackWarden::IdentityRepo.create h
+      
+      # You can also use this for cleanup
+      #RackWarden::RomContainer.gateways[:default].connection.execute("select * from rack_warden_identities")
+    end
+    
+  end # IdentityRepoClass
+  
+
+
+  ## Finalize ROM
+  
+  # Register the externally defined relation
+  #RomConfig.register_relation AnotherUsersRelation
+  
+  # Finalize the rom config
+  RomContainer = ROM.container(RomConfig)
+  
+  # Create rom repos with containers
+  UserRepo = UserRepoClass.new(RomContainer)
+  IdentityRepo = IdentityRepoClass.new(RomContainer)
+  
+    
+  
+  
+  #####  DEBUG  #####
+  
+  # if DEBUG
+  # 
+  #   # Then you can do either of these
+  #   #
+  #   # This returns raw data
+  #   debug "\nRaw data from external relation"
+  #   debug { SlackSpace::RomContainer.relation(:another_users_relation).first.to_yaml }
+  #   #
+  #   # This returns a ROM::Struct[RackWardenUser], bypassing the repo 'users' method overload.
+  #   RepoUser = SlackSpace::UserRepo.relations[:users].first
+  #   debug "\nROM::Struct data from repository" do
+  #     RepoUser.to_yaml
+  #   end  
+  #   
+  #   
+  #   # Pre-testing-cleanup
+  #   rslt = UserRepo.query("username like '%test%'").delete
+  #   debug "\nDeleted test records: #{rslt}"
+  #   
+  #   # Create a record
+  #   new_user = SlackSpace::UserRepo.create username: 'slackspace_test', email: 'my@fictitious.email.com'
+  #   debug "\nCreated new record" do
+  #     new_user.to_yaml
+  #   end
+  #   
+  #   
+  #   # Find the new record using repo methods
+  #   new_user_found = UserRepo.query(:email=>'my@fictitious.email.com').one
+  #   debug "\nFound new record" do
+  #     new_user_found.to_yaml
+  #   end
+  #   
+  #   
+  #   # Modify a record
+  #   debug "\nModifying record"
+  #   #new_user_found.username = "testing"
+  #   new_user_found.password = new_user_found.password_confirmation = 'water'
+  #   
+  #   
+  #   # Save changes
+  #   TestUser = new_user_found
+  #   TestUserSaved = TestUser.save
+  #   #TestUser.delete
+  #   
+  #   debug "\nUpdated record 'save' response: #{TestUserSaved}"
+  #   debug "\nUpdated record"
+  #   debug { TestUser.to_yaml }
+  #   
+  # end # if
+  
+  require 'rack_warden/models/user'
+  require 'rack_warden/models/identity'
+
+end # SlackSpace
