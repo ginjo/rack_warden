@@ -1,23 +1,8 @@
 module RackWarden
 
   # TODO: Make sure OmniAuth classes are loaded before loading auth_hash yaml.
-  # TODO: Use this as base, when you build rom into rack_warden.
-  puts "LOADING Identity"
-  class Identity < Dry::Types::Struct
-    constructor_type(:schema) # relaxes strickness of missing keys & values
-    
-    # Send class methods to UserRepo.
-    def self.method_missing(*args)
-      begin
-        repo.send(*args)
-      #rescue NoMethodError
-      #  super(*args)
-      end
-    end
-    
-    def self.repo
-      @repo ||= IdentityRepoClass.new(RomContainer)
-    end
+
+  class Identity < Entity  #Dry::Types::Struct
     
     attribute :id, Types::Int
     attribute :user_id, Types::String
@@ -33,7 +18,8 @@ module RackWarden
     def is_admin?
       info.is_admin
     end
-  end
+    
+  end # Identity
 
 
 end # RackWarden

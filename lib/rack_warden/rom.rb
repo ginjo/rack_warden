@@ -297,7 +297,12 @@ module RackWarden
   IdentityRepo = IdentityRepoClass.new(RomContainer)
   
 
+
   class Entity < Dry::Types::Struct
+  
+    # NOTE: dry-struct.new does most of the work in setting up the struct & populating attributes.
+    #       The #initialize method doesn't really do anything.
+  
     constructor_type(:schema) #I think this makes it less strict (allows missing keys).
         
     # Send class methods to UserRepo.
@@ -340,12 +345,13 @@ module RackWarden
     def repo; self.class.repo; end
     
     # Update local attributes. No write to datastore.
-    def update(data)
+    # TODO: Does this need a different name, like 'update_local_attributes'?
+    def update(data) # and run passed block if successful
       data.each do |k, v|
         #puts "\nUser setting data, key:#{k}, val:#{v}"
         self.send("#{k}=", v)
       end
-      #set_password
+      yield(data) if block_given?
       self
     rescue
       false
@@ -353,6 +359,7 @@ module RackWarden
     
     def save
       #set_password
+      yield if block_given?
       resp = repo.save_attributes self[:id], to_h
       self.update(resp.to_h)
       true
