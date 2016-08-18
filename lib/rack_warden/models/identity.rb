@@ -19,6 +19,10 @@ module RackWarden
       info.is_admin
     end
     
+    def guid
+      "#{provider}-#{uid}-#{email}"
+    end
+    
   end # Identity
 
 

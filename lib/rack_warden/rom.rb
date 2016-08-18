@@ -121,6 +121,18 @@ module RackWarden
       end
       
       include RelationIncludes
+      
+      # Get a single record by uique combo of provider-uid-email.
+      # Args can be passed as all 3 or string concat of all 3 (separated by dash "-").
+      # TODO: Use something other than dash, it will eventually conflict with data.
+      def by_guid(provider, uid=nil, email=nil)
+        unless uid && email
+          by_guid *provider.split('-')
+        else
+          where :provider => provider, :uid => uid, :email => email
+        end
+      end
+      
     end # identities_rel
         
         
@@ -228,6 +240,9 @@ module RackWarden
       super.as(Identity)
     end
     
+
+      
+    
     def query(*args)
       identities.query(*args)
     end
@@ -253,6 +268,11 @@ module RackWarden
     def last
       identities.last.one
     end
+    
+    def by_guid(*args)
+      identities.by_guid(*args).one
+    end
+    
     
     ## Make it easier to save changed models.
     def save_attributes(_id, _attrs)
