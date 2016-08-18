@@ -190,6 +190,16 @@ module RackWarden
       users.last.one
     end
     
+    # An 'all' method really should not be here,
+    # since when the table gets large, it won't make any sense.
+    def all
+      users.to_a
+    end
+    
+    def count
+      users.count
+    end
+    
     ## Make it easier to save changed models.
     def save_attributes(_id, _attrs)
       #puts "UserRepoClass#save_attributes"
