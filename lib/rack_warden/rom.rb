@@ -42,7 +42,31 @@ module RackWarden
     end
   end # Types
   
+  
+  
+  #####  COMMON  #####
 
+  module RelationIncludes
+    ### Hide database-specific calls behind generic methods
+    def query(*conditions)
+      where(*conditions)
+      # This would be 'find(conditions)' for rom-fmp
+    end
+    
+    def by_id(_id)
+      where(:id => _id)
+    end
+  
+    # collect a list of all user ids
+    def ids
+      pluck(:id)
+    end
+    
+    # Because built-in 'last' method can only return a hash ('as' doesn't work).
+    def last
+      order(:id).reverse.limit(1)
+    end   
+  end
 
 
   #####  CONFIG & RELATIONS  #####
@@ -75,30 +99,9 @@ module RackWarden
         primary_key :id        
       end # schema
       
-      ### Hide database-specific calls behind generic methods
-      def query(conditions)
-        where(conditions)
-        # This would be 'find(conditions)' for rom-fmp
-      end
-      
-      def by_id(_id)
-        where(:id => _id)
-      end
+      include RelationIncludes
     
-      # collect a list of all user ids
-      def ids
-        pluck(:id)
-      end      
     end # users_rel
-    
-    # Can this go in repo? I don't think so.
-    # Doesn't seem to work here either.  
-    # config.commands(:users) do
-    #   # declares that we can create, update, and delete users.
-    #   define(:create) do; as(:User); end
-    #   define(:update) do; as(:User); end
-    #   define(:delete)
-    # end
     
     
     identities_rel = config.relation :identities do
@@ -116,16 +119,11 @@ module RackWarden
         primary_key :id
         primary_key :provider, :uid, :email
       end
+      
+      include RelationIncludes
     end # identities_rel
-    
-    # Doesn't seem to work.
-    # config.commands(:identities) do
-    #   # declares that we can create, update, and delete users.
-    #   define(:create) do; as(:Identity); end
-    #   define(:update) do; as(:Identity); end
-    #   define(:delete)
-    # end
-    
+        
+        
     begin
       #config.default.connection.drop_table?(identities_rel.dataset.to_sym) && config.default.connection.drop_table(identities_rel.dataset.to_sym)
       #puts "RackWarden creating new table in database: #{identities_rel.dataset}"
@@ -188,6 +186,10 @@ module RackWarden
       users.first
     end
     
+    def last
+      users.last.one
+    end
+    
     ## Make it easier to save changed models.
     def save_attributes(_id, _attrs)
       #puts "UserRepoClass#save_attributes"
@@ -210,24 +212,56 @@ module RackWarden
   
   class IdentityRepoClass < ROM::Repository[:identities]
     
-    commands :create, :update=>:by_id, :delete=>:by_id
+    commands :create, :update=>:by_pk, :delete=>:by_pk
         
     def identities
       super.as(Identity)
     end
     
     def query(*args)
-      identities.where(*args)
+      identities.query(*args)
     end
     
-    def by_primary_key(provider, uid, email)
-      identities.where(uid: uid, provider: provider, email: email).one
+    # I think rom-sql already does this as :by_pk,
+    # but how does it work?
+    # def by_primary_key(provider, uid, email)
+    #   identities.where(uid: uid, provider: provider, email: email).one
+    # end
+    
+    def ids
+      identities.ids
     end
     
+    def by_id(_id)
+      identities.by_id(_id).one
+    end
+
     def first
       identities.first
     end
+        
+    def last
+      identities.last.one
+    end
     
+    ## Make it easier to save changed models.
+    def save_attributes(_id, _attrs)
+      #puts "UserRepoClass#save_attributes"
+      #puts [_id, _attrs].to_yaml
+      _changeset = changeset(_id, _attrs)
+      case
+      when _changeset.update?
+        #puts "\nChangeset diff #{_changeset.diff}"
+        saved = update(_id, _changeset)
+      when _changeset.create?
+        saved = create(_changeset)
+      end
+      #puts "\nResponse from updater"
+      #puts saved.to_yaml
+      saved
+    end
+    
+
     def self.load_legacy_yaml
       # This isn't working.
       identities = YAML.load_file 'identities.yml'
@@ -262,10 +296,80 @@ module RackWarden
   UserRepo = UserRepoClass.new(RomContainer)
   IdentityRepo = IdentityRepoClass.new(RomContainer)
   
+
+  class Entity < Dry::Types::Struct
+    constructor_type(:schema) #I think this makes it less strict (allows missing keys).
+        
+    # Send class methods to UserRepo.
+    def self.method_missing(*args)
+      begin
+        repo.send(*args)
+      #rescue NoMethodError
+      #  super(*args)
+      end
+    end
+    
+    # # Clean this up, maybe put in base model class.
+    # def self.initialize_attributes(attrbts=RomContainer.relation(:users).schema.attributes.tap{|a| a.delete(:encrypted_password)})
+    #   #puts "\nInitializing attributes for User model"
+    #   attrbts.merge!({:encrypted_password => Types::BCryptPassword})
+    #   attrbts.each do |k,v|
+    #     #puts "Attribute: #{k}, #{v.primitive}"
+    #     attribute k, v
+    #     attr_writer k
+    #   end
+    # end
+    
+    # initialize_attributes
+            
+    def self.repo
+      @repo ||= eval("#{name}RepoClass").new(RomContainer)
+    end
+
+    # Needed to handle extra non-db attributes,
+    # since the dry-struct deletes them within its own 'new'.
+    # All of dry-structs magic appears to happen at the class.new method (in C code probably).
+    def self.new(hash={})
+      new_instance = super(hash)
+      extra_attrs = hash.dup.delete_if {|k,v| new_instance.instance_variables.include?(:"@#{k}")}
+      new_instance.update(extra_attrs)
+      new_instance
+    end
+
+
+    def repo; self.class.repo; end
+    
+    # Update local attributes. No write to datastore.
+    def update(data)
+      data.each do |k, v|
+        #puts "\nUser setting data, key:#{k}, val:#{v}"
+        self.send("#{k}=", v)
+      end
+      #set_password
+      self
+    rescue
+      false
+    end
+    
+    def save
+      #set_password
+      resp = repo.save_attributes self[:id], to_h
+      self.update(resp.to_h)
+      true
+    rescue
+      puts "#{self.class.name}#save ERROR: #{$!}"
+      false
+    end
+    
+    def delete
+      repo.delete(self[:id])
+    end
+    
+  end # Entity
+
   
-  #require 'rack_warden/models/user'
-  #require 'rack_warden/models/identity'
-  
+
+  # Require all ruby files in a directory, recursively.
   # See http://stackoverflow.com/questions/10132949/finding-the-gem-root
   Dir.glob(File.join(RackWarden.root, 'lib/rack_warden/models/', '**', '*.rb'), &method(:require))
 
