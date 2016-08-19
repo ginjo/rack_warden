@@ -51,6 +51,11 @@ module RackWarden
     		###  OMNIAUTH CODE  ###
     		###  See http://www.rubydoc.info/github/intridea/omniauth/OmniAuth/Builder
     		###
+    		
+    		# Tried this to fix slack csrf error, but it didn't help,
+    		# and it broke the other providers.
+    		#OmniAuth.config.full_host = ENV['OMNIAUTH_HOST_NAME']
+    		
         use OmniAuth::Strategies::Developer
         use OmniAuth::Builder do
           App.logger.debug "RW setting up omniauth providers within #{self}"
@@ -61,7 +66,13 @@ module RackWarden
           #provider :identity, :fields => [:email]
           # See google api docs: https://developers.google.com/identity/protocols/OAuth2
           provider :google_oauth2, ENV['GOOGLE_KEY'], ENV['GOOGLE_SECRET'] if App.omniauth_adapters.include?('omniauth-google-oauth2')
-          provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'], scope: 'identity.basic,identity.email,identity.team,identity.avatar' if App.omniauth_adapters.include?('omniauth-slack')
+          if App.omniauth_adapters.include?('omniauth-slack'); provider :slack,
+            ENV['SLACK_OAUTH_KEY'],
+            ENV['SLACK_OAUTH_SECRET'],
+            scope: 'identity.basic' ###,identity.email,identity.team,identity.avatar'
+            #:setup => lambda{|env| env['omniauth.strategy'].options[:redirect_uri] = "#{ENV['SLACKSPACE_BASE_URL']}/auth/slack/callback" } \
+            #:callback_url => "http://#{ENV['SLACKSPACE_BASE_URL']}/auth/slack/callback?" \
+          end
           #provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'], scope: 'identify,team:read,incoming-webhook,channels:read', :name=>'slack_full' #,users:read'
         end
     		###  END OMNIAUTH CODE  ###
@@ -139,7 +150,7 @@ module RackWarden
 	      def authenticate!
 	      	App.logger.debug "RW authenticate!(:remember_me) self #{self.class}"
 	      	App.logger.debug "RW authenticating with rack_warden_remember_me token: #{env.remember_token}"
-	      	user = User.first(:remember_token => env.remember_token)
+	      	user = User.query(:remember_token => env.remember_token).first
 	      	if user.is_a?(User) && !user.remember_token.to_s.empty?
 						success!(user)
 	      		App.logger.warn "RW user logged in with remember_me token '#{user.username}'"
@@ -157,16 +168,20 @@ module RackWarden
           env['omniauth.auth'].is_a?(Hash) || env['omniauth.auth'].is_a?(OmniAuth::AuthHash)
         end
         
+        
+        # TODO: Clean this up... something smells fishy.
+        #       When to overwrite existing identity?
+        #       When to create new identity?
+        #       Should we use user_id, or abandon it?
+        #       
         def authenticate!
           begin
-            identity = Identity.locate_or_new(env['omniauth.auth'])
+            identity = IdentityRepo.locate_or_create_from_auth_hash(env['omniauth.auth'])
             #puts env['omniauth.auth'].to_yaml
             if identity.uid
-              session['omniauth_auth'] = identity.uid
-              #env['rack.session']['omniauth_auth'] = identity
-              #session['omniauth_auth'] = "TEST-IDENTITY"
+              session['identity'] = identity.id
               #puts "Strategy#authenticate! SUCCESS"
-              success!(get_user(identity))
+              success!(identity.user)
             else
               #puts "Strategy#authenticate! FAIL"
               fail!("Could not authenticate omniauth identity")
@@ -178,14 +193,6 @@ module RackWarden
             # Should this really throw an exception here? Isn't there a friendly failure action?
             raise $!
           end
-        end
-        
-        def get_user(identity)
-          user = User.first(:email=>identity.email) ||
-          User.create(:email=>identity.email, :username=>identity.email, :activated_at=>DateTime.now)
-          
-          (identity.user_id = user.id; Identity.write) unless identity.user_id
-          user
         end
         
       end
@@ -232,6 +239,8 @@ module RackWarden
 			  auth.env.remember_token = nil
 
 			  user && user.forget_me
+			  
+			  auth.env['rack.session']['identity'] = nil
 			end
 			
 		end # Warden::Manager

@@ -197,8 +197,8 @@ module RackWarden
 		end
 		
 		def current_identity
-		  App.logger.debug "Getting current_identity for omniauth_auth.id:  #{session['omniauth_auth']}"
-		  Identity.locate(session['omniauth_auth'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
+		  App.logger.debug "Getting current_identity for identity id:  #{session['identity']}"
+		  Identity.by_id(session['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
 		end
 	
 		def logged_in?

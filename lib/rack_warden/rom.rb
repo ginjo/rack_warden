@@ -86,6 +86,9 @@ module RackWarden
         #pswd = types::String.default {SecureRandom.hex}
         #bcrypt = types::String.default {|r,v| BCrypt::Password.create(r.instance_variable_get :@password)}
         
+        # TODO: I dont think the activation, remember, reset codes need to be bcrypt,
+        #       can probably just be SecureRandom strings.
+        
         attribute :id, types::Int
         attribute :username, types::String
         attribute :email, types::String
@@ -108,14 +111,14 @@ module RackWarden
       #dataset :rack_warden_identities    
       schema(:rack_warden_identities) do
         attribute :id, Types::Int
-        attribute :user_id, Types::String
+        attribute :user_id, Types::Int
         attribute :email, Types::String
         attribute :provider, Types::String
         attribute :uid, Types::String
         attribute :info, Types::ToYaml
         attribute :credentials, Types::ToYaml
         attribute :extra, Types::ToYaml
-        attribute :created_at, Types::DateTime
+        attribute :created_at, Types::DateTime.default { DateTime.now }
         primary_key :id
         primary_key :provider, :uid, :email
       end
@@ -125,6 +128,7 @@ module RackWarden
       # Get a single record by uique combo of provider-uid-email.
       # Args can be passed as all 3 or string concat of all 3 (separated by dash "-").
       # TODO: Use something other than dash, it will eventually conflict with data.
+      # TODO: This should probably be in repo, maybe?
       def by_guid(provider, uid=nil, email=nil)
         unless uid && email
           by_guid *provider.split('-')
@@ -133,13 +137,13 @@ module RackWarden
         end
       end
       
-    end # identities_rel
-        
+    end # identities_rel 
+
         
     begin
-      #config.default.connection.drop_table?(identities_rel.dataset.to_sym) && config.default.connection.drop_table(identities_rel.dataset.to_sym)
-      #puts "RackWarden creating new table in database: #{identities_rel.dataset}"
-      #config.default.connection.create_table?(identities_rel.dataset.to_s) && config.default.connection.create_table(identities_rel.dataset.to_s) do
+      puts "RackWarden droping table 'identities' in database: #{identities_rel.dataset}"
+      config.default.connection.drop_table?(identities_rel.dataset.to_sym)
+      puts "RackWarden creating table 'identities' in database: #{identities_rel.dataset}"
       config.default.connection.create_table?(identities_rel.dataset.to_s) do
         # rel.schema.attributes.each do |k,v|
         #   name = k.to_sym
@@ -148,14 +152,14 @@ module RackWarden
         #   column name, type
         # end
         primary_key :id, Integer
-        column :user_id, String
+        column :user_id, Integer
         column :email, String
         column :provider, String
         column :uid, String
         column :info, String
         column :credentials, String
         column :extra, String
-        column :created_at, DateTime, :default=>Time.now
+        column :created_at, DateTime   #, :default=>DateTime.now  # This doesn't work here as the datetime is frozen.
       end
       #puts "RackWarden created new table in database: #{identities_rel.dataset}"
     rescue
@@ -182,8 +186,8 @@ module RackWarden
       super.as(User)
     end
     
-    def query(conditions)
-      users.query(conditions)
+    def query(*args)
+      users.query(*args)
     end
     
     def ids
@@ -193,6 +197,7 @@ module RackWarden
     def by_id(_id)
       users.by_id(_id).one
     end
+    alias_method :get, :by_id
     
     def first
       users.first
@@ -228,8 +233,62 @@ module RackWarden
       #puts saved.to_yaml
       saved
     end
-  
+    
+    def locate_from_identity(identity)
+      query(email: identity.email).union(query(id: identity.user_id)).first
+    end
+    
+    def create_from_identity(identity)
+      new_rec = create(:email => identity.email, :username => identity.email)
+      (identity.user_id = new_rec.id) #&& identity.save
+      RackWarden::User.new(new_rec)
+    end
+    
+    def locate_or_create_from_identity(identity)
+      locate_from_identity(identity) || create_from_identity(identity)
+    end
+    
+    
+    ###  Class methods from legacy Identity model  ###
+    
+	  # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
+	  # This is not currently used in RackWarden (has it's own auth logic section). WHAT?!?! Yes it is used in current RW.
+	  def authenticate(login, password)
+	    # hides records with a nil activated_at
+	    #if repository.adapter.to_s[/filemaker/i]
+		    # FMP
+		    #u = first(:username=>"=#{login}", :activated_at=>'>1/1/1980') || first(:email=>"=#{login}", :activated_at=>'>1/1/1980')
+		    u = query('username = :login and activated_at > :time', :login=>login, :time=>Time.new('1970-01-01 00:00:00')).union \
+		      query('email like :login and activated_at > :time', :login=>"#{login}%", :time=>Time.new('1970-01-01 00:00:00'))
+		    App.logger.debug "USER.authenticate #{u.inspect}"
+		    u = u.respond_to?(:first) ? u.first : u
+		  #else
+		    # SQL
+		    #u = first(:conditions => ['(username = ? or email = ?) and activated_at IS NOT NULL', login, login])
+			#end
+	    if u && u.authenticate(password)
+	    	# This bit clears a password_reset_code (this assumes it's not needed, cuz user just authenticated successfully).
+	    	(u.password_reset_code = nil; u.save) if u.password_reset_code
+	    	u
+	    else
+	    	nil
+	    end
+	  end
+
+	  def find_for_forget(email) #, question, answer)
+	    first(:conditions => ['email = ? AND (activation_code IS NOT NULL or activated_at IS NOT NULL)', email])
+	  end
+	  
+	  def find_for_activate(code)
+	  	decoded = App.uri_decode(code)
+	  	App.logger.debug "RW find_for_activate with #{decoded}"
+	    first :activation_code => "#{decoded}"
+	  end    
+    
   end # UserRepoClass
+  
+  
+  
   
   
   class IdentityRepoClass < ROM::Repository[:identities]
@@ -239,9 +298,6 @@ module RackWarden
     def identities
       super.as(Identity)
     end
-    
-
-      
     
     def query(*args)
       identities.query(*args)
@@ -291,13 +347,17 @@ module RackWarden
       saved
     end
     
+    def create_from_auth_hash(auth_hash)
+      Identity.new(create(auth_hash.merge({:email => auth_hash.info.email})))
+    end
+    
 
-    def self.load_legacy_yaml
+    def load_legacy_yaml
       # This isn't working.
       identities = YAML.load_file 'identities.yml'
       identities.each do |identity|
         auth_hash = identity.instance_variable_get(:@auth_hash)
-        IdentityRepo.create(auth_hash.merge({user_id: identity.user_id, email: auth_hash.info.email}))
+        create(auth_hash.merge({user_id: identity.user_id, email: auth_hash.info.email}))
       end
       puts "RackWarden::Identity loaded records into sqlite3::memory"
       
@@ -309,6 +369,21 @@ module RackWarden
       # You can also use this for cleanup
       #RackWarden::RomContainer.gateways[:default].connection.execute("select * from rack_warden_identities")
     end
+    
+    
+    
+    ###  Class methods from legacy Identity model  ###
+    
+    def locate_or_create_from_auth_hash(auth_hash) # identifier should be auth_hash
+      #puts "Identity.locate_or_create: #{identifier.class}"
+      identity = (locate_from_auth_hash(auth_hash) || create_from_auth_hash(auth_hash))
+    end
+    
+    def locate_from_auth_hash(auth_hash) # locate existing identity given raw auth_hash.
+      by_guid(auth_hash.provider, auth_hash.uid, auth_hash.info.email)
+    end    
+    
+  
     
   end # IdentityRepoClass
   
@@ -344,18 +419,25 @@ module RackWarden
       end
     end
     
-    # # Clean this up, maybe put in base model class.
-    # def self.initialize_attributes(attrbts=RomContainer.relation(:users).schema.attributes.tap{|a| a.delete(:encrypted_password)})
-    #   #puts "\nInitializing attributes for User model"
-    #   attrbts.merge!({:encrypted_password => Types::BCryptPassword})
-    #   attrbts.each do |k,v|
-    #     #puts "Attribute: #{k}, #{v.primitive}"
-    #     attribute k, v
-    #     attr_writer k
-    #   end
+    # Load attributes from somewhere else.
+    #   Pass param of attrbibutes from somewhere else (like schema)
+    #   Pass a block of extra attributes, as a hash, to be (destructively) merged.
+    # Example:
+    # initialize_attributes(RomContainer.relation(:users).schema.attributes.tap{|a| a.delete(:encrypted_password)}) do
+    #   {:encrypted_password => Types::BCryptString}
     # end
+    def self.initialize_attributes(_attributes = Hash.new)
+      #puts "\nInitializing attributes for User model"
+      _extra = block_given? ? yield : Hash.new
+      _attributes.merge!(_extra)
+      _attributes.each do |k,v|
+        #puts "Attribute: #{k}, #{v.primitive}"
+        attribute k, v
+        attr_writer k
+      end
+    end
     
-    # initialize_attributes
+
             
     def self.repo
       @repo ||= eval("#{name}RepoClass").new(RomContainer)
@@ -365,6 +447,7 @@ module RackWarden
     # since the dry-struct deletes them within its own 'new'.
     # All of dry-structs magic appears to happen at the class.new method (in C code probably).
     def self.new(hash={})
+      hash = hash.to_h
       new_instance = super(hash)
       extra_attrs = hash.dup.delete_if {|k,v| new_instance.instance_variables.include?(:"@#{k}")}
       new_instance.update(extra_attrs)
@@ -393,6 +476,10 @@ module RackWarden
       resp = repo.save_attributes self[:id], to_h
       self.update(resp.to_h)
       true
+    end
+    
+    def save!
+      save
     rescue
       puts "#{self.class.name}#save ERROR: #{$!}"
       false

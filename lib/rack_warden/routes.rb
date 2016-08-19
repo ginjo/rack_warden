@@ -73,7 +73,7 @@ module RackWarden
 					  redirect_uri = params[:redirect]
 					  if current_user
 						  warden.logout
-						  session['omniauth_auth'] = nil
+						  #session['identity'] = nil  # I moved this to warden before_logout
 						  flash.rw_success = 'You have been logged out'
 						end
 					  redirect url(redirect_uri || settings.default_route, false)

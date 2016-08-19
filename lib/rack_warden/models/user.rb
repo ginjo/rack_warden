@@ -5,18 +5,21 @@ module RackWarden
   class User < Entity   #Dry::Types::Struct #Struct.new(*UserKeys) do        
     attr_accessor :password, :password_confirmation
     
-    # Clean this up, maybe put in base model class.
-    def self.initialize_attributes(attrbts=RomContainer.relation(:users).schema.attributes.tap{|a| a.delete(:encrypted_password)})
-      #puts "\nInitializing attributes for User model"
-      attrbts.merge!({:encrypted_password => Types::BCryptPassword})
-      attrbts.each do |k,v|
-        #puts "Attribute: #{k}, #{v.primitive}"
-        attribute k, v
-        attr_writer k
-      end
-    end
+    # # Clean this up, maybe put in base model class.
+    # def self.initialize_attributes(attrbts=RomContainer.relation(:users).schema.attributes.tap{|a| a.delete(:encrypted_password)})
+    #   #puts "\nInitializing attributes for User model"
+    #   attrbts.merge!({:encrypted_password => Types::BCryptPassword})
+    #   attrbts.each do |k,v|
+    #     #puts "Attribute: #{k}, #{v.primitive}"
+    #     attribute k, v
+    #     attr_writer k
+    #   end
+    # end
     
-    initialize_attributes
+    # Use schema attributes from base relation, put overrides in the block.
+    initialize_attributes(RomContainer.relation(:users).schema.attributes) do
+      {:encrypted_password => Types::BCryptPassword}
+    end
     
     # Update local attributes. No write to datastore.
     # def update(data)
@@ -80,7 +83,7 @@ module RackWarden
     
     
     
-    #####  From old RackWarden::User model  #####
+    #####  From legacy RackWarden::User model  #####
     
     
 		# check validity of password if we have a new resource, or there is a plaintext password provided
@@ -110,39 +113,39 @@ module RackWarden
 
 		###  CLASS  ###
 
-	  # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
-	  # This is not currently used in RackWarden (has it's own auth logic section). WHAT?!?! Yes it is used in current RW.
-	  def self.authenticate(login, password)
-	    # hides records with a nil activated_at
-	    #if repository.adapter.to_s[/filemaker/i]
-		    # FMP
-		    #u = first(:username=>"=#{login}", :activated_at=>'>1/1/1980') || first(:email=>"=#{login}", :activated_at=>'>1/1/1980')
-		    u = all(:username=>login, :activated_at.gt=>Time.new('1970-01-01 00:00:00')) | all(:email.like=>login, :activated_at.gt=>Time.new('1970-01-01 00:00:00'))
-		    App.logger.debug "USER.authenticate #{u.inspect}"
-		    u = u.respond_to?(:first) ? u.first : u
-		  #else
-		    # SQL
-		    #u = first(:conditions => ['(username = ? or email = ?) and activated_at IS NOT NULL', login, login])
-			#end
-	    if u && u.authenticate(password)
-	    	# This bit clears a password_reset_code (this assumes it's not needed, cuz user just authenticated successfully).
-	    	(u.update_attributes(:password_reset_code => nil)) if u.password_reset_code
-	    	u
-	    else
-	    	nil
-	    end
-	  end
-
-	  def self.find_for_forget(email) #, question, answer)
-	    first(:conditions => ['email = ? AND (activation_code IS NOT NULL or activated_at IS NOT NULL)', email])
-	    #find :first, :conditions=>{:email=>email, :security_question=>question, :security_answer=>answer}
-	  end
-	  
-	  def self.find_for_activate(code)
-	  	decoded = App.uri_decode(code)
-	  	App.logger.debug "RW find_for_activate with #{decoded}"
-	    User.first :activation_code => "#{decoded}"
-	  end
+    # # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
+    # # This is not currently used in RackWarden (has it's own auth logic section). WHAT?!?! Yes it is used in current RW.
+    # def self.authenticate(login, password)
+    #   # hides records with a nil activated_at
+    #   #if repository.adapter.to_s[/filemaker/i]
+    #     # FMP
+    #     #u = first(:username=>"=#{login}", :activated_at=>'>1/1/1980') || first(:email=>"=#{login}", :activated_at=>'>1/1/1980')
+    #     u = all(:username=>login, :activated_at.gt=>Time.new('1970-01-01 00:00:00')) | all(:email.like=>login, :activated_at.gt=>Time.new('1970-01-01 00:00:00'))
+    #     App.logger.debug "USER.authenticate #{u.inspect}"
+    #     u = u.respond_to?(:first) ? u.first : u
+    #   #else
+    #     # SQL
+    #     #u = first(:conditions => ['(username = ? or email = ?) and activated_at IS NOT NULL', login, login])
+    # 	#end
+    #   if u && u.authenticate(password)
+    #   	# This bit clears a password_reset_code (this assumes it's not needed, cuz user just authenticated successfully).
+    #   	(u.update_attributes(:password_reset_code => nil)) if u.password_reset_code
+    #   	u
+    #   else
+    #   	nil
+    #   end
+    # end
+    # 
+    # def self.find_for_forget(email) #, question, answer)
+    #   first(:conditions => ['email = ? AND (activation_code IS NOT NULL or activated_at IS NOT NULL)', email])
+    #   #find :first, :conditions=>{:email=>email, :security_question=>question, :security_answer=>answer}
+    # end
+    # 
+    # def self.find_for_activate(code)
+    # 	decoded = App.uri_decode(code)
+    # 	App.logger.debug "RW find_for_activate with #{decoded}"
+    #   User.first :activation_code => "#{decoded}"
+    # end
 
 		
 		
@@ -193,6 +196,7 @@ module RackWarden
 	    @activated
 	  end
 	
+    # TODO: Update this with modern tech (SecureRandom ?)
 	  def make_activation_code
 	    self.activation_code = (Time.now.to_s.split(//).sort_by {rand}.join)
 	    App.logger.debug "RW make_activation_code result #{activation_code}"

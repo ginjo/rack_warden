@@ -22,7 +22,24 @@ class Hash
   # def extract(*keys)
   #   Hash[[keys, self.values_at(*keys)].transpose]
   # end
-end
+  
+  ## Not currently used
+  # def deep_merge(other_hash)
+  #   merge(other_hash) do |key, oldval, newval|
+  #     case
+  #     when oldval.to_s == '' && newval.to_s == ''
+  #       nil
+  #     when oldval.is_a?(Hash) && newval.is_a?(Hash)
+  #       oldval.deep_merge(newval)
+  #     when oldval == newval
+  #       newval
+  #     else
+  #       [oldval, newval].flatten(1)
+  #     end
+  #   end
+  # end
+  
+end # Hash
 
 class Time
 	def _to_unique_id
