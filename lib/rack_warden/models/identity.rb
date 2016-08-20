@@ -32,11 +32,19 @@ module RackWarden
       "#{provider}-#{uid}-#{email}"
     end
     
+    # Get user and link it with identity.
     def user
       _user = RackWarden::UserRepo.locate_or_create_from_identity(self)
-      self.user_id = _user.id if (_user.is_a?(RackWarden::User) && user_id.to_s.empty?)
+      if _user   #(_user.is_a?(RackWarden::User) && user_id.to_s.empty?)
+        if user_id.to_s.empty?
+          self.user_id = _user.id
+          save
+        end
+        _user.current_identity = self
+      end
       _user
     end
+    
     
     
     #####  From old RackWarden::Identity  #####

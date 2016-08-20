@@ -1,0 +1,18 @@
+--- !ruby/hash:OmniAuth::AuthHash::InfoHash
+nickname: wbr
+team: WbrSandbox
+user: wbr
+team_id: T0BCJPFAM
+user_id: U0BCC482X
+name: Bill
+email: wbr@mac.com
+image_24: https://secure.gravatar.com/avatar/1379984c6a07870179fb4a649b404d9d.jpg?s=24&d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0000-24.png
+image_48: https://secure.gravatar.com/avatar/1379984c6a07870179fb4a649b404d9d.jpg?s=48&d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0000-48.png
+image: https://secure.gravatar.com/avatar/1379984c6a07870179fb4a649b404d9d.jpg?s=192&d=https%3A%2F%2Fa.slack-edge.com%2F7fa9%2Fimg%2Favatars%2Fava_0000-192.png
+first_name: Bill
+last_name: 
+description: 
+team_domain: wbrsandbox
+is_admin: true
+is_owner: true
+time_zone: America/Los_Angeles

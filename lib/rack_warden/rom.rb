@@ -32,14 +32,19 @@ module RackWarden
     end
     
     ToYaml = Dry::Types::Definition.new(String).constructor do |dat|
-      #puts "\nToYaml constructor with data: #{dat}"
-      dat.to_yaml
+      puts "\nToYaml constructor with data: #{dat.to_yaml}"
+      if dat.is_a?(String)
+        dat
+      else
+        dat.to_yaml
+      end
     end
     
     FromYaml = Dry::Types::Definition.new(Hash).constructor do |dat|
       #puts "FromYaml constructor with data: #{dat}"
       YAML.load(dat.to_s)
     end
+    
   end # Types
   
   
@@ -140,31 +145,31 @@ module RackWarden
     end # identities_rel 
 
         
-    begin
-      puts "RackWarden droping table 'identities' in database: #{identities_rel.dataset}"
-      config.default.connection.drop_table?(identities_rel.dataset.to_sym)
-      puts "RackWarden creating table 'identities' in database: #{identities_rel.dataset}"
-      config.default.connection.create_table?(identities_rel.dataset.to_s) do
-        # rel.schema.attributes.each do |k,v|
-        #   name = k.to_sym
-        #   type = v.primitive.is_a?(Dry::Types::Definition) ? v.primitive.primitive : v.primitive
-        #   puts "column #{name}, #{type}"
-        #   column name, type
-        # end
-        primary_key :id, Integer
-        column :user_id, Integer
-        column :email, String
-        column :provider, String
-        column :uid, String
-        column :info, String
-        column :credentials, String
-        column :extra, String
-        column :created_at, DateTime   #, :default=>DateTime.now  # This doesn't work here as the datetime is frozen.
-      end
-      #puts "RackWarden created new table in database: #{identities_rel.dataset}"
-    rescue
-      puts "RackWarden trouble creating Identities table: #{$!}"
-    end
+    #   begin
+    #     puts "RackWarden droping table 'identities' in database: #{identities_rel.dataset}"
+    #     config.default.connection.drop_table?(identities_rel.dataset.to_sym)
+    #     puts "RackWarden creating table 'identities' in database: #{identities_rel.dataset}"
+    #     config.default.connection.create_table?(identities_rel.dataset.to_s) do
+    #       # rel.schema.attributes.each do |k,v|
+    #       #   name = k.to_sym
+    #       #   type = v.primitive.is_a?(Dry::Types::Definition) ? v.primitive.primitive : v.primitive
+    #       #   puts "column #{name}, #{type}"
+    #       #   column name, type
+    #       # end
+    #       primary_key :id, Integer
+    #       column :user_id, Integer
+    #       column :email, String
+    #       column :provider, String
+    #       column :uid, String
+    #       column :info, String
+    #       column :credentials, String
+    #       column :extra, String
+    #       column :created_at, DateTime   #, :default=>DateTime.now  # This doesn't work here as the datetime is frozen.
+    #     end
+    #     #puts "RackWarden created new table in database: #{identities_rel.dataset}"
+    #   rescue
+    #     puts "RackWarden trouble creating Identities table: #{$!}"
+    #   end
     
   end # RomConfig
   
@@ -296,7 +301,7 @@ module RackWarden
     commands :create, :update=>:by_pk, :delete=>:by_pk
         
     def identities
-      super.as(Identity)
+      super.as(RackWarden::Identity)
     end
     
     def query(*args)
@@ -331,6 +336,9 @@ module RackWarden
     
     
     ## Make it easier to save changed models.
+    # TODO: Somewhere the yaml objects in the entities are getting
+    # re-saved as plain hashes.
+    # I think the changeset isn't aware of the to/from yaml stuff.
     def save_attributes(_id, _attrs)
       #puts "UserRepoClass#save_attributes"
       #puts [_id, _attrs].to_yaml
@@ -348,27 +356,32 @@ module RackWarden
     end
     
     def create_from_auth_hash(auth_hash)
-      Identity.new(create(auth_hash.merge({:email => auth_hash.info.email})))
+      #puts "RW IdentityRepo.create_from_auth_hash #{auth_hash.to_yaml}"
+      auth_hash.email = auth_hash.info.email
+      # This might erase all references to the AuthHash class.
+      #Identity.new(create(auth_hash.merge({:email => auth_hash.info.email})))
+      Identity.new(create(auth_hash))
     end
     
-
-    def load_legacy_yaml
-      # This isn't working.
-      identities = YAML.load_file 'identities.yml'
-      identities.each do |identity|
-        auth_hash = identity.instance_variable_get(:@auth_hash)
-        create(auth_hash.merge({user_id: identity.user_id, email: auth_hash.info.email}))
-      end
-      puts "RackWarden::Identity loaded records into sqlite3::memory"
-      
-      ## So try this, it works.
-      # ii = YAML.load_file 'identities.yml'
-      # h = ii.last.instance_variable_get(:@auth_hash)
-      # r = RackWarden::IdentityRepo.create h
-      
-      # You can also use this for cleanup
-      #RackWarden::RomContainer.gateways[:default].connection.execute("select * from rack_warden_identities")
-    end
+    
+    ## Should not be needed any more.
+    # def load_legacy_yaml
+    #   # This isn't working.
+    #   identities = YAML.load_file 'identities.yml'
+    #   identities.each do |identity|
+    #     auth_hash = identity.instance_variable_get(:@auth_hash)
+    #     create(auth_hash.merge({user_id: identity.user_id, email: auth_hash.info.email}))
+    #   end
+    #   puts "RackWarden::Identity loaded records into sqlite3::memory"
+    #   
+    #   ## So try this, it works.
+    #   # ii = YAML.load_file 'identities.yml'
+    #   # h = ii.last.instance_variable_get(:@auth_hash)
+    #   # r = RackWarden::IdentityRepo.create h
+    #   
+    #   # You can also use this for cleanup
+    #   #RackWarden::RomContainer.gateways[:default].connection.execute("select * from rack_warden_identities")
+    # end
     
     
     
@@ -446,10 +459,11 @@ module RackWarden
     # Needed to handle extra non-db attributes,
     # since the dry-struct deletes them within its own 'new'.
     # All of dry-structs magic appears to happen at the class.new method (in C code probably).
-    def self.new(hash={})
-      hash = hash.to_h
-      new_instance = super(hash)
-      extra_attrs = hash.dup.delete_if {|k,v| new_instance.instance_variables.include?(:"@#{k}")}
+    def self.new(dat={})
+      # Conversion to hash might be breaking identity-stored-as-omniauath-authhash.
+      #hash = hash.to_h
+      new_instance = super(dat)
+      extra_attrs = dat.to_h.dup.delete_if {|k,v| new_instance.instance_variables.include?(:"@#{k}")}
       new_instance.update(extra_attrs)
       new_instance
     end
@@ -470,6 +484,7 @@ module RackWarden
       false
     end
     
+    # TODO: This is shomehow breaking the toyaml constructors.
     def save
       #set_password
       yield if block_given?

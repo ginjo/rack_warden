@@ -3,7 +3,7 @@ require 'dry-types'
 module RackWarden
 
   class User < Entity   #Dry::Types::Struct #Struct.new(*UserKeys) do        
-    attr_accessor :password, :password_confirmation
+    attr_accessor :password, :password_confirmation, :current_identity
     
     # # Clean this up, maybe put in base model class.
     # def self.initialize_attributes(attrbts=RomContainer.relation(:users).schema.attributes.tap{|a| a.delete(:encrypted_password)})

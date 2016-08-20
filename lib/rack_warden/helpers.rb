@@ -197,8 +197,12 @@ module RackWarden
 		end
 		
 		def current_identity
-		  App.logger.debug "Getting current_identity for identity id:  #{session['identity']}"
-		  Identity.by_id(session['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
+		  App.logger.debug "RW Getting current_identity for identity id:  #{session['identity']}"
+		  if session['identity']
+  		  identity = IdentityRepo.by_id(session['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
+  		  App.logger.debug "RW retrieved current_identity #{identity}"
+  		  identity
+		  end
 		end
 	
 		def logged_in?

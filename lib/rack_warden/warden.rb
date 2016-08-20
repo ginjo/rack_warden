@@ -69,7 +69,7 @@ module RackWarden
           if App.omniauth_adapters.include?('omniauth-slack'); provider :slack,
             ENV['SLACK_OAUTH_KEY'],
             ENV['SLACK_OAUTH_SECRET'],
-            scope: 'identity.basic' ###,identity.email,identity.team,identity.avatar'
+            scope: 'identity.basic' #,identity.email,identity.team' #,identity.avatar'
             #:setup => lambda{|env| env['omniauth.strategy'].options[:redirect_uri] = "#{ENV['SLACKSPACE_BASE_URL']}/auth/slack/callback" } \
             #:callback_url => "http://#{ENV['SLACKSPACE_BASE_URL']}/auth/slack/callback?" \
           end
@@ -169,21 +169,19 @@ module RackWarden
         end
         
         
-        # TODO: Clean this up... something smells fishy.
-        #       When to overwrite existing identity?
-        #       When to create new identity?
-        #       Should we use user_id, or abandon it?
-        #       
         def authenticate!
           begin
             identity = IdentityRepo.locate_or_create_from_auth_hash(env['omniauth.auth'])
-            #puts env['omniauth.auth'].to_yaml
-            if identity.uid
+            user = identity.user
+            #App.logger.debug env['omniauth.auth'].to_yaml
+            App.logger.debug "Warden Stragety Omniauth retrieved/created identity: #{identity}"
+            #App.logger.debug identity.to_yaml
+            if user
               session['identity'] = identity.id
-              #puts "Strategy#authenticate! SUCCESS"
-              success!(identity.user)
+              #App.logger.debug "Strategy#authenticate! SUCCESS"
+              success!(user)
             else
-              #puts "Strategy#authenticate! FAIL"
+              #App.logger.debug "Strategy#authenticate! FAIL"
               fail!("Could not authenticate omniauth identity")
             end
           rescue Exception
