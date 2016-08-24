@@ -153,9 +153,9 @@ module RackWarden
 	      	user = User.query(:remember_token => env.remember_token).first
 	      	if user.is_a?(User) && !user.remember_token.to_s.empty?
 						success!(user)
-	      		App.logger.warn "RW user logged in with remember_me token '#{user.username}'"
+	      		App.logger.info "RW user logged in with remember_me token '#{user.username}'"
 	      	else
-	          App.logger.info "RW user failed remember_me token login '#{env.remember_token}'"
+	          App.logger.debug "RW user failed remember_me token login '#{env.remember_token}'"
 	          nil	        	
 	        end
 	      end # authenticate!
@@ -171,22 +171,23 @@ module RackWarden
         
         def authenticate!
           begin
-            identity = IdentityRepo.locate_or_create_from_auth_hash(env['omniauth.auth'])
+            # TODO: This should be an 'upsert_from_auth_hash'
+            identity = IdentityRepo.upsert_from_auth_hash(env['omniauth.auth'])
             user = identity.user
             #App.logger.debug env['omniauth.auth'].to_yaml
-            App.logger.debug "Warden Stragety Omniauth retrieved/created identity: #{identity}"
+            App.logger.debug "RW Warden Strategy Omniauth retrieved/created identity: #{identity}"
             #App.logger.debug identity.to_yaml
             if user
               session['identity'] = identity.id
-              #App.logger.debug "Strategy#authenticate! SUCCESS"
+              App.logger.debug "RW OmniAuth Strategy#authenticate! SUCCESS"
               success!(user)
             else
-              #App.logger.debug "Strategy#authenticate! FAIL"
+              App.logger.debug "RW OmniAuth Strategy#authenticate! FAIL"
               fail!("Could not authenticate omniauth identity")
             end
           rescue Exception
-            RackWarden::App.logger.warn "RW strategy for omniauth has raised an exception."
-            RackWarden::App.logger.warn "RW #{$!}"
+            App.logger.warn "RW strategy for omniauth has raised an exception."
+            App.logger.warn "RW #{$!}"
             fail!("Could not authenticate omniauth identity, exception raised")
             # Should this really throw an exception here? Isn't there a friendly failure action?
             raise $!

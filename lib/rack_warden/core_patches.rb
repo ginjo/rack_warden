@@ -1,3 +1,6 @@
+require 'dry-types'
+require 'dry/types/struct'
+
 # Simple conversion to html (intended for yaml output)
 class String
 	def to_html
@@ -45,4 +48,17 @@ class Time
 	def _to_unique_id
 		self.to_f.to_s.delete('.').to_i.to_s(36)
 	end
+end
+
+class Dry::Types::Struct
+  # The original to_h changes the values.
+  # This version does not change the values.
+  # File 'lib/dry/types/struct.rb', line 67
+  def to_hash
+    self.class.schema.keys.each_with_object({}) { |key, result|
+      value = self[key]
+      result[key] = value   #value.respond_to?(:to_hash) ? value.to_hash : value
+    }
+  end
+  alias_method :to_h, :to_hash
 end

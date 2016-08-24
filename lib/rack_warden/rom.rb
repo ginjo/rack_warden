@@ -32,8 +32,8 @@ module RackWarden
     end
     
     ToYaml = Dry::Types::Definition.new(String).constructor do |dat|
-      puts "\nToYaml constructor with data: #{dat.to_yaml}"
-      if dat.is_a?(String)
+      #puts "\nToYaml constructor with data: #{dat.to_yaml}"
+      if dat.is_a?(::String)
         dat
       else
         dat.to_yaml
@@ -339,6 +339,7 @@ module RackWarden
     # TODO: Somewhere the yaml objects in the entities are getting
     # re-saved as plain hashes.
     # I think the changeset isn't aware of the to/from yaml stuff.
+    # TODO: Try this manually and see what happens.
     def save_attributes(_id, _attrs)
       #puts "UserRepoClass#save_attributes"
       #puts [_id, _attrs].to_yaml
@@ -354,6 +355,16 @@ module RackWarden
       #puts saved.to_yaml
       saved
     end
+
+    # TEST:
+    # ih = YAML.load_file '../RackWarden/spec/info_hash_data.yml'
+    # ah = OmniAuth::AuthHash.new(provider:'slack', uid:12345, email:'wbr@mac.com', info:ih)
+    # #i = RackWarden::IdentityRepo.create(provider:'slack', uid:12345, email:'wbr@mac.com', info:ih)
+    # i = RackWarden::IdentityRepo.create(ah)
+    # #i = RackWarden::IdentityRepo.create(ah.to_h)
+    # ah_from_db = RackWarden::IdentityRepo.first
+    # ah_from_db.user_id=1
+    # ah2_from_db = RackWarden::IdentityRepo.first
     
     def create_from_auth_hash(auth_hash)
       #puts "RW IdentityRepo.create_from_auth_hash #{auth_hash.to_yaml}"
@@ -382,6 +393,14 @@ module RackWarden
     #   # You can also use this for cleanup
     #   #RackWarden::RomContainer.gateways[:default].connection.execute("select * from rack_warden_identities")
     # end
+    
+    def upsert_from_auth_hash(auth_hash)
+      identity = locate_from_auth_hash(auth_hash)
+      auth_hash.email = auth_hash.info.email
+      Identity.new(save_attributes(identity.id, auth_hash))
+    rescue
+      create_from_auth_hash(auth_hash)
+    end
     
     
     
