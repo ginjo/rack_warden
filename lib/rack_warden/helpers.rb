@@ -47,7 +47,7 @@ module RackWarden
 	    	  	
   		# Setup flash if not already
   		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
-			use Rack::Flash, :accessorize=>[:rw_error, :rw_success, :rw_test]
+			use Rack::Flash, :accessorize=>[:rw_error, :rw_success, :rw_test] | App.flash_accessories
 				  	
 			helpers RackWarden::WardenConfig
 			helpers RackWarden::Routes

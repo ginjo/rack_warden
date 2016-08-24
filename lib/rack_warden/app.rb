@@ -15,9 +15,10 @@ module RackWarden
     set :database_default,  "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
     set :disable_erubis, false # Had to be true for Tilt 1.3, or if erubis is loaded
     set :recaptcha, {}
-    set :require_login, nil
+    set :require_login, false   # was nil, changing default to no-security, so must declare in main app.
     set :rack_authentication, nil
     set :allow_public_signup, false
+    set :flash_accessories, []
     set :logging, true
     set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
     set :log_file, ($0[/rails|irb|ruby|rack|server/i] && development? ? $stdout : nil)

@@ -16,9 +16,11 @@ module RackWarden
       module ClassMethods
 				def require_login(*args)
 					App.logger.debug "RW Frameworks::Sinatra.require_login self: #{self}, args: #{args.inspect}"
-					before(*args) do
-						require_login
-					end
+					unless args[0] == false
+  					before(*args) do
+  						require_login
+  					end
+  				end
 				end
       end
       
