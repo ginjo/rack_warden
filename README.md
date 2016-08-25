@@ -6,6 +6,7 @@ RackWarden is Rack middleware that uses Sinatra for UI, Warden for authenticatio
 
 RackWarden is a work-in-progress. The gemspec, the files, the code, and the documentation are likely to change over time. Follow on [rubygems.org](https://rubygems.org/gems/rack_warden) or [github](https://github.com/ginjo/rack_warden) for the latest updates.
 
+NOTE: RackWarden now uses rom-rb instead of Datamapper. Rom-rb is only compatible with ruby 2.1+. So RackWarden is no longer compatible with ruby 1.9 or 2.0.
 
 ## Installation
 
@@ -37,6 +38,8 @@ If not using bundler, don't forget to ```require 'rack_warden'```.
 
     # classic
     register RackWarden
+    
+    require_login
 
     get "/" do
       erb "All routes are now protected"
@@ -45,6 +48,8 @@ If not using bundler, don't forget to ```require 'rack_warden'```.
     # modular
     class MySinatraApp < Sinatra::Base
       register RackWarden
+      
+      require_login
     
       get "/" do
         erb "All routes are now protected"
@@ -56,6 +61,10 @@ If not using bundler, don't forget to ```require 'rack_warden'```.
 application.rb or environment.rb
 
     config.middleware.use RackWarden
+    
+application_controller.rb
+
+    require_login
     
     # All routes are now protected
     

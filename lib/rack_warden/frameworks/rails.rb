@@ -18,9 +18,11 @@ module RackWarden
 				def require_login(*args)
 					App.logger.debug "RW Frameworks::Rails::ClassMethods #{self}.require_login(#{args.inspect})"
 					#before_filter(*[:require_login, args].flatten.compact)
-					before_filter(*args) do |controller|
-						controller.send :require_login
-					end
+					unless args[0] == false
+  					before_filter(*args) do |controller|
+  						controller.send :require_login
+  					end
+  				end
 				end
       end
 
