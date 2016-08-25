@@ -50,6 +50,7 @@ module RackWarden
 		register AppClassMethods
 
 
+    # NOTE: I think this behavior description & example might be obsolete.
     # WBR - This will receive params and a block from the parent "use" statement.
     # This middleware app has been modified to process the parent use-block in
     # the context of the RackWarden class. So you can set settings on RackWarden,
@@ -92,7 +93,11 @@ module RackWarden
   	end # initialize
   	
 		# Store this app instance in the env.
-		def call(env)  
+		# NOTE: Up to this point, the app instance is the same for every call,
+		#       since that's what rack does. However, once super(env) is run
+		#       at the end of this override method, Sinatra kicks in and creates
+		#       a new rw app instance. That's how sinatra works (new app instance for each request).
+		def call(env)
 			logger.debug "RW App#call parent app: #{@app}"
 			env.extend Env
 			
@@ -102,7 +107,7 @@ module RackWarden
   		end
 		  
 		  # Set this now, so you can access the rw app instance from the endpoint app.
-		  logger.debug "RW App#call storing app instance in env['rack_warden_instance']"
+		  logger.debug "RW App#call storing app instance #{self} in env['rack_warden_instance']"
 		  self.request = Rack::Request.new(env)
 		  env.rack_warden = self
 			
@@ -120,11 +125,17 @@ module RackWarden
 			# #resp.set_cookie :wbr_cookie, :value=>"Yay!", :expires=>Time.now+60*10
 			# logger.debug "App.call: #{resp.finish}"
 			# resp.finish
-			super(env)
+			rslt = super(env)
+			#logger.debug "RW App#call super(env) result #{rslt}"
+			rslt
 		end 
 		
 		# Only initialize app after all above have loaded.
 		#initialize_app_class
+		
+		before do
+		  logger.debug "RW request self: #{self}"
+		end
 
 
   end # App

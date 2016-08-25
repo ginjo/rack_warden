@@ -19,7 +19,7 @@ module RackWarden
 	  end
 	  
 	  def rack_warden=(object)
-	  	App.logger.debug "RW env['rack_warden_instance']=  #{object === Class ? object.name : object.class.name}"
+	  	App.logger.debug "RW env['rack_warden_instance']=  #{object}"  #{object === Class ? object.name : object.class.name}"
   		self['rack_warden_instance'] = object
 	  end
 	  

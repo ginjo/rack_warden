@@ -63,9 +63,18 @@ module RackWarden
     autoload :Rack, 'rack_warden/frameworks/rack'
   end
   
-  # Make this module a pseudo-class appropriate for middlware stack. Use RackWarden for older rails apps (rather than 'RackWarden::App')
+  # OLD:
+  # def self.new(*args)
+  # 	App.new(*args)
+  # end
+  
+  # Creating a new App class before a new App instance
+  # allows multiple rw instances to be used in a single ruby process,
+  # for example, a rack app with multiple rack or sinatra endpoints.
+  # To pass settings to each instance of rw, pass them with the 'use' method:
+  # Usage: class MyApp; use RackWarden, :require_login=>false; ... end; class OtherApp; use RackWarden, :require_login => /protected.*/; end
 	def self.new(*args)
-		App.new(*args)
+		Class.new(App).new(*args)
 	end
 	
 
