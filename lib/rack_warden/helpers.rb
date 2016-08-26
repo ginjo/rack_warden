@@ -59,7 +59,9 @@ module RackWarden
 	  
 	  # This should generally only run once, but that is left up to the caller (the app instance).
 	  def initialize_settings_from_instance(parent_app_instance, rw_app_instance, *initialization_args)
-			logger.warn "RW AppClassMethods.initialize_settings_from_instance parent_app_instance: #{parent_app_instance}, args: #{initialization_args.inspect}"
+      logger.warn "RW AppClassMethods.initialize_settings_from_instance parent_app_instance: #{parent_app_instance}"
+      logger.warn "RW AppClassMethods.initialize_settings_from_instance rw_app_instance: #{rw_app_instance}"
+			logger.warn "RW AppClassMethods.initialize_settings_from_instance initialization_args: #{initialization_args}"
 			
 			setup_framework(parent_app_instance, *initialization_args)
 			    		
@@ -110,9 +112,9 @@ module RackWarden
     def overlay_settings(new_settings)
       existing_views = settings.views
     	new_views = new_settings.extract(:views).values
-    	logger.debug "RW AppClassMethods.overlay_settings App.object_id #{settings.object_id}"
-    	logger.debug "RW existing_views #{existing_views.inspect}"
-    	logger.debug "RW new_views #{new_views.inspect}"
+    	logger.debug "RW AppClassMethods.overlay_settings self: #{self}, new_settings: #{new_settings} "   #App.object_id #{settings.object_id}"
+    	#logger.debug "RW existing_views #{existing_views.inspect}"
+    	#logger.debug "RW new_views #{new_views.inspect}"
     	# TODO: Should these next two steps be reversed? 2016-08-02
 	  	set :views, [new_views, existing_views].flatten.compact.uniq
     	set new_settings
@@ -261,7 +263,7 @@ module RackWarden
 	
 	  # WBR - override. This passes block to be rendered to first template that matches.
 		def find_template(views, name, engine, &block)
-			logger.debug "RW RackWardenHelpers#find_template name: #{name}, engine: #{engine}, block: #{block}, views: #{views}"
+			logger.debug "RW RackWardenHelpers#find_template self: #{self}, name: #{name}, engine: #{engine}, block: #{block}, views: #{views}"
 	    Array(views).each { |v| super(v, name, engine, &block) }
 	  end
 	  

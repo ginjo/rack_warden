@@ -50,7 +50,7 @@ module RackWarden
 		register AppClassMethods
 
 
-    # NOTE: I think this behavior description & example might be obsolete.
+    # NOTE: I think this behavior description & example are not quite correct any more.
     # WBR - This will receive params and a block from the parent "use" statement.
     # This middleware app has been modified to process the parent use-block in
     # the context of the RackWarden class. So you can set settings on RackWarden,

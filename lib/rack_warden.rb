@@ -74,7 +74,14 @@ module RackWarden
   # To pass settings to each instance of rw, pass them with the 'use' method:
   # Usage: class MyApp; use RackWarden, :require_login=>false; ... end; class OtherApp; use RackWarden, :require_login => /protected.*/; end
 	def self.new(*args)
-		Class.new(App).new(*args)
+    App.logger.debug "RW RackWarden.new with args: #{args}"
+    # Sinatra already spawns new rw instance for each request.
+    # TODO: If there are other frameworks that do the same, they should be included in this logic.
+    if args[0].class.ancestors.include?(Sinatra::Wrapper) || args[0].class.ancestors.include?(Sinatra::Base)
+      App.new(*args)
+    else
+      Class.new(App).new(*args)
+    end
 	end
 	
 
@@ -94,17 +101,23 @@ module RackWarden
 		App.settings
 	end
 	
+	# Not sure what situation this is used for.
 	def self.included(base)
 		App.logger.warn "RW self.included into BASE #{base}, ID #{base.object_id}"
 		# Force initialize rack_warden, even if not all the settings are known yet.
 		#App.new base
 	end
 	
+	# This is for Sinatra apps only.
+	# You have to register rw to get the class methods & dsl into the user's app.
+	# BUT, we need to let the user pass middleware arguments as well,
+	# so they have to ALSO use the 'use' method.
 	def self.registered(app)
 		App.setup_framework app
 		# TODO: Do we need to check installed middleware to make sure we only have one instance of RW,
 		# in case someone registers RW with multiple sinatra apps in the same ruby process (which seems to be a common practice)?
-		app.use self
+		# No, multiple rw instances should be ok. See commit 15e0ccab97fd1ca7f6835eb27d3c9fa1f7784571.
+		#app.use self  # Disabled this, because endpoint app needs to be able to pass middleware arguments.
 	end
 	
 	#Loads the App module, as soon as this module loads.
