@@ -30,10 +30,10 @@ module RackWarden
       #   Pass in :key=>'something' to enable RW-specific sessions (maybe).
       #   See class helpers for newer session declaration.
       #   Really? Is all this true?
-    set :sessions, :key => 'rack_warden',
-        :path => '/',
-        :expire_after => 14400, # In seconds
-        :secret => 'skj3l4kgjsl3kkgjlsd0f98slkjrewlksufdjlksefk'
+    # set :sessions, :key => 'rack_warden',
+    #     :path => '/',
+    #     :expire_after => 14400, # In seconds
+    #     :secret => 'skj3l4kgjsl3kkgjlsd0f98slkjrewlksufdjlksefk'
     set :remember_token_cookie_name, 'rack_warden_remember_token'
     set :user_table_name, 'rack_warden_users'
     set :field_maps, {}
@@ -62,16 +62,22 @@ module RackWarden
   	#	end
   	#
   	# TODO: Move most of this functionality to a class method, so it can be called from self.registered(app)
-  	def initialize(parent_app_instance=nil, *args, &block)
+  	def initialize(parent_app_instance=nil, *args)
   		super(parent_app_instance, &Proc.new{}) # Must send empty proc, not original proc, since we're calling original block here.
   	  initialization_args = args.dup
   		logger.info "RW App#initialize parent: #{@app}"
+  		logger.debug "RW App#initialize self: #{self}, args: #{args}, block_given? #{block_given?}"
   		opts = args.last.is_a?(Hash) ? args.pop : {}
   		
   		
-  		
+  		logger.debug "RW App#initialize settings.initialized: #{settings.initialized}"
   		if app && !settings.initialized
-  			self.class.initialize_settings_from_instance(parent_app_instance, self, *initialization_args)
+  			#self.class.initialize_settings_from_instance(parent_app_instance, self, *initialization_args)
+  			if block_given?
+    			settings.initialize_settings_from_instance(parent_app_instance, self, *initialization_args, &Proc.new)
+    		else
+    		  settings.initialize_settings_from_instance(parent_app_instance, self, *initialization_args)
+    		end
 # 		  logger.warn "RW initializing settings from app instance with args: #{initialization_args.inspect}"
 # 		  
 # 		  self.class.setup_framework(parent_app_instance, *initialization_args) #unless Frameworks.selected_framework
@@ -98,16 +104,19 @@ module RackWarden
 		#       at the end of this override method, Sinatra kicks in and creates
 		#       a new rw app instance. That's how sinatra works (new app instance for each request).
 		def call(env)
-			logger.debug "RW App#call parent app: #{@app}"
+			logger.debug "RW App#call self: #{self}, parent app: #{@app}"
 			env.extend Env
 			
 			# Initialize if not already (may only be usefull for stand-alone mode (no parent app)).
   		if !settings.initialized
-  			self.class.initialize_settings_from_instance(@app, self)
+  		  logger.debug "RW App#call self: #{self}, calling initialize_settings_from_instance"
+  			settings.initialize_settings_from_instance(@app, self)
+  		else
+  		  logger.debug "RW App#call self: #{self}, not calling initialize_settings_from_instance"
   		end
 		  
 		  # Set this now, so you can access the rw app instance from the endpoint app.
-		  logger.debug "RW App#call storing app instance #{self} in env['rack_warden_instance']"
+		  logger.debug "RW App#call storing rw app instance #{self} in env['rack_warden_instance']"
 		  self.request = Rack::Request.new(env)
 		  env.rack_warden = self
 			
@@ -125,8 +134,8 @@ module RackWarden
 			# #resp.set_cookie :wbr_cookie, :value=>"Yay!", :expires=>Time.now+60*10
 			# logger.debug "App.call: #{resp.finish}"
 			# resp.finish
+			logger.debug "RW App#call super(env), self: #{self}"
 			rslt = super(env)
-			#logger.debug "RW App#call super(env) result #{rslt}"
 			rslt
 		end 
 		
@@ -134,7 +143,7 @@ module RackWarden
 		#initialize_app_class
 		
 		before do
-		  logger.debug "RW request self: #{self}"
+		  logger.debug "RW request self: #{self}, settings: #{settings}, self.class: #{self.class}"
 		end
 
 

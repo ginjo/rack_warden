@@ -11,7 +11,7 @@ module RackWarden
 	  def initialize_app_class
       
 	  	initialize_logging
-	  	logger.warn "RW AppClassMethods.initialize_app_class environment: #{environment}, process: #{$0}"
+	  	logger.warn "RW AppClassMethods.initialize_app_class environment: #{environment}, process: #{$0}, self: #{self}"
 	  	initialize_config_files
 	  	initialize_logging  # again, in case log settings changed in config files.
 	  		  	
@@ -47,6 +47,7 @@ module RackWarden
 	    	  	
   		# Setup flash if not already
   		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
+  		# TODO: This needs to be handled after RW app subclass is created
 			use Rack::Flash, :accessorize=>[:rw_error, :rw_success, :rw_test] | App.flash_accessories
 				  	
 			helpers RackWarden::WardenConfig
@@ -58,7 +59,9 @@ module RackWarden
 	  end
 	  
 	  # This should generally only run once, but that is left up to the caller (the app instance).
+	  # TODO: Do we need a "&block" at the end of the params here? Also see App#initialize method.
 	  def initialize_settings_from_instance(parent_app_instance, rw_app_instance, *initialization_args)
+  	  logger.warn "RW AppClassMethods.initialize_settings_from_instance self: #{self}"
       logger.warn "RW AppClassMethods.initialize_settings_from_instance parent_app_instance: #{parent_app_instance}"
       logger.warn "RW AppClassMethods.initialize_settings_from_instance rw_app_instance: #{rw_app_instance}"
 			logger.warn "RW AppClassMethods.initialize_settings_from_instance initialization_args: #{initialization_args}"
@@ -68,8 +71,8 @@ module RackWarden
 			# Eval the use-block from the parent app, in context of this app.
 			#settings.instance_exec(rw_app_instance, &block) if block_given?
 			# Eval the use-block from the parent app, in context of the parent app instance.
-			logger.debug "RW yielding to initialization block if block_given? (block_given? #{block_given?})"
-			yield rw_app_instance if block_given?
+			logger.debug "RW yielding to initialization block if block_given? #{block_given?}"
+			yield rw_app_instance.settings if block_given?
 			
 		  # Set global layout (remember to use :layout=>false in your calls to partials).
 		  logger.debug "RW AppClassMethods.initialize_settings_from_instance setting erb layout: #{settings.layout}"
@@ -77,7 +80,7 @@ module RackWarden
 			
 			settings.initialize_logging
 			  			
-			logger.info "RW AppClassMethods.initialize_settings_from_instance compiled views: #{settings.views.inspect}"
+			#logger.info "RW AppClassMethods.initialize_settings_from_instance compiled views: #{settings.views.inspect}"
 			
 			settings.set :initialized, true	  
 	  end
@@ -263,7 +266,8 @@ module RackWarden
 	
 	  # WBR - override. This passes block to be rendered to first template that matches.
 		def find_template(views, name, engine, &block)
-			logger.debug "RW RackWardenHelpers#find_template self: #{self}, name: #{name}, engine: #{engine}, block: #{block}, views: #{views}"
+			logger.debug "RW RackWardenHelpers#find_template name: #{name}, engine: #{engine}, block: #{block}, views: #{views}"
+			logger.debug "RW RackWardenHelpers#find_template self: #{self}, self.class: #{self.class}, settings: #{settings}, current app layout: #{settings.layout}"
 	    Array(views).each { |v| super(v, name, engine, &block) }
 	  end
 	  
