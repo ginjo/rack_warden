@@ -1,7 +1,7 @@
 module RackWarden
 	class Mail < ::Mail::Message
 		def initialize(*args)
-			App.logger.debug "RW RackWarden::Mail creating new mail message with args: #{args.inspect}"
+			App.logger.info "RW RackWarden::Mail creating new mail message with args: #{args.inspect}"
 			
 			mail_options = App.mail_options.dup
 			

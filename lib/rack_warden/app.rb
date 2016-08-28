@@ -78,24 +78,7 @@ module RackWarden
     		else
     		  settings.initialize_settings_from_instance(parent_app_instance, self, *initialization_args)
     		end
-# 		  logger.warn "RW initializing settings from app instance with args: #{initialization_args.inspect}"
-# 		  
-# 		  self.class.setup_framework(parent_app_instance, *initialization_args) #unless Frameworks.selected_framework
-#   		    		
-# 			# Eval the use-block from the parent app, in context of this app.
-# 			settings.instance_exec(self, &block) if block_given?
-# 			
-# 		    # Set global layout (remember to use :layout=>false in your calls to partials).
-# 		    logger.debug "RW App#initialize setting erb layout: #{settings.layout}"
-# 	    settings.set :erb, :layout=>settings.layout
-# 			
-# 			settings.initialize_logging
-# 			  			
-# 			logger.info "RW compiled views: #{settings.views.inspect}"
-#   		
-#   		settings.set :initialized, true
   		end
-
   	end # initialize
   	
 		# Store this app instance in the env.
@@ -135,8 +118,7 @@ module RackWarden
 			# logger.debug "App.call: #{resp.finish}"
 			# resp.finish
 			logger.debug "RW App#call super(env), self: #{self}"
-			rslt = super(env)
-			rslt
+			super(env)
 		end 
 		
 		# Only initialize app after all above have loaded.

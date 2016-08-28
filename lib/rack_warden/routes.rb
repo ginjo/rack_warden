@@ -3,7 +3,7 @@ module RackWarden
 		def self.included(base)
 			base.instance_eval do
 			
-				App.logger.debug "RW loading routes"
+				App.logger.info "RW loading routes"
 				
 				respond_to :xml, :json, :js, :txt, :html, :yaml
 				

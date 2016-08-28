@@ -36,7 +36,7 @@ module RackWarden
     			      
 	      # Define class method 'require_login' on framework controller.
 	      # Note that rails before-filters are also class methods, thus the need to differentiate method names (is this correct?).
-	      App.logger.info "RW Frameworks::Rails.setup_framework ActionController::Base.extend ClassMethods"
+	      App.logger.debug "RW Frameworks::Rails.setup_framework ActionController::Base.extend ClassMethods"
 				# ActionController::Base.define_singleton_method :require_login do |*args|
 				# 	conditions_hash = args[0] || Hash.new
 				# 	before_filter(:require_login, conditions_hash)

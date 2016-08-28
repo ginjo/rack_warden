@@ -43,7 +43,7 @@ module RackWarden
 		# TODO: Document here what class/module is including this module?
 		# 
 		def self.included(base)
-			App.logger.warn "RW loading Warden config into #{base}"
+			App.logger.debug "RW loading Warden config into #{base}"
 			base.instance_eval do
         App.logger.debug "RW evaluating WardenConfig code within #{base} instance"
         
@@ -128,10 +128,10 @@ module RackWarden
 	      	user = User.authenticate(params['user']['username'], params['user']['password'])
 	      	if user.is_a? User
 	      		success!(user)
-	        	App.logger.warn "RW user logged in '#{user.username}'"
+	        	App.logger.info "RW password-user logged in '#{user.username}'"
 	        else
 	          fail!("Could not login")
-	          App.logger.warn "RW user failed regular login '#{params['user']['username']}'"		        	
+	          App.logger.info "RW password-user failed regular login '#{params['user']['username']}'"		        	
 	        end
 	        
 	      end # authenticate!
@@ -153,9 +153,9 @@ module RackWarden
 	      	user = User.query(:remember_token => env.remember_token).first
 	      	if user.is_a?(User) && !user.remember_token.to_s.empty?
 						success!(user)
-	      		App.logger.info "RW user logged in with remember_me token '#{user.username}'"
+	      		App.logger.info "RW remember-me-user logged in with remember_me token '#{user.username}'"
 	      	else
-	          App.logger.debug "RW user failed remember_me token login '#{env.remember_token}'"
+	          App.logger.debug "RW remember-me-user failed remember_me token login '#{env.remember_token}'"
 	          nil	        	
 	        end
 	      end # authenticate!
@@ -179,10 +179,10 @@ module RackWarden
             #App.logger.debug identity.to_yaml
             if user
               session['identity'] = identity.id
-              App.logger.debug "RW OmniAuth Strategy#authenticate! SUCCESS"
+              App.logger.info "RW OmniAuth Strategy#authenticate! SUCCESS"
               success!(user)
             else
-              App.logger.debug "RW OmniAuth Strategy#authenticate! FAIL"
+              App.logger.info "RW OmniAuth Strategy#authenticate! FAIL"
               fail!("Could not authenticate omniauth identity")
             end
           rescue Exception

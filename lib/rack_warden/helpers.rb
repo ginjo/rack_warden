@@ -11,7 +11,7 @@ module RackWarden
 	  def initialize_app_class
       
 	  	initialize_logging
-	  	logger.warn "RW AppClassMethods.initialize_app_class environment: #{environment}, process: #{$0}, self: #{self}"
+	  	logger.debug "RW AppClassMethods.initialize_app_class environment: #{environment}, process: #{$0}, self: #{self}"
 	  	initialize_config_files
 	  	initialize_logging  # again, in case log settings changed in config files.
 	  		  	
@@ -34,7 +34,7 @@ module RackWarden
 	    
 	    # Erubis/tilt/respond_with don't play well together in older ruby/rails.
 	    if disable_erubis
-        logger.warn "Disabling erubis due to conflicts with Tilt and respond_with."
+        logger.info "Disabling erubis due to conflicts with Tilt and respond_with."
 		    template_engines.delete :erubis
 		    RackWarden::RespondWith::ENGINES[:html].delete :erubis
 		    RackWarden::RespondWith::ENGINES[:all].delete :erubis
@@ -61,10 +61,10 @@ module RackWarden
 	  # This should generally only run once, but that is left up to the caller (the app instance).
 	  # TODO: Do we need a "&block" at the end of the params here? Also see App#initialize method.
 	  def initialize_settings_from_instance(parent_app_instance, rw_app_instance, *initialization_args)
-  	  logger.warn "RW AppClassMethods.initialize_settings_from_instance self: #{self}"
-      logger.warn "RW AppClassMethods.initialize_settings_from_instance parent_app_instance: #{parent_app_instance}"
-      logger.warn "RW AppClassMethods.initialize_settings_from_instance rw_app_instance: #{rw_app_instance}"
-			logger.warn "RW AppClassMethods.initialize_settings_from_instance initialization_args: #{initialization_args}"
+  	  logger.debug "RW AppClassMethods.initialize_settings_from_instance self: #{self}"
+      logger.debug "RW AppClassMethods.initialize_settings_from_instance parent_app_instance: #{parent_app_instance}"
+      logger.debug "RW AppClassMethods.initialize_settings_from_instance rw_app_instance: #{rw_app_instance}"
+			logger.debug "RW AppClassMethods.initialize_settings_from_instance initialization_args: #{initialization_args}"
 			
 			setup_framework(parent_app_instance, *initialization_args)
 			    		
@@ -149,7 +149,7 @@ module RackWarden
 			  # logger.info "RW DataMapper using log_file #{_log_file.inspect}"
 		  #end
 	    
-	    logger.debug "RW AppClassMethods.initialize_logging level: #{logger.level}, _log_file: #{_log_file.inspect}"
+	    logger.info "RW AppClassMethods.initialize_logging level: #{logger.level}, _log_file: #{_log_file.inspect}"
 	  rescue
 	  	puts "RW - There was an error setting up logging: #{$!}"
 	  end
@@ -293,7 +293,7 @@ module RackWarden
 		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])
 			secret = settings.recaptcha[:secret]
 	 		_recaptcha = ActiveSupport::JSON.decode(open("https://www.google.com/recaptcha/api/siteverify?secret=#{secret}&response=#{response}&remoteip=#{ip}").read)
-	    logger.warn "RW RackWardenHelpers#verify_recaptcha #{_recaptcha.inspect}"
+	    logger.info "RW RackWardenHelpers#verify_recaptcha #{_recaptcha.inspect}"
 	    unless _recaptcha['success']
 	    	flash.rw_error = "Please confirm you are human"
 	    	redirect back unless skip_redirect

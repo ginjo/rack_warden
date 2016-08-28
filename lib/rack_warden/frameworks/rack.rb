@@ -25,7 +25,7 @@ module RackWarden
       def setup_framework
         App.logger.debug "RW Frameworks::Rack.setup_framework for rack app: #{parent_app}"
   			parent_app.include(RackWarden::UniversalHelpers)
-        App.logger.info "RW Frameworks::Rack.setup_framework registering class methods with: #{parent_app}"
+        App.logger.debug "RW Frameworks::Rack.setup_framework registering class methods with: #{parent_app}"
   			parent_app.extend ClassMethods
   			# This seems to protect all rack routes, regardless of any other settings downstream.
   			App.set :rack_authentication, '.*'
