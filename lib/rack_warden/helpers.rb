@@ -78,6 +78,9 @@ module RackWarden
 		  logger.debug "RW AppClassMethods.initialize_settings_from_instance setting erb layout: #{settings.layout}"
 			settings.set :erb, :layout=>settings.layout
 			
+			# Experimental, so we can get specific rw_prefix loaded correctly.
+			helpers RackWarden::Routes
+			
 			settings.initialize_logging
 			  			
 			#logger.info "RW AppClassMethods.initialize_settings_from_instance compiled views: #{settings.views.inspect}"

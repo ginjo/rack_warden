@@ -103,8 +103,9 @@ module RackWarden
 		  self.request = Rack::Request.new(env)
 		  env.rack_warden = self
 			
-			# Authenticate here-and-now.		  
-		  if !request.path_info.to_s.match(/^\/auth/) && settings.rack_authentication
+			# Authenticate here-and-now.
+			#Regexp.new("^#{settings.rw_prefix}")  
+		  if !request.path_info.to_s[/^\/auth/] && settings.rack_authentication
 			  logger.debug "RW App#call rack_authentication for path_info: #{request.path_info}"
 			  Array(settings.rack_authentication).each do |rule|
 			  	logger.debug "RW App#call rack_authentication rule #{rule}"

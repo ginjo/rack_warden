@@ -17,6 +17,7 @@ module RackWarden
 					end
 				end
 
+        logger.info "RW Routes setting up rw namespace for #{settings} at #{settings.rw_prefix}"
 				namespace settings.rw_prefix do
 				
 					# This is necessary for sinatra-namespace to do nested stuff,
@@ -94,12 +95,12 @@ module RackWarden
 					    # TODO: maybe put this line in the user model?
 					    @user.activate if settings.mail_options[:delivery_method] == :test
 					  	flash.rw_success = warden.message || "Account created"
-					  	App.logger.info "RW /auth/create succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"
+					  	App.logger.info "RW /.../create succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"
 					    #redirect session[:return_to] || url(settings.default_route, false)
 					    return_to url_for(logged_in? ? settings.default_route : '/login')
 					  else
 					  	flash.rw_error = "#{warden.message} => #{@user.errors.entries.join('. ')}"
-					  	App.logger.info "RW /auth/create failed for '#{@user.username rescue nil}' #{@user.errors.entries}"
+					  	App.logger.info "RW /.../create failed for '#{@user.username rescue nil}' #{@user.errors.entries}"
 					  	redirect back
 					  end
 					end
@@ -112,11 +113,11 @@ module RackWarden
 							@user.activate
 							warden.set_user(@user) if settings.login_on_activate
 							flash.rw_success = "Account activated"
-							App.logger.info "RW /auth/activate succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"
+							App.logger.info "RW /.../activate succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"
 							#redirect "/auth/login"
 							return_to url_for(logged_in? ? '/' : '/login')
 						else
-							App.logger.info "RW /auth/activate failed for '#{@user}' with errors: #{$!}"
+							App.logger.info "RW /.../activate failed for '#{@user}' with errors: #{$!}"
 							#halt "Could not activate"
 							redirect_error "The activation code was not valid"
 						end
@@ -153,8 +154,8 @@ module RackWarden
 					###  UTILITY  ###
 				
 					get "/testing.?:format?" do
-						logger.debug "RW /auth/testing request.cookies" + request.cookies.to_yaml
-						logger.debug "RW /auth/testing response" + response.to_yaml
+						logger.debug "RW /.../testing request.cookies" + request.cookies.to_yaml
+						logger.debug "RW /.../testing response" + response.to_yaml
 						logger.debug "RW request headers #{headers.inspect}"
 						logger.debug "RW request.accept #{request.accept}"
 						logger.debug "RW env['sinatra.accept'] #{env['sinatra.accept']}"
