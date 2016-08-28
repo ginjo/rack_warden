@@ -215,7 +215,7 @@ module RackWarden
 				#App.logger.debug "RW after_authentication callback - auth.manager: #{auth.manager.inspect}"
 				#App.logger.debug "RW after_authentication callback - user: #{user.username}"
       	
-      	if user.is_a?(User) && (user.remember_token || (auth.params['user'] && auth.params['user']['remember_me'] == '1'))
+      	if user.is_a?(User) && (!user.remember_token.to_s.empty? || (auth.params['user'] && auth.params['user']['remember_me'] == '1'))
       		App.logger.debug "RW after_authenticate user.remember_me '#{user.username}'"
       		user.remember_me
 					
