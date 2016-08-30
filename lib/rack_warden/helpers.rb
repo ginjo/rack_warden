@@ -1,6 +1,7 @@
 module RackWarden
 
 
+  # For RW App only.
 	module AppClassMethods
 	
 		def self.registered(app)
@@ -51,7 +52,7 @@ module RackWarden
 			use Rack::Flash, :accessorize=>[:rw_error, :rw_success, :rw_test] | App.flash_accessories
 				  	
 			helpers RackWarden::WardenConfig
-			helpers RackWarden::Routes
+			#helpers RackWarden::Routes
 			
 	    helpers RackWardenHelpers
 	    helpers UniversalHelpers
@@ -78,7 +79,7 @@ module RackWarden
 		  logger.debug "RW AppClassMethods.initialize_settings_from_instance setting erb layout: #{settings.layout}"
 			settings.set :erb, :layout=>settings.layout
 			
-			# Experimental, so we can get specific rw_prefix loaded correctly.
+			# So we can get specific rw_prefix loaded correctly.
 			helpers RackWarden::Routes
 			
 			settings.initialize_logging

@@ -22,11 +22,11 @@ module RackWarden
 				
 					# This is necessary for sinatra-namespace to do nested stuff,
 					# due to the namespace module only being half-baked.
-          helpers do
-            def settings
-              self.class.settings
-            end
-          end
+          #   helpers do
+          #     def settings
+          #       self.class.settings
+          #     end
+          #   end
 
 
 			    ###  CORE  ###

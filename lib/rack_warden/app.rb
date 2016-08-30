@@ -62,24 +62,37 @@ module RackWarden
   	#	end
   	#
   	# TODO: Move most of this functionality to a class method, so it can be called from self.registered(app)
-  	def initialize(parent_app_instance=nil, *args)
-  		super(parent_app_instance, &Proc.new{}) # Must send empty proc, not original proc, since we're calling original block here.
-  	  initialization_args = args.dup
-  		logger.info "RW App#initialize parent: #{@app}"
-  		logger.debug "RW App#initialize self: #{self}, args: #{args}, block_given? #{block_given?}"
-  		opts = args.last.is_a?(Hash) ? args.pop : {}
-  		
-  		
-  		logger.debug "RW App#initialize settings.initialized: #{settings.initialized}"
-  		if app && !settings.initialized
-  			#self.class.initialize_settings_from_instance(parent_app_instance, self, *initialization_args)
-  			if block_given?
-    			settings.initialize_settings_from_instance(parent_app_instance, self, *initialization_args, &Proc.new)
-    		else
-    		  settings.initialize_settings_from_instance(parent_app_instance, self, *initialization_args)
-    		end
-  		end
-  	end # initialize
+    # 	def initialize(parent_app_instance=nil, *args)
+    # 		super(parent_app_instance, &Proc.new{}) # Must send empty proc, not original proc, since we're calling original block here.
+    # 	  initialization_args = args.dup
+    # 		logger.info "RW App#initialize parent: #{@app}"
+    # 		logger.debug "RW App#initialize self: #{self}, args: #{args}, block_given? #{block_given?}"
+    # 		opts = args.last.is_a?(Hash) ? args.pop : {}
+    # 		
+    # 		
+    # 		logger.debug "RW App#initialize settings.initialized: #{settings.initialized}"
+    # 		if app && !settings.initialized
+    # 			#self.class.initialize_settings_from_instance(parent_app_instance, self, *initialization_args)
+    # 			if block_given?
+    #   			settings.initialize_settings_from_instance(parent_app_instance, self, *initialization_args, &Proc.new)
+    #   		else
+    #   		  settings.initialize_settings_from_instance(parent_app_instance, self, *initialization_args)
+    #   		end
+    # 		end
+    # 	end # initialize
+    
+    # This new version if initialize was taken from rack_warden_rom_testing middleware_example.
+    def initialize(*args)
+      @app = args[0] if args[0]
+      @template_cache = Tilt::Cache.new
+      
+      logger.debug "RW #{self.class}#initialize self: #{self}, args:#{args}, block? #{block_given?}"
+      block = Proc.new if block_given?
+      settings.initialize_settings_from_instance(@app, self, *args[1..-1], &block)
+      logger.debug "RW about to call problem 'super', ancestors: #{self.class.ancestors}"
+      #(@app, &block)
+      self
+    end    
   	
 		# Store this app instance in the env.
 		# NOTE: Up to this point, the app instance is the same for every call,
@@ -90,13 +103,13 @@ module RackWarden
 			logger.debug "RW App#call self: #{self}, parent app: #{@app}"
 			env.extend Env
 			
-			# Initialize if not already (may only be usefull for stand-alone mode (no parent app)).
-  		if !settings.initialized
-  		  logger.debug "RW App#call self: #{self}, calling initialize_settings_from_instance"
-  			settings.initialize_settings_from_instance(@app, self)
-  		else
-  		  logger.debug "RW App#call self: #{self}, not calling initialize_settings_from_instance"
-  		end
+      # 	# Initialize if not already (may only be usefull for stand-alone mode (no parent app)).
+      # 	if !settings.initialized
+      # 	  logger.debug "RW App#call self: #{self}, calling initialize_settings_from_instance"
+      # 		settings.initialize_settings_from_instance(@app, self)
+      # 	else
+      # 	  logger.debug "RW App#call self: #{self}, not calling initialize_settings_from_instance"
+      # 	end
 		  
 		  # Set this now, so you can access the rw app instance from the endpoint app.
 		  logger.debug "RW App#call storing rw app instance #{self} in env['rack_warden_instance']"
@@ -119,7 +132,7 @@ module RackWarden
 			# logger.debug "App.call: #{resp.finish}"
 			# resp.finish
 			logger.debug "RW App#call super(env), self: #{self}"
-			super(env)
+			super
 		end 
 		
 		# Only initialize app after all above have loaded.

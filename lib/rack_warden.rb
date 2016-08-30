@@ -74,19 +74,9 @@ module RackWarden
   # To pass settings to each instance of rw, pass them with the 'use' method:
   # Usage: class MyApp; use RackWarden, :require_login=>false; ... end; class OtherApp; use RackWarden, :require_login => /protected.*/; end
 	def self.new(*args)
+    block = Proc.new if block_given?
     App.logger.debug "RW RackWarden.new with args: #{args}, block_given? #{block_given?}"
-    # Sinatra already spawns new rw instance for each request.
-    # TODO: If there are other frameworks that do the same, they should be included in this logic.
-    # TODO: Update, this Class.new stuff might be required for Sinatra as well,
-    #       since we want to initialize different settings for different in-process apps.
-    app_class = if args[0].class.ancestors.include?(Sinatra::Wrapper) || args[0].class.ancestors.include?(Sinatra::Base)
-      App.logger.debug "RW RackWarden.new detected parent app is Sintatra"
-      Class.new(App)
-    else
-      App.logger.debug "RW RackWarden.new detected parent app is not Sintatra"
-      Class.new(App)
-    end
-    block_given? ? app_class.new(*args, &Proc.new) : app_class.new(*args)
+    Class.new(App).new(*args, &block)
 	end
 	
 
