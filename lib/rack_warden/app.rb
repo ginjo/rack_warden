@@ -47,7 +47,8 @@ module RackWarden
     		:delivery_options => {:from => 'my@email.com'} #, :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE
     set :omniauth_adapters, Gem.loaded_specs.keys.select{|k| k =~ /omniauth/ && k}
 	  
-		register RackWardenClassMethods
+	  # See below
+		#register RackWardenClassMethods
 
 
     # NOTE: I think this behavior description & example are not quite correct any more.
@@ -86,9 +87,9 @@ module RackWarden
       @app = args[0] if args[0]
       @template_cache = Tilt::Cache.new
       
-      logger.debug "RW #{self.class}#initialize self: #{self}, args:#{args}, block? #{block_given?}"
+      logger.info "RW #{self.class}#initialize self: #{self}, args:#{args}, block? #{block_given?}"
       block = Proc.new if block_given?
-      settings.initialize_settings_from_instance(@app, self, *args[1..-1], &block)
+      settings.initialize_settings_from_instance(@app, self, *args[1..-1], &block) if @app && !settings.initialized
       #logger.debug "RW about to call problem 'super', ancestors: #{self.class.ancestors}"
       #super(@app, &block)
       self
@@ -100,7 +101,7 @@ module RackWarden
 		#       at the end of this override method, Sinatra kicks in and creates
 		#       a new rw app instance. That's how sinatra works (new app instance for each request).
 		def call(env)
-			logger.debug "RW App#call self: #{self}, parent app: #{@app}"
+			logger.info "RW App#call self: #{self}, parent app: #{@app}"
 			env.extend Env
 			
       # 	# Initialize if not already (may only be usefull for stand-alone mode (no parent app)).
@@ -117,8 +118,8 @@ module RackWarden
 		  env.rack_warden = self
 			
 			# Authenticate here-and-now.
-			#Regexp.new("^#{settings.rw_prefix}")  
-		  if !request.path_info.to_s[/^\/auth/] && settings.rack_authentication
+			prefix_regex = Regexp.new("^#{settings.rw_prefix}")  
+		  if !request.path_info.to_s[prefix_regex] && settings.rack_authentication  # /^\/auth/
 			  logger.debug "RW App#call rack_authentication for path_info: #{request.path_info}"
 			  Array(settings.rack_authentication).each do |rule|
 			  	logger.debug "RW App#call rack_authentication rule #{rule}"
@@ -137,6 +138,7 @@ module RackWarden
 		
 		# Only initialize app after all above have loaded.
 		#initialize_app_class
+		register RackWardenClassMethods
 		
 		before do
 		  logger.debug "RW request self: #{self}, settings: #{settings}, self.class: #{self.class}"

@@ -38,14 +38,15 @@
 #
 module RackWarden
 
+  # This module is included in RackWarden::App
+  # by RackWardenClassMethods.initialize_app_class method.
 	module WardenConfig
-		
-		# TODO: Document here what class/module is including this module?
-		# 
 		def self.included(base)
 			App.logger.debug "RW loading Warden config into #{base}"
 			base.instance_eval do
-        App.logger.debug "RW evaluating WardenConfig code within #{base} instance"
+        # This block is evaluated in the context of RackWarden::App
+        
+        App.logger.debug "RW evaluating WardenConfig code within #{base}"
         
         
     		###  OMNIAUTH CODE  ###
@@ -86,6 +87,7 @@ module RackWarden
           # and get a User from that information.
           config.serialize_from_session{|id| User.get(id) || Identity.get(id)}
         
+          logger.info "RW Warden::Manager config.scope_defaults :action => #{settings.rw_prefix}/unauthenticated"
           config.scope_defaults :default,
             # "strategies" is an array of named methods with which to
             # attempt authentication. We have to define this later.
@@ -93,7 +95,7 @@ module RackWarden
             # The action is a route to send the user to when
             # warden.authenticate! returns a false answer. We'll show
             # this route below.
-            :action => "#{App.rw_prefix}/unauthenticated"
+            :action => "#{settings.rw_prefix}/unauthenticated"
           # When a user tries to log in and cannot, this specifies the
           # app to send the user to.
           config.failure_app = self
@@ -111,8 +113,6 @@ module RackWarden
 	  	# use Rack::Auth::Basic, "Protected Area" do |username, password|
 	  	#   username == 'foo' && password == 'bar'
 	  	# end
-    
-
 
 	    add(:password) do
 	    	#App.logger.debug "RW WardenStrategies.add(password) self #{self.class}"
@@ -167,7 +167,6 @@ module RackWarden
         def valid?
           env['omniauth.auth'].is_a?(Hash) || env['omniauth.auth'].is_a?(OmniAuth::AuthHash)
         end
-        
         
         def authenticate!
           begin

@@ -108,6 +108,7 @@ module RackWarden
 	# BUT, we need to let the user pass middleware arguments as well,
 	# so they have to ALSO use the 'use' method.
 	def self.registered(app)
+  	App.logger.info "RW self.registered with app #{app}, ID #{app.object_id}"
 		App.setup_framework app
 		# TODO: Do we need to check installed middleware to make sure we only have one instance of RW,
 		# in case someone registers RW with multiple sinatra apps in the same ruby process (which seems to be a common practice)?
@@ -115,7 +116,7 @@ module RackWarden
 		#app.use self  # Disabled this, because endpoint app needs to be able to pass middleware arguments.
 	end
 	
-	#Loads the App module, as soon as this module loads.
+	#Loads the App class, as soon as this module loads.
 	App
 	
 	# Enable this for automatic sinatra top-level registration.

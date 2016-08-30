@@ -2,12 +2,13 @@ module RackWarden
 	module RackWardenClassMethods
 	
 		def self.registered(app)
+		  puts "RW RackWardenClassMethods.registered app #{app}" if !app.production?
 			app.initialize_app_class
 		end
 	
 	  # Main RackWarden::App class setup.
 	  def initialize_app_class
-      
+      puts "RW RackWardenClassMethods.initialize_app_class self #{self}" if !production?
 	  	initialize_logging
 	  	logger.debug "RW RackWardenClassMethods.initialize_app_class environment: #{environment}, process: #{$0}, self: #{self}"
 	  	initialize_config_files
@@ -22,44 +23,51 @@ module RackWarden
       #   :expire_after => 14400, # In seconds
       #   :secret => 'skj3l4kgjsl3kkgjlsd0f98slkjrewlksufdjlksefk'
 	    
+	    # This appears to be necessary to get require_login to work in the namespaced routes.
 	    #RackWarden::Namespace::NamespacedMethods.prefixed :require_login
-	    Sinatra::Namespace::NamespacedMethods.prefixed(:require_login) if Sinatra.const_defined?(:Namespace) && Sinatra::Namespace.const_defined?(:NamespacedMethods)
+# 	    Sinatra::Namespace::NamespacedMethods.prefixed(:require_login) if Sinatra.const_defined?(:Namespace) && Sinatra::Namespace.const_defined?(:NamespacedMethods)
 	    
 	    #register RackWarden::Namespace
 	    #register RackWarden::RespondWith
-	    register Sinatra::Namespace
-	    register Sinatra::RespondWith
+# 	    register Sinatra::Namespace
+# 	    register Sinatra::RespondWith
 	    
-	    # Erubis/tilt/respond_with don't play well together in older ruby/rails.
-	    if disable_erubis
-        logger.info "Disabling erubis due to conflicts with Tilt and respond_with."
-		    template_engines.delete :erubis
-		    RackWarden::RespondWith::ENGINES[:html].delete :erubis
-		    RackWarden::RespondWith::ENGINES[:all].delete :erubis
-		    # TODO: Make these handle & report errors better
-		    # Tilt 1.3
-		    (Tilt.mappings['erb'].delete(Tilt::ErubisTemplate) rescue nil) ||
-		    # Tilt 2.0
-		    (Tilt.default_mapping['erb'].delete(Tilt::ErubisTemplate) rescue nil)
-			end
+      #   # Erubis/tilt/respond_with don't play well together in older ruby/rails.
+      #   if disable_erubis
+      #     logger.info "Disabling erubis due to conflicts with Tilt and respond_with."
+      #     template_engines.delete :erubis
+      #     RackWarden::RespondWith::ENGINES[:html].delete :erubis
+      #     RackWarden::RespondWith::ENGINES[:all].delete :erubis
+      #     # TODO: Make these handle & report errors better
+      #     # Tilt 1.3
+      #     (Tilt.mappings['erb'].delete(Tilt::ErubisTemplate) rescue nil) ||
+      #     # Tilt 2.0
+      #     (Tilt.default_mapping['erb'].delete(Tilt::ErubisTemplate) rescue nil)
+      # 	end
 	    	  	
   		# Setup flash if not already
   		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
   		# TODO: This needs to be handled after RW app subclass is created
 			use Rack::Flash, :accessorize=>[:rw_error, :rw_success, :rw_test] | App.flash_accessories
-				  	
-			helpers RackWarden::WardenConfig
-			#helpers RackWarden::Routes
 			
 	    helpers RackWardenHelpers
 	    helpers UniversalHelpers
+      
+      # This needs to load after specific app settings.	
+			#helpers RackWarden::WardenConfig
+			
+		  register Sinatra::RespondWith
+      respond_to :xml, :json, :js, :txt, :html, :yaml
+			
+			# This needs to load after specific app settings.
+			#helpers RackWarden::Routes
 	    
 	  end
 	  
-	  # This should generally only run once, but that is left up to the caller (the app instance).
-	  # TODO: Do we need a "&block" at the end of the params here? Also see App#initialize method.
+	  # This should generally only run once.
+	  # Also see App#initialize method.
 	  def initialize_settings_from_instance(parent_app_instance, rw_app_instance, *initialization_args)
-  	  logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance self: #{self}"
+  	  logger.info "RW RackWardenClassMethods.initialize_settings_from_instance self: #{self}"
       logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance parent_app_instance: #{parent_app_instance}"
       logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance rw_app_instance: #{rw_app_instance}"
 			logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance initialization_args: #{initialization_args}"
@@ -76,6 +84,9 @@ module RackWarden
 		  logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance setting erb layout: #{settings.layout}"
 			settings.set :erb, :layout=>settings.layout
 			
+			# Needs to get specific settings from rw & main app.
+			helpers RackWarden::WardenConfig
+			
 			# So we can get specific rw_prefix loaded correctly.
 			helpers RackWarden::Routes
 			
@@ -87,6 +98,8 @@ module RackWarden
 	  end
 		
 		def setup_framework(app, *args)
+		  logger.info "RW RackWardenClassMethods.setup_framework app: #{app}, args: #{args}"
+		  
 			opts = args.last.is_a?(Hash) ? args.pop : {}
 			# Get framework module.
 			framework_module = Frameworks.select_framework(app)
@@ -105,6 +118,7 @@ module RackWarden
 
     # Load config from file, if any exist.
     def initialize_config_files(more_config={})
+      logger.info "RW RackWardenClassMethods.initialize_config_files self: #{self}, extra-config: #{more_config}"
 	    Hash.new.tap do |hash|
 	      config_files.each {|c| hash.merge!(YAML.load_file(File.join(Dir.pwd, c))) rescue nil}
 	      hash.merge! more_config

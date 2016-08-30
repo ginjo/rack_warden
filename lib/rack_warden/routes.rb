@@ -1,11 +1,13 @@
+require 'sinatra/namespace'
+require 'sinatra/respond_with'
+
 module RackWarden
 	module Routes
 		def self.included(base)
 			base.instance_eval do
-			
-				App.logger.info "RW loading routes"
-				
-				respond_to :xml, :json, :js, :txt, :html, :yaml
+		    register Sinatra::Namespace
+
+  	    Sinatra::Namespace::NamespacedMethods.prefixed(:require_login, :require_authorization)
 				
 				# Before does not have access to uri-embedded params yet.				
 				#before do
@@ -21,12 +23,12 @@ module RackWarden
 				namespace settings.rw_prefix do
 				
 					# This is necessary for sinatra-namespace to do nested stuff,
-					# due to the namespace module only being half-baked.
-          #   helpers do
-          #     def settings
-          #       self.class.settings
-          #     end
-          #   end
+					# due to the namespace module being buggy.
+          helpers do
+            def settings
+              self.class.settings
+            end
+          end
 
 
 			    ###  CORE  ###
