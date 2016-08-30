@@ -47,7 +47,7 @@ module RackWarden
     		:delivery_options => {:from => 'my@email.com'} #, :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE
     set :omniauth_adapters, Gem.loaded_specs.keys.select{|k| k =~ /omniauth/ && k}
 	  
-		register AppClassMethods
+		register RackWardenClassMethods
 
 
     # NOTE: I think this behavior description & example are not quite correct any more.
@@ -89,8 +89,8 @@ module RackWarden
       logger.debug "RW #{self.class}#initialize self: #{self}, args:#{args}, block? #{block_given?}"
       block = Proc.new if block_given?
       settings.initialize_settings_from_instance(@app, self, *args[1..-1], &block)
-      logger.debug "RW about to call problem 'super', ancestors: #{self.class.ancestors}"
-      #(@app, &block)
+      #logger.debug "RW about to call problem 'super', ancestors: #{self.class.ancestors}"
+      #super(@app, &block)
       self
     end    
   	

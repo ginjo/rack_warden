@@ -48,9 +48,9 @@ module RackWarden
   autoload :Routes, "rack_warden/routes"
   autoload :VERSION, "rack_warden/version"
   autoload :WardenConfig, "rack_warden/warden"
-  autoload :AppClassMethods, "rack_warden/helpers"
-  autoload :UniversalHelpers, "rack_warden/helpers"
-  autoload :RackWardenHelpers, "rack_warden/helpers"
+  autoload :RackWardenClassMethods, "rack_warden/rw_class_methods"
+  autoload :UniversalHelpers, "rack_warden/universal_helpers"
+  autoload :RackWardenHelpers, "rack_warden/rw_helpers"
   # Autload patched versions of respond_with & namespace.
   # respond_with handles uri dot-format extension,
   # and namespace handles require_login.

@@ -1,8 +1,5 @@
 module RackWarden
-
-
-  # For RW App only.
-	module AppClassMethods
+	module RackWardenClassMethods
 	
 		def self.registered(app)
 			app.initialize_app_class
@@ -12,7 +9,7 @@ module RackWarden
 	  def initialize_app_class
       
 	  	initialize_logging
-	  	logger.debug "RW AppClassMethods.initialize_app_class environment: #{environment}, process: #{$0}, self: #{self}"
+	  	logger.debug "RW RackWardenClassMethods.initialize_app_class environment: #{environment}, process: #{$0}, self: #{self}"
 	  	initialize_config_files
 	  	initialize_logging  # again, in case log settings changed in config files.
 	  		  	
@@ -62,10 +59,10 @@ module RackWarden
 	  # This should generally only run once, but that is left up to the caller (the app instance).
 	  # TODO: Do we need a "&block" at the end of the params here? Also see App#initialize method.
 	  def initialize_settings_from_instance(parent_app_instance, rw_app_instance, *initialization_args)
-  	  logger.debug "RW AppClassMethods.initialize_settings_from_instance self: #{self}"
-      logger.debug "RW AppClassMethods.initialize_settings_from_instance parent_app_instance: #{parent_app_instance}"
-      logger.debug "RW AppClassMethods.initialize_settings_from_instance rw_app_instance: #{rw_app_instance}"
-			logger.debug "RW AppClassMethods.initialize_settings_from_instance initialization_args: #{initialization_args}"
+  	  logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance self: #{self}"
+      logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance parent_app_instance: #{parent_app_instance}"
+      logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance rw_app_instance: #{rw_app_instance}"
+			logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance initialization_args: #{initialization_args}"
 			
 			setup_framework(parent_app_instance, *initialization_args)
 			    		
@@ -76,7 +73,7 @@ module RackWarden
 			yield rw_app_instance.settings if block_given?
 			
 		  # Set global layout (remember to use :layout=>false in your calls to partials).
-		  logger.debug "RW AppClassMethods.initialize_settings_from_instance setting erb layout: #{settings.layout}"
+		  logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance setting erb layout: #{settings.layout}"
 			settings.set :erb, :layout=>settings.layout
 			
 			# So we can get specific rw_prefix loaded correctly.
@@ -84,7 +81,7 @@ module RackWarden
 			
 			settings.initialize_logging
 			  			
-			#logger.info "RW AppClassMethods.initialize_settings_from_instance compiled views: #{settings.views.inspect}"
+			#logger.info "RW RackWardenClassMethods.initialize_settings_from_instance compiled views: #{settings.views.inspect}"
 			
 			settings.set :initialized, true	  
 	  end
@@ -119,7 +116,7 @@ module RackWarden
     def overlay_settings(new_settings)
       existing_views = settings.views
     	new_views = new_settings.extract(:views).values
-    	logger.debug "RW AppClassMethods.overlay_settings self: #{self}, new_settings: #{new_settings} "   #App.object_id #{settings.object_id}"
+    	logger.debug "RW RackWardenClassMethods.overlay_settings self: #{self}, new_settings: #{new_settings} "   #App.object_id #{settings.object_id}"
     	#logger.debug "RW existing_views #{existing_views.inspect}"
     	#logger.debug "RW new_views #{new_views.inspect}"
     	# TODO: Should these next two steps be reversed? 2016-08-02
@@ -153,7 +150,7 @@ module RackWarden
 			  # logger.info "RW DataMapper using log_file #{_log_file.inspect}"
 		  #end
 	    
-	    logger.info "RW AppClassMethods.initialize_logging level: #{logger.level}, _log_file: #{_log_file.inspect}"
+	    logger.info "RW RackWardenClassMethods.initialize_logging level: #{logger.level}, _log_file: #{_log_file.inspect}"
 	  rescue
 	  	puts "RW - There was an error setting up logging: #{$!}"
 	  end
@@ -175,163 +172,10 @@ module RackWarden
 		  if tmpl
 		  	tmpl.render(object, locals_hash)
 		  else
-			  App.logger.info "RW AppClassMethods.render_template found no templates to render" 
+			  App.logger.info "RW RackWardenClassMethods.render_template found no templates to render" 
 			  nil
 			end
 		end
 
-	end # AppClassMethods
-
-
-	module UniversalHelpers
-	#protected ... might need this for rails, but not for sinatra.
-		
-		def require_login
-			App.logger.debug "RW UniversalHelpers...  #{self}#require_login with #{rack_warden}, and #{warden}"
-			#logged_in? || warden.authenticate!
-			warden.authenticated? || warden.authenticate!
-	  end
-	
-		def warden
-	    request.env['warden']
-		end
-		
-		def warden_options
-	    request.env['warden.options']
-		end
-	
-		def current_user
-	    #warden.authenticated? && warden.user
-	    logged_in? && warden.user
-		end
-		
-		def current_identity
-		  App.logger.debug "RW Getting current_identity for identity id:  #{session['identity']}"
-		  if session['identity']
-  		  identity = IdentityRepo.by_id(session['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
-  		  App.logger.debug "RW retrieved current_identity #{identity}"
-  		  identity
-		  end
-		end
-	
-		def logged_in?
-			App.logger.debug "RW UniversalHelpers#logged_in? #{warden.authenticated?}"
-	    warden.authenticated? || warden.authenticate(:remember_me)
-		end
-		
-		def authorized?(options=request)
-			App.logger.debug "RW UniversalHelpers#authorized? user '#{current_user}'"
-			current_user && current_user.authorized?(options) || request.script_name[/login|new|create|logout/]
-		end
-
-		def require_authorization(authenticate_on_fail=false, options=request)
-			App.logger.debug "RW UniversalHelpers#require_authorization"
-			logged_in? || warden.authenticate!
-			unless authorized?(options)
-				if authenticate_on_fail
-					flash[:rw_error] = ("Please login to continiue")
-					redirect url_for("/login")
-				else
-					flash[:rw_error] = ("You are not authorized to do that")
-					redirect back
-				end
-			end		
-		end
-
-		# Returns the current rack_warden app instance stored in env.
-	  def rack_warden
-	  	App.logger.debug "RW UniversalHelpers.rack_warden #{request.env['rack_warden_instance']}"
-	  	request.env['rack_warden_instance'] #.tap {|rw| rw.request = request}    #request}
-	  end
-	  
-	  def account_widget
-	  	rack_warden.erb :'rw_account_widget.html', :layout=>false
-	  end
-	  
-	  def flash_widget
-			# App.logger.debug "RW UniversalHelpers#flash_widget self.flash #{self.flash}"
-			# App.logger.debug "RW UniversalHelpers#flash_widget rack.flash #{env['x-rack.flash']}"
-			# App.logger.debug "RW UniversalHelpers#flash_widget.rack_warden.flash #{rack_warden.request.env['x-rack.flash']}"
-	  	rack_warden.erb :'rw_flash_widget.html', :layout=>false
-	  end
-	
-	end # UniversalHelpers
-
-
-
-
-	# Also bring these into your main app helpers.
-	module RackWardenHelpers
-
-		# Access main logger from app instance.
-		def logger
-			settings.logger
-		end
-	
-	  # WBR - override. This passes block to be rendered to first template that matches.
-		def find_template(views, name, engine, &block)
-			logger.debug "RW RackWardenHelpers#find_template name: #{name}, engine: #{engine}, block: #{block}, views: #{views}"
-			logger.debug "RW RackWardenHelpers#find_template self: #{self}, self.class: #{self.class}, settings: #{settings}, current app layout: #{settings.layout}"
-	    Array(views).each { |v| super(v, name, engine, &block) }
-	  end
-	  
-	  # Because accessing app instance thru env seems to loose flash access.
-	  def flash
-	  	request.env['x-rack.flash']
-	  end
-		
-	  def valid_user_input?
-	    params['user'] && params['user']['email'] && params['user']['password']
-	  end
-
-		def rw_prefix(_route='')
-			settings.rw_prefix.to_s + _route.to_s
-		end
-		
-		def url_for(_url, _full_uri=false)
-			url(rw_prefix(_url), _full_uri)
-		end
-		
-		
-	
-		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])
-			secret = settings.recaptcha[:secret]
-	 		_recaptcha = ActiveSupport::JSON.decode(open("https://www.google.com/recaptcha/api/siteverify?secret=#{secret}&response=#{response}&remoteip=#{ip}").read)
-	    logger.info "RW RackWardenHelpers#verify_recaptcha #{_recaptcha.inspect}"
-	    unless _recaptcha['success']
-	    	flash.rw_error = "Please confirm you are human"
-	    	redirect back unless skip_redirect
-	    	Halt "You appear to be a robot."
-	    end
-	  end
-	
-	  def default_page
-			#nested_erb :'rw_index.html', :'rw_layout.html', settings.layout
-			respond_with :rw_index
-	  end
-		
-	  def nested_erb(*list)
-	  	list.inject do |tmplt, lay|
-	  		erb tmplt, :layout=>lay
-	  	end
-	  end
-	  
-	  # Redirect to session[:return_to] or the provided fallback.
-	  def return_to(fallback=settings.default_route)
-      # This use to use url_for(fallback), but namespaced actions would return_to to bogus places.
-	  	redirect session[:return_to] || fallback
-	  end
-	  
-	  def redirect_error(message="Error")
-	  	flash.rw_error = message
-			redirect url_for("/error")
-	  end
-	  
-	  def account_bar
-	  	return unless current_user
-	  	"<b>#{current_user.username rescue ('no username for current user: ' + current_user.inspect.to_s)}</b>"
-	  end
-
-	end # RackWardenHelpers
-
+	end # RackWardenClassMethods
 end # RackWarden
