@@ -90,7 +90,7 @@ module RackWarden
     # 		end
     # 	end # initialize
     
-    # This new version if initialize was taken from rack_warden_rom_testing middleware_example.
+    # This new version of initialize was taken from rack_warden_rom_testing middleware_example.
     def initialize(*args)
       @app = args[0] if args[0]
       @template_cache = Tilt::Cache.new

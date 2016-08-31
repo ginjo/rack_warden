@@ -78,7 +78,7 @@ module RackWarden
 			#settings.instance_exec(rw_app_instance, &block) if block_given?
 			# Eval the use-block from the parent app, in context of the parent app instance.
 			logger.debug "RW yielding to initialization block if block_given? #{block_given?}"
-			yield rw_app_instance.settings if block_given?
+			yield(rw_app_instance.settings, rw_app_instance) if block_given?
 			
 		  # Set global layout (remember to use :layout=>false in your calls to partials).
 		  logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance setting erb layout: #{settings.layout}"

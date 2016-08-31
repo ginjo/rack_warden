@@ -26,7 +26,7 @@ module RackWarden
       
       def setup_framework
         App.logger.debug "RW Frameworks::Sinatra.setup_framework for sinatra app #{parent_app}"
-  			parent_app.helpers(RackWarden::UniversalHelpers)
+  			#parent_app.helpers(RackWarden::UniversalHelpers)
         App.logger.debug "RW Frameworks::Sinatra.setup_framework registering class methods for #{parent_app}"
   			parent_app.register ClassMethods
   			parent_app.require_login(RackWarden::App.require_login) if RackWarden::App.require_login != false

@@ -186,7 +186,7 @@ module RackWarden
             identity = IdentityRepo.upsert_from_auth_hash(env['omniauth.auth'])
             user = identity.user
             #App.logger.debug env['omniauth.auth'].to_yaml
-            App.logger.debug "RW Warden Strategy Omniauth retrieved/created identity: #{identity}"
+            App.logger.debug "RW Warden Strategy Omniauth retrieved/created identity: #{identity}, guid:#{identity.guid}"
             #App.logger.debug identity.to_yaml
             if user
               session['identity'] = identity.id
