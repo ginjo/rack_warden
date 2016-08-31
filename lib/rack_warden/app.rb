@@ -5,6 +5,7 @@ require 'logger'
 
 module RackWarden
   class App < Sinatra::Base
+    Subclasses = Array.new
           
     set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
     set :layout, :'rw_layout.html'
@@ -46,6 +47,13 @@ module RackWarden
     		:delivery_method => :test,
     		:delivery_options => {:from => 'my@email.com'} #, :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE
     set :omniauth_adapters, Gem.loaded_specs.keys.select{|k| k =~ /omniauth/ && k}
+	  
+	  
+    def self.inherited(subclass)
+      Subclasses  << subclass
+      super
+    end
+    
 	  
 	  # See below
 		#register RackWardenClassMethods

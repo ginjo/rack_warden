@@ -1,5 +1,6 @@
 require 'dry-types'
 require 'dry/types/struct'
+require 'uri'
 
 # Simple conversion to html (intended for yaml output)
 class String
@@ -14,7 +15,7 @@ class Hash
 	# Extracted pairs are deleted from the original hash (self).
 	# Returns the extracted pairs as a hash or as the supplied collector hash.
 	# Attempts to ignore case.
-	def extract(*args)
+	def __extract__(*args)
 		other_hash = args.last.is_a?(Hash) ? args.pop : {}
 		other_hash.tap do |other|
 			self.delete_if {|k,v| (args.include?(k) || args.include?(k.to_s) || args.include?(k.to_s.downcase) || args.include?(k.to_sym)) || args.include?(k.to_s.downcase.to_sym) ? other[k]=v : nil}
@@ -25,6 +26,10 @@ class Hash
   # def extract(*keys)
   #   Hash[[keys, self.values_at(*keys)].transpose]
   # end
+  
+  def __to_params__
+    map { |k,v| "#{k}=#{URI.escape(v)}" }.join('&')
+  end
   
   ## Not currently used
   # def deep_merge(other_hash)

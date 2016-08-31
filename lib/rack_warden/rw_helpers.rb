@@ -27,8 +27,15 @@ module RackWarden
 			settings.rw_prefix.to_s + _route.to_s
 		end
 		
-		def url_for(_url, _full_uri=false)
-			url(rw_prefix(_url), _full_uri)
+		# Generate partial or full URL, including base-uri-prefix-whatever,
+		# with params hash, if exists.
+		# Arg 2 is _full_uri true or false, default false.
+		def url_for(_url, *args)
+		  _params = args.last.is_a?(Hash) ? args.pop : Hash.new
+		  _full_uri = args[0] || false
+		  #logger.debug "RW RackWardenHelpers#url_for _url: #{_url}, _full_uri: #{_full_uri.to_s}, _params: #{_params.__to_params__}"
+			url(rw_prefix(_url), _full_uri).to_s +
+			(_params.empty? ? '' : "?#{_params.__to_params__}")
 		end
 			
 		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])

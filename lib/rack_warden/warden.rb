@@ -60,21 +60,33 @@ module RackWarden
         use OmniAuth::Strategies::Developer
         use OmniAuth::Builder do
           App.logger.debug "RW setting up omniauth providers within #{self}"
-          # GitHub API v3 lets you set scopes to provide granular access to different types of data:
-          provider :github, ENV['GITHUB_KEY'], ENV['GITHUB_SECRET'], :scope=> 'user:email' if App.omniauth_adapters.include?('omniauth-github') #, scope: "user,repo,gist"
           # Per the omniauth sinatra example @ https://github.com/intridea/omniauth/wiki/Sinatra-Example
           #provider :open_id, :store => OpenID::Store::Filesystem.new('/tmp')
           #provider :identity, :fields => [:email]
-          # See google api docs: https://developers.google.com/identity/protocols/OAuth2
-          provider :google_oauth2, ENV['GOOGLE_KEY'], ENV['GOOGLE_SECRET'] if App.omniauth_adapters.include?('omniauth-google-oauth2')
-          if App.omniauth_adapters.include?('omniauth-slack'); provider :slack,
-            ENV['SLACK_OAUTH_KEY'],
-            ENV['SLACK_OAUTH_SECRET'],
-            scope: 'identity.basic' #,identity.email,identity.team' #,identity.avatar'
-            #:setup => lambda{|env| env['omniauth.strategy'].options[:redirect_uri] = "#{ENV['SLACKSPACE_BASE_URL']}/auth/slack/callback" } \
-            #:callback_url => "http://#{ENV['SLACKSPACE_BASE_URL']}/auth/slack/callback?" \
+
+          # GitHub API v3 lets you set scopes to provide granular access to different types of data:
+          if App.omniauth_adapters.include?('omniauth-github') 
+            provider :github, ENV['GITHUB_KEY'], ENV['GITHUB_SECRET'],
+              name: 'rw_github',
+              scope: 'user:email'
           end
-          #provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'], scope: 'identify,team:read,incoming-webhook,channels:read', :name=>'slack_full' #,users:read'
+
+          # See google api docs: https://developers.google.com/identity/protocols/OAuth2
+          if App.omniauth_adapters.include?('omniauth-google-oauth2')
+            provider :google_oauth2, ENV['GOOGLE_KEY'], ENV['GOOGLE_SECRET'],
+              name: 'rw_google'
+          end
+          
+          # Slack oauth2
+          if App.omniauth_adapters.include?('omniauth-slack');
+            provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'],
+              name: 'rw_slack',
+              scope: 'identity.basic' #,identity.email,identity.team' #,identity.avatar'
+              #scope: 'identify,team:read,incoming-webhook,channels:read,users:read'
+              #setup: lambda{|env| env['omniauth.strategy'].options[:redirect_uri] = "#{ENV['SLACKSPACE_BASE_URL']}/auth/slack/callback" }
+              #callback_url: "http://#{ENV['SLACKSPACE_BASE_URL']}/auth/slack/callback?"
+              #path_prefix: '/some_other_prefix'  #Make sure RackWarden 'rw_prefix' is in tune with this setting.
+          end
         end
     		###  END OMNIAUTH CODE  ###
 			
@@ -215,7 +227,7 @@ module RackWarden
 				#App.logger.debug "RW after_authentication callback - user: #{user.username}"
       	
       	if user.is_a?(User) && (!user.remember_token.to_s.empty? || (auth.params['user'] && auth.params['user']['remember_me'] == '1'))
-      		App.logger.debug "RW after_authenticate user.remember_me '#{user.username}'"
+      		App.logger.info "RW after_authenticate user.remember_me '#{user.username}'"
       		user.remember_me
 					
 					# We have no path to response object here :(

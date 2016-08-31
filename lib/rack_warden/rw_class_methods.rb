@@ -90,6 +90,9 @@ module RackWarden
 			# So we can get specific rw_prefix loaded correctly.
 			helpers RackWarden::Routes
 			
+			# Apply rw_prefix to omniauth path_prefix, for this rw subclass.
+			manipulate_omniauth_settings
+			
 			settings.initialize_logging
 			  			
 			#logger.info "RW RackWardenClassMethods.initialize_settings_from_instance compiled views: #{settings.views.inspect}"
@@ -129,7 +132,7 @@ module RackWarden
     # Apply new settings on top of existing settings, prepending new views to old views.
     def overlay_settings(new_settings)
       existing_views = settings.views
-    	new_views = new_settings.extract(:views).values
+    	new_views = new_settings.__extract__(:views).values
     	logger.debug "RW RackWardenClassMethods.overlay_settings self: #{self}, new_settings: #{new_settings} "   #App.object_id #{settings.object_id}"
     	#logger.debug "RW existing_views #{existing_views.inspect}"
     	#logger.debug "RW new_views #{new_views.inspect}"
@@ -168,6 +171,22 @@ module RackWarden
 	  rescue
 	  	puts "RW - There was an error setting up logging: #{$!}"
 	  end
+	  
+	  # Set omniauth path_prefix, for all omniauth builders in this RW subclass, with rw_prefix.
+	  def manipulate_omniauth_settings
+      logger.info "RW RackWardenClassMethods.manipulate_omniauth_settings setting omniauth path_prefix with rw_prefix '#{settings.rw_prefix}'"
+      rw_omniauth_middleware = settings.middleware.select{|m| m[0] == (OmniAuth::Builder)}
+      rw_omniauth_middleware.each do |mw|
+        old_proc = mw[2]
+        _app = settings
+        new_proc = Proc.new do
+          #logger.debug "RW middlware-proc self: #{self}"
+          configure {|cfg| cfg.path_prefix = _app.rw_prefix}
+          instance_exec(&old_proc)
+        end
+        mw[2] = new_proc
+      end
+    end
 
 	  # Creates uri-friendly codes/keys/hashes from raw unfriendly strings (like BCrypt hashes). 
 	  def uri_encode(string)
