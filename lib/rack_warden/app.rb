@@ -6,6 +6,9 @@ require 'logger'
 module RackWarden
   class App < Sinatra::Base
     Subclasses = Array.new
+    
+    use Rack::Session::Cookie
+    disable :protection if development?
           
     set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
     set :layout, :'rw_layout.html'
@@ -109,7 +112,7 @@ module RackWarden
 		#       at the end of this override method, Sinatra kicks in and creates
 		#       a new rw app instance. That's how sinatra works (new app instance for each request).
 		def call(env)
-			logger.info "RW App#call self: #{self}, parent app: #{@app}"
+			logger.debug "RW App#call self: #{self}, parent app: #{@app}"
 			env.extend Env
 			
       # 	# Initialize if not already (may only be usefull for stand-alone mode (no parent app)).
@@ -124,8 +127,12 @@ module RackWarden
 		  logger.debug "RW App#call storing rw app instance #{self} in env['rack_warden_instance']"
 		  self.request = Rack::Request.new(env)
 		  env.rack_warden = self
+		  
+		  logger.debug "RW App#call request.path_info: #{request.path_info}"
+		  logger.debug "RW App#call session: #{env['rack.session'].inspect}"
 			
 			# Authenticate here-and-now.
+			# TODO: Change this name to Authorize here-and-now ??
 			prefix_regex = Regexp.new("^#{settings.rw_prefix}")  
 		  if !request.path_info.to_s[prefix_regex] && settings.rack_authentication  # /^\/auth/
 			  logger.debug "RW App#call rack_authentication for path_info: #{request.path_info}"
@@ -149,8 +156,13 @@ module RackWarden
 		register RackWardenClassMethods
 		
 		before do
-		  logger.debug "RW request self: #{self}, settings: #{settings}, self.class: #{self.class}"
+		  logger.debug "RW before-request self: #{self}, settings: #{settings}, self.class: #{self.class}"
 		end
+		
+  	after do
+      logger.debug "SS after-request env['rack.session']: #{env['rack.session'].inspect}"
+      logger.debug "SS after-request env['warden'].session: #{env['warden'].session.inspect}" if env['warden'].authenticated?
+  	end
 
 
   end # App

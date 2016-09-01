@@ -47,49 +47,8 @@ module RackWarden
         # This block is evaluated in the context of RackWarden::App
         
         App.logger.debug "RW evaluating WardenConfig code within #{base}"
-        
-        
-    		###  OMNIAUTH CODE  ###
-    		###  See http://www.rubydoc.info/github/intridea/omniauth/OmniAuth/Builder
-    		###
-    		
-    		# Tried this to fix slack csrf error, but it didn't help,
-    		# and it broke the other providers.
-    		#OmniAuth.config.full_host = ENV['OMNIAUTH_HOST_NAME']
-    		
-        use OmniAuth::Strategies::Developer
-        use OmniAuth::Builder do
-          App.logger.debug "RW setting up omniauth providers within #{self}"
-          # Per the omniauth sinatra example @ https://github.com/intridea/omniauth/wiki/Sinatra-Example
-          #provider :open_id, :store => OpenID::Store::Filesystem.new('/tmp')
-          #provider :identity, :fields => [:email]
 
-          # GitHub API v3 lets you set scopes to provide granular access to different types of data:
-          if App.omniauth_adapters.include?('omniauth-github') 
-            provider :github, ENV['GITHUB_KEY'], ENV['GITHUB_SECRET'],
-              name: 'rw_github',
-              scope: 'user:email'
-          end
 
-          # See google api docs: https://developers.google.com/identity/protocols/OAuth2
-          if App.omniauth_adapters.include?('omniauth-google-oauth2')
-            provider :google_oauth2, ENV['GOOGLE_KEY'], ENV['GOOGLE_SECRET'],
-              name: 'rw_google'
-          end
-          
-          # Slack oauth2
-          if App.omniauth_adapters.include?('omniauth-slack');
-            provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'],
-              name: 'rw_slack',
-              scope: 'identity.basic' #,identity.email,identity.team' #,identity.avatar'
-              #scope: 'identify,team:read,incoming-webhook,channels:read,users:read'
-              #setup: lambda{|env| env['omniauth.strategy'].options[:redirect_uri] = "#{ENV['SLACKSPACE_BASE_URL']}/auth/slack/callback" }
-              #callback_url: "http://#{ENV['SLACKSPACE_BASE_URL']}/auth/slack/callback?"
-              #path_prefix: '/some_other_prefix'  #Make sure RackWarden 'rw_prefix' is in tune with this setting.
-          end
-        end
-    		###  END OMNIAUTH CODE  ###
-			
 		    use Warden::Manager do |config|
           # Tell Warden how to save our User info into a session.
           # Sessions can only take strings, not Ruby code, we'll store
@@ -107,11 +66,67 @@ module RackWarden
             # The action is a route to send the user to when
             # warden.authenticate! returns a false answer. We'll show
             # this route below.
+            #:action => "#{settings.rw_prefix}/unauthenticated"
             :action => "#{settings.rw_prefix}/unauthenticated"
           # When a user tries to log in and cannot, this specifies the
           # app to send the user to.
           config.failure_app = self
 		    end
+        
+        
+    		###  OMNIAUTH CODE  ###
+    		###  See http://www.rubydoc.info/github/intridea/omniauth/OmniAuth/Builder
+    		###
+    		
+#     		use OmniAuth::Builder do
+#           before_callback_phase {|env| env['warden'].logout}
+#           #provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'], scope: 'identify,team:read,incoming-webhook,channels:read'
+#           provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'],
+#             scope: 'identify,chat:write:bot,channels:read',
+#             name: 'slackspace' #,
+#             #path_prefix: '/session'
+#           provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'],
+#             scope: 'identity.basic'
+#         end
+    		
+    		
+    		
+    		# Tried this to fix slack csrf error, but it didn't help,
+    		# and it broke the other providers.
+    		#OmniAuth.config.full_host = ENV['OMNIAUTH_HOST_NAME']
+    		
+        # use OmniAuth::Strategies::Developer
+        # use OmniAuth::Builder do
+        #   App.logger.debug "RW setting up omniauth providers within #{self}"
+        #   # Per the omniauth sinatra example @ https://github.com/intridea/omniauth/wiki/Sinatra-Example
+        #   #provider :open_id, :store => OpenID::Store::Filesystem.new('/tmp')
+        #   #provider :identity, :fields => [:email]
+        # 
+        #   # GitHub API v3 lets you set scopes to provide granular access to different types of data:
+        #   if App.omniauth_adapters.include?('omniauth-github') 
+        #     provider :github, ENV['GITHUB_KEY'], ENV['GITHUB_SECRET'],
+        #       name: 'rw_github',
+        #       scope: 'user:email'
+        #   end
+        # 
+        #   # See google api docs: https://developers.google.com/identity/protocols/OAuth2
+        #   if App.omniauth_adapters.include?('omniauth-google-oauth2')
+        #     provider :google_oauth2, ENV['GOOGLE_KEY'], ENV['GOOGLE_SECRET'],
+        #       name: 'rw_google'
+        #   end
+        #   
+        #   # Slack oauth2
+        #   if App.omniauth_adapters.include?('omniauth-slack');
+        #     provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'],
+        #       name: 'rw_slack',
+        #       scope: 'identity.basic' #,identity.email,identity.team' #,identity.avatar'
+        #       #scope: 'identify,team:read,incoming-webhook,channels:read,users:read'
+        #       #setup: lambda{|env| env['omniauth.strategy'].options[:redirect_uri] = "#{ENV['SLACKSPACE_BASE_URL']}/auth/slack/callback" }
+        #       #callback_url: "http://#{ENV['SLACKSPACE_BASE_URL']}/auth/slack/callback?"
+        #       #path_prefix: '/some_other_prefix'  #Make sure RackWarden 'rw_prefix' is in tune with this setting.
+        #   end
+        # end
+    		###  END OMNIAUTH CODE  ###
 		
 			end # base.instance_eval
 		end # self.included
@@ -182,15 +197,19 @@ module RackWarden
         
         def authenticate!
           begin
-            # TODO: This should be an 'upsert_from_auth_hash'
             identity = IdentityRepo.upsert_from_auth_hash(env['omniauth.auth'])
             user = identity.user
             #App.logger.debug env['omniauth.auth'].to_yaml
-            App.logger.debug "RW Warden Strategy Omniauth retrieved/created identity: #{identity}, guid:#{identity.guid}"
+            App.logger.debug "RW Warden Strategy Omniauth retrieved/created identity: #{identity}, guid:#{identity.guid}, self: #{self}"
+            #App.logger.debug env['omniauth.auth'].to_h.to_yaml
             #App.logger.debug identity.to_yaml
             if user
-              session['identity'] = identity.id
+              #session['identity'] = identity.id
               App.logger.info "RW OmniAuth Strategy#authenticate! SUCCESS"
+              # 'success()' is different from 'set_user()', but I'm not sure why the difference.
+              # If we don't use 'set_user()' the warden object is not considered logged in yet
+              env['warden'].set_user user
+              env['warden'].session['identity'] = identity.id #if env['warden'].authenticated?
               success!(user)
             else
               App.logger.info "RW OmniAuth Strategy#authenticate! FAIL"
@@ -214,7 +233,7 @@ module RackWarden
 		# See http://www.rubydoc.info/github/hassox/warden/Warden/Hooks for info on callback params.
 
     class Warden::Manager
-	    
+    	    
 	    before_failure do |env,opts|
 	      env['REQUEST_METHOD'] = 'POST'
 	    end
@@ -225,6 +244,13 @@ module RackWarden
 				#App.logger.debug "RW after_authentication callback - opts: #{opts.inspect}"
 				#App.logger.debug "RW after_authentication callback - auth.manager: #{auth.manager.inspect}"
 				#App.logger.debug "RW after_authentication callback - user: #{user.username}"
+				
+				# This works! But I don't think it's the right place to set the identity.
+        # if auth.env['omniauth.auth'] && auth.env['warden'].authenticated?
+        # 	identity = IdentityRepo.upsert_from_auth_hash(auth.env['omniauth.auth'])
+        # 	auth.env['warden'].session['identity'] = identity.id
+        # end
+  				
       	
       	if user.is_a?(User) && (!user.remember_token.to_s.empty? || (auth.params['user'] && auth.params['user']['remember_me'] == '1'))
       		App.logger.info "RW after_authenticate user.remember_me '#{user.username}'"
@@ -243,14 +269,18 @@ module RackWarden
 				App.logger.debug "RW before_logout callback - auth: #{auth.instance_variables}"
 				App.logger.debug "RW before_logout callback - opts: #{opts.inspect}"
 				App.logger.debug "RW before_logout callback - user: #{user.inspect}"
+				#App.logger.debug "RW before_logout callback - auth.env: #{auth.env.keys}"
+				#App.logger.debug "RW before_logout callback - auth.env['rack.session']: #{auth.env['rack.session'].to_h.to_yaml}"
+				
+				user && user.forget_me
 			  
-			  #auth.response.set_cookie 'rack_warden_remember_me', nil
+			  #auth.response.set_cookie 'rack_warden_remember_me', nil  ## doesn't work, there is no auth.response object !!!
 			  App.logger.debug "RW cookie unset 'rack_warden_remember_token': #{auth.env.remember_token}"
 			  auth.env.remember_token = nil
-
-			  user && user.forget_me
 			  
-			  auth.env['rack.session']['identity'] = nil
+			  #auth.env['warden'].session['identity'] = nil  # This bombs "Warden::NotAuthenticated at /session/slackspace/callback
+                                                      # :default user is not logged in"
+			  #auth.env['rack.session']['identity'] = nil
 			end
 			
 		end # Warden::Manager

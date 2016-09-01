@@ -5,7 +5,8 @@ module RackWarden
 		def require_login
 			App.logger.debug "RW UniversalHelpers...  #{self}#require_login with #{rack_warden}, and #{warden}"
 			#logged_in? || warden.authenticate!
-			warden.authenticated? || warden.authenticate!
+			#warden.authenticated? || warden.authenticate!
+			warden.authenticate?
 	  end
 	
 		def warden
@@ -22,12 +23,15 @@ module RackWarden
 		end
 		
 		def current_identity
-		  App.logger.debug "RW Getting current_identity for identity id:  #{session['identity']}"
-		  if session['identity']
-  		  identity = IdentityRepo.by_id(session['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
-  		  App.logger.debug "RW retrieved current_identity #{identity}"
+		  App.logger.debug "RW Getting current_identity for identity with warden.session['identity']:  #{warden.session['identity']}"
+		  if warden.authenticated? && warden.session['identity']  #session['identity']
+  		  identity = IdentityRepo.by_id(warden.session['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
+  		  App.logger.debug "RW retrieved current_identity #{identity.guid}"
   		  identity
 		  end
+		rescue
+		  logger.info "RW current_identity error: #{$!}"
+		  nil
 		end
 	
 		def logged_in?
@@ -57,7 +61,8 @@ module RackWarden
 		# Returns the current rack_warden app instance stored in env.
 	  def rack_warden
 	  	App.logger.debug "RW UniversalHelpers.rack_warden #{request.env['rack_warden_instance']}"
-	  	request.env['rack_warden_instance'] #.tap {|rw| rw.request = request}    #request}
+	  	#request.env['rack_warden_instance'] #.tap {|rw| rw.request = request}    #request}
+	  	request.env.rack_warden
 	  end
 	  
 	  def account_widget

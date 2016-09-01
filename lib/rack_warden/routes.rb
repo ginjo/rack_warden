@@ -62,8 +62,13 @@ module RackWarden
           # https://github.com/intridea/omniauth/wiki/Auth-Hash-Schema
           %w(get post).each do |method|
             send(method, "/:provider/callback") do
-              #puts "GET/POST /auth/:provider/callback"
+              logger.debug "RW /provider/callback before-auth env: #{env.object_id}, warden: #{env['warden']}"
+              #logger.debug "RW /provider/callback before-auth env: #{env.object_id}, session: #{env['rack.session'].to_h.to_yaml}"
+              #warden.logout
+              #logger.debug "RW /provider/callback before-auth-after-logout env: #{env.object_id}, warden: #{env['warden']}"
               warden.authenticate!(:omniauth)
+              #logger.debug "RW /provider/callback after-auth env: #{env.object_id}, warden: #{env['warden']}"
+              #logger.debug "RW /provider/callback after-auth env: #{env.object_id}, session: #{env['rack.session'].to_h.to_yaml}"
               #erb "<pre>#{current_user.to_yaml}</pre>"
               # The .. is to go up one level above the rw_prefix.
               return_to #'/protected'

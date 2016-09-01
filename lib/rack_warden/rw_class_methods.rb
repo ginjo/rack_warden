@@ -67,6 +67,8 @@ module RackWarden
 	  # This should generally only run once.
 	  # Also see App#initialize method.
 	  def initialize_settings_from_instance(parent_app_instance, rw_app_instance, *initialization_args)
+      #parent_app_instance = yield(rw_app_instance.settings, rw_app_instance) if block_given?
+	  
   	  logger.info "RW RackWardenClassMethods.initialize_settings_from_instance self: #{self}"
       logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance parent_app_instance: #{parent_app_instance}"
       logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance rw_app_instance: #{rw_app_instance}"
@@ -78,6 +80,8 @@ module RackWarden
 			#settings.instance_exec(rw_app_instance, &block) if block_given?
 			# Eval the use-block from the parent app, in context of the parent app instance.
 			logger.debug "RW yielding to initialization block if block_given? #{block_given?}"
+			# TODO:  I don't think passing rw_app_instance here is reliable.
+			#        It may be instanciated without a request or env.
 			yield(rw_app_instance.settings, rw_app_instance) if block_given?
 			
 		  # Set global layout (remember to use :layout=>false in your calls to partials).
@@ -173,19 +177,22 @@ module RackWarden
 	  end
 	  
 	  # Set omniauth path_prefix, for all omniauth builders in this RW subclass, with rw_prefix.
-	  def manipulate_omniauth_settings
+    def manipulate_omniauth_settings
       logger.info "RW RackWardenClassMethods.manipulate_omniauth_settings setting omniauth path_prefix with rw_prefix '#{settings.rw_prefix}'"
-      rw_omniauth_middleware = settings.middleware.select{|m| m[0] == (OmniAuth::Builder)}
-      rw_omniauth_middleware.each do |mw|
-        old_proc = mw[2]
-        _app = settings
-        new_proc = Proc.new do
-          #logger.debug "RW middlware-proc self: #{self}"
-          configure {|cfg| cfg.path_prefix = _app.rw_prefix}
-          instance_exec(&old_proc)
-        end
-        mw[2] = new_proc
-      end
+      ## This was the old way but turns out you can't set omniauth config per omni-builder,
+      ## So see below for global omni config.
+      # rw_omniauth_middleware = settings.middleware.select{|m| m[0] == (OmniAuth::Builder)}
+      # rw_omniauth_middleware.each do |mw|
+      #   old_proc = mw[2]
+      #   _app = settings
+      #   new_proc = Proc.new do
+      #     #logger.debug "RW middlware-proc self: #{self}"
+      #     configure {|cfg| cfg.path_prefix = _app.rw_prefix}
+      #     instance_exec(&old_proc)
+      #   end
+      #   mw[2] = new_proc
+      # end
+      #OmniAuth.config.path_prefix = settings.rw_prefix
     end
 
 	  # Creates uri-friendly codes/keys/hashes from raw unfriendly strings (like BCrypt hashes). 
