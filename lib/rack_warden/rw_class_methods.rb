@@ -192,7 +192,7 @@ module RackWarden
       #   end
       #   mw[2] = new_proc
       # end
-      #OmniAuth.config.path_prefix = settings.rw_prefix
+      OmniAuth.configure {|cfg| cfg.path_prefix = settings.rw_prefix}
     end
 
 	  # Creates uri-friendly codes/keys/hashes from raw unfriendly strings (like BCrypt hashes). 
