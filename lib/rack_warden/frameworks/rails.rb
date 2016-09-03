@@ -16,8 +16,8 @@ module RackWarden
       
       def self.included(base)
         base.include FrameworkHelpers
-        base.send :protected, FrameworkHelpers.instance_methods
-        base.helper_method FrameworkHelpers.instance_methods
+        base.send :protected, *FrameworkHelpers.instance_methods
+        base.helper_method *FrameworkHelpers.instance_methods
         base.extend ClassMethods
         ###base.require_login(RackWarden::App.require_login || {})) if RackWarden::App.require_login != false
       end
