@@ -18,7 +18,6 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
     
-
 	spec.add_dependency "backports"
 	spec.add_dependency "bcrypt"
   spec.add_dependency "data_mapper"
@@ -28,10 +27,12 @@ Gem::Specification.new do |spec|
   spec.add_dependency "omniauth"
   spec.add_dependency "rack-contrib"
   spec.add_dependency "rack-flash3"
+  spec.add_dependency "rom-sql"
+  spec.add_dependency "rom-repository"
   spec.add_dependency "sinatra"
   spec.add_dependency "sinatra-contrib"
+  spec.add_dependency "sqlite3"
   spec.add_dependency "warden"
-  
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"

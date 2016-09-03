@@ -97,7 +97,7 @@ module RackWarden
 			# Authenticate here-and-now.
 			# TODO: Change this name to Authorize here-and-now ??
 			prefix_regex = Regexp.new("^#{settings.rw_prefix}")  
-		  if !request.path_info.to_s[prefix_regex] && settings.rack_authentication  # /^\/auth/
+		  if settings.rack_authentication && !request.script_name.to_s[prefix_regex] && !request.path_info.to_s[prefix_regex]   # /^\/auth/
 			  logger.debug "RW App#call rack_authentication for path_info: #{request.path_info}"
 			  Array(settings.rack_authentication).each do |rule|
 			  	logger.debug "RW App#call rack_authentication rule #{rule}"
