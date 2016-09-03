@@ -6,7 +6,7 @@ module RackWarden
 			App.logger.debug "RW UniversalHelpers...  #{self}#require_login with #{rack_warden}, and #{warden}"
 			#logged_in? || warden.authenticate!
 			#warden.authenticated? || warden.authenticate!
-			warden.authenticate?
+			warden.authenticate!
 	  end
 	
 		def warden
