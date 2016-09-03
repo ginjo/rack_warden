@@ -23,7 +23,7 @@ module RackWarden
 		end
 		
 		def current_identity
-		  App.logger.debug "RW Getting current_identity with warden.session['identity']:  #{warden.session['identity']}"
+		  App.logger.debug "RW Getting current_identity with warden.session['identity']:  #{session['warden.user.default.session']}"
 		  if warden.authenticated? && warden.session['identity']  #session['identity']
   		  identity = IdentityRepo.by_id(warden.session['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
   		  App.logger.debug "RW retrieved current_identity #{identity.guid}"
