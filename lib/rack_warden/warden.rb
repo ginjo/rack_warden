@@ -76,20 +76,7 @@ module RackWarden
         
     		###  OMNIAUTH CODE  ###
     		###  See http://www.rubydoc.info/github/intridea/omniauth/OmniAuth/Builder
-    		###
-    		
-#     		use OmniAuth::Builder do
-#           before_callback_phase {|env| env['warden'].logout}
-#           #provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'], scope: 'identify,team:read,incoming-webhook,channels:read'
-#           provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'],
-#             scope: 'identify,chat:write:bot,channels:read',
-#             name: 'slackspace' #,
-#             #path_prefix: '/session'
-#           provider :slack, ENV['SLACK_OAUTH_KEY'], ENV['SLACK_OAUTH_SECRET'],
-#             scope: 'identity.basic'
-#         end
-    		
-    		
+    		###    		
     		
     		# Tried this to fix slack csrf error, but it didn't help,
     		# and it broke the other providers.

@@ -7,7 +7,8 @@ module RackWarden
   class App < Sinatra::Base
     Subclasses = Array.new
     
-    use Rack::Session::Cookie
+    # TODO: figure out the best way to initialize sessions.
+    #use Rack::Session::Cookie
     disable :protection if development?
           
     set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
@@ -30,10 +31,7 @@ module RackWarden
     set :logger, nil
     set :use_common_logger, false
     set :reset_logger, false
-    #set :sessions, true # Will use parent app sessions.
-      #   Pass in :key=>'something' to enable RW-specific sessions (maybe).
-      #   See class helpers for newer session declaration.
-      #   Really? Is all this true?
+    set :sessions, true # Will use parent app sessions?
     # set :sessions, :key => 'rack_warden',
     #     :path => '/',
     #     :expire_after => 14400, # In seconds
@@ -42,6 +40,7 @@ module RackWarden
     set :user_table_name, 'rack_warden_users'
     set :field_maps, {}
     set :views, File.expand_path("../views/", __FILE__) unless views
+    set :extra_views, [ File.join(Dir.pwd, "app/views/rack_warden"), File.join(Dir.pwd, "views/rack_warden"), File.join(Dir.pwd,"app/views"), File.join(Dir.pwd,"views")]
     set :initialized, false
     set :login_on_create, true
     set :login_on_activate, false
@@ -56,42 +55,6 @@ module RackWarden
       Subclasses  << subclass
       super
     end
-    
-	  
-	  # See below
-		#register RackWardenClassMethods
-
-
-    # NOTE: I think this behavior description & example are not quite correct any more.
-    # WBR - This will receive params and a block from the parent "use" statement.
-    # This middleware app has been modified to process the parent use-block in
-    # the context of the RackWarden class. So you can set settings on RackWarden,
-    # when you call "use RackWarden"
-    # Example:
-    #
-    # use RackWarden :layout=>:'my_layout' do |rack_warden_instance, app|
-  	# 	set :myvar, 'something'
-  	#	end
-  	#
-  	# TODO: Move most of this functionality to a class method, so it can be called from self.registered(app)
-    # 	def initialize(parent_app_instance=nil, *args)
-    # 		super(parent_app_instance, &Proc.new{}) # Must send empty proc, not original proc, since we're calling original block here.
-    # 	  initialization_args = args.dup
-    # 		logger.info "RW App#initialize parent: #{@app}"
-    # 		logger.debug "RW App#initialize self: #{self}, args: #{args}, block_given? #{block_given?}"
-    # 		opts = args.last.is_a?(Hash) ? args.pop : {}
-    # 		
-    # 		
-    # 		logger.debug "RW App#initialize settings.initialized: #{settings.initialized}"
-    # 		if app && !settings.initialized
-    # 			#self.class.initialize_settings_from_instance(parent_app_instance, self, *initialization_args)
-    # 			if block_given?
-    #   			settings.initialize_settings_from_instance(parent_app_instance, self, *initialization_args, &Proc.new)
-    #   		else
-    #   		  settings.initialize_settings_from_instance(parent_app_instance, self, *initialization_args)
-    #   		end
-    # 		end
-    # 	end # initialize
     
     # This new version of initialize was taken from rack_warden_rom_testing middleware_example.
     def initialize(*args)
@@ -161,7 +124,7 @@ module RackWarden
 		
   	after do
       logger.debug "SS after-request env['rack.session']: #{env['rack.session'].inspect}"
-      logger.debug "SS after-request env['warden'].session: #{env['warden'].session.inspect}" if env['warden'].authenticated?
+      #logger.debug "SS after-request env['warden'].session: #{env['warden'].session.inspect}" if env['warden'].authenticated?
   	end
 
 

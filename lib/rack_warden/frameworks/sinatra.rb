@@ -1,18 +1,7 @@
 module RackWarden
   module Frameworks
     module Sinatra
-      
-      extend Frameworks
-            
-      def selector
-        App.logger.debug "RW Frameworks::Sinatra.selector" # "parent_app.ancestors #{parent_app.ancestors}"
-        parent_app.ancestors.find{|x| x.to_s=='Sinatra::Base'}
-      end
-      
-      def views_path
-        [ File.join(Dir.pwd, "app/views/rack_warden"), File.join(Dir.pwd, "views/rack_warden"), File.join(Dir.pwd,"app/views"), File.join(Dir.pwd,"views")]
-      end
-      
+    
       module ClassMethods
 				def require_login(*args)
 					App.logger.debug "RW Frameworks::Sinatra.require_login self: #{self}, args: #{args.inspect}"
@@ -24,13 +13,11 @@ module RackWarden
 				end
       end
       
-      def setup_framework
-        App.logger.debug "RW Frameworks::Sinatra.setup_framework for sinatra app #{parent_app}"
-  			#parent_app.helpers(RackWarden::UniversalHelpers)
-        App.logger.debug "RW Frameworks::Sinatra.setup_framework registering class methods for #{parent_app}"
-  			parent_app.register ClassMethods
-  			parent_app.require_login(RackWarden::App.require_login) if RackWarden::App.require_login != false
-    	end
+      def self.included(base)
+        base.helpers FrameworkHelpers
+        base.register ClassMethods
+        ###base.require_login(RackWarden::App.require_login) if RackWarden::App.require_login != false
+      end
     	
     end # Sinatra
   end # Frameworks

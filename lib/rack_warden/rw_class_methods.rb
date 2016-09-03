@@ -15,58 +15,19 @@ module RackWarden
 	  	initialize_logging  # again, in case log settings changed in config files.
 	  		  	
 	    use Rack::Cookies
-	    
-      # # WBR recently switched to this from settings.set(:sessions=>true),
-      # # but adding the params to set(:session, ...) works just as well.
-      # use Rack::Session::Cookie, :key => 'rack_warden',
-      #   :path => '/',
-      #   :expire_after => 14400, # In seconds
-      #   :secret => 'skj3l4kgjsl3kkgjlsd0f98slkjrewlksufdjlksefk'
-	    
-	    # This appears to be necessary to get require_login to work in the namespaced routes.
-	    #RackWarden::Namespace::NamespacedMethods.prefixed :require_login
-# 	    Sinatra::Namespace::NamespacedMethods.prefixed(:require_login) if Sinatra.const_defined?(:Namespace) && Sinatra::Namespace.const_defined?(:NamespacedMethods)
-	    
-	    #register RackWarden::Namespace
-	    #register RackWarden::RespondWith
-# 	    register Sinatra::Namespace
-# 	    register Sinatra::RespondWith
-	    
-      #   # Erubis/tilt/respond_with don't play well together in older ruby/rails.
-      #   if disable_erubis
-      #     logger.info "Disabling erubis due to conflicts with Tilt and respond_with."
-      #     template_engines.delete :erubis
-      #     RackWarden::RespondWith::ENGINES[:html].delete :erubis
-      #     RackWarden::RespondWith::ENGINES[:all].delete :erubis
-      #     # TODO: Make these handle & report errors better
-      #     # Tilt 1.3
-      #     (Tilt.mappings['erb'].delete(Tilt::ErubisTemplate) rescue nil) ||
-      #     # Tilt 2.0
-      #     (Tilt.default_mapping['erb'].delete(Tilt::ErubisTemplate) rescue nil)
-      # 	end
-	    	  	
-  		# Setup flash if not already
-  		# TODO: put code to look for existing session management in rack middlewares (how?). See todo.txt for more.
-  		# TODO: This needs to be handled after RW app subclass is created
-			use Rack::Flash, :accessorize=>[:rw_error, :rw_success, :rw_test] | App.flash_accessories
 			
 	    helpers RackWardenHelpers
-	    helpers UniversalHelpers
-      
-      # This needs to load after specific app settings.	
-			#helpers RackWarden::WardenConfig
 			
 		  register Sinatra::RespondWith
       respond_to :xml, :json, :js, :txt, :html, :yaml
-			
-			# This needs to load after specific app settings.
-			#helpers RackWarden::Routes
 	    
 	  end
 	  
 	  # This should generally only run once.
 	  # Also see App#initialize method.
 	  def initialize_settings_from_instance(parent_app_instance, rw_app_instance, *initialization_args)
+      options = initialization_args.last.is_a?(Hash) ? initialization_args.pop : Hash.new
+	     
       #parent_app_instance = yield(rw_app_instance.settings, rw_app_instance) if block_given?
 	  
   	  logger.info "RW RackWardenClassMethods.initialize_settings_from_instance self: #{self}"
@@ -74,22 +35,36 @@ module RackWarden
       logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance rw_app_instance: #{rw_app_instance}"
 			logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance initialization_args: #{initialization_args}"
 			
-			setup_framework(parent_app_instance, *initialization_args)
-			    		
-			# Eval the use-block from the parent app, in context of this app.
+			# TODO: Figure out how to integrate new framework model with rw sublclass settings.
+			#setup_framework(parent_app_instance, *initialization_args)
+      # Originally in setup_framework:
+      overlay_settings(options)
+      
+      # Evaluate 'use' block. Note that settings performed in 'use' block
+      # will overwrite any settings set as params, from config file, or from any earlier manipulation.
+      #
+			# Deprecated: Eval the use-block from the parent app, in context of this app.
 			#settings.instance_exec(rw_app_instance, &block) if block_given?
+			#
 			# Eval the use-block from the parent app, in context of the parent app instance.
 			logger.debug "RW yielding to initialization block if block_given? #{block_given?}"
 			# TODO:  I don't think passing rw_app_instance here is reliable.
 			#        It may be instanciated without a request or env.
 			yield(rw_app_instance.settings, rw_app_instance) if block_given?
 			
+			# Originally in setup_framework:
+			overlay_settings(:views=>settings.extra_views) if settings.extra_views #&& ![settings.views, opts[:views]].flatten.include?(false)			
+			
 		  # Set global layout (remember to use :layout=>false in your calls to partials).
 		  logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance setting erb layout: #{settings.layout}"
-			settings.set :erb, :layout=>settings.layout
+			set :erb, :layout=>settings.layout
 			
 			# Needs to get specific settings from rw & main app.
 			helpers RackWarden::WardenConfig
+			
+  		# Setup flash if not already
+  		# TODO: This needs to be handled after RW app subclass is created
+			use Rack::Flash, :accessorize=>[:rw_error, :rw_success, :rw_test] | settings.flash_accessories
 			
 			# So we can get specific rw_prefix loaded correctly.
 			helpers RackWarden::Routes
@@ -97,31 +72,32 @@ module RackWarden
 			# Apply rw_prefix to omniauth path_prefix, for this rw subclass.
 			manipulate_omniauth_settings
 			
-			settings.initialize_logging
+			# This could go earlier... after the yield.
+			initialize_logging
 			  			
 			#logger.info "RW RackWardenClassMethods.initialize_settings_from_instance compiled views: #{settings.views.inspect}"
 			
-			settings.set :initialized, true	  
+			set :initialized, true	  
 	  end
 		
-		def setup_framework(app, *args)
-		  logger.info "RW RackWardenClassMethods.setup_framework app: #{app}, args: #{args}"
-		  
-			opts = args.last.is_a?(Hash) ? args.pop : {}
-			# Get framework module.
-			framework_module = Frameworks.select_framework(app)
-			#logger.info "RW selected framework module #{framework_module}"
-			
-			# Prepend views from framework_module if framework_module exists.
-			# TODO: should this line be elsewhere?
-			settings.overlay_settings(:views=>framework_module.views_path) if framework_module && ![settings.views, opts[:views]].flatten.include?(false)
-			
-			# Overlay settings with opts.
-			settings.overlay_settings opts				
-			
-			# Setup framework if framework_module exists.
-			framework_module.setup_framework if framework_module
-		end
+    # def setup_framework(app, *args)
+    #   logger.info "RW RackWardenClassMethods.setup_framework app: #{app}, args: #{args}"
+    #   
+    # 	opts = args.last.is_a?(Hash) ? args.pop : {}
+    # 	# Get framework module.
+    # 	framework_module = Frameworks.select_framework(app)
+    # 	#logger.info "RW selected framework module #{framework_module}"
+    # 	
+    # 	# Prepend views from framework_module if framework_module exists.
+    # 	# TODO: should this line be elsewhere?
+    # 	settings.overlay_settings(:views=>framework_module.views_path) if framework_module && ![settings.views, opts[:views]].flatten.include?(false)
+    # 	
+    # 	# Overlay settings with opts.
+    # 	settings.overlay_settings opts				
+    # 	
+    # 	# Setup framework if framework_module exists.
+    # 	framework_module.setup_framework if framework_module
+    # end
 
     # Load config from file, if any exist.
     def initialize_config_files(more_config={})
@@ -192,7 +168,11 @@ module RackWarden
       #   end
       #   mw[2] = new_proc
       # end
-      OmniAuth.configure {|cfg| cfg.path_prefix = settings.rw_prefix}
+      
+      OmniAuth.configure do |cfg| 
+        cfg.path_prefix = settings.rw_prefix
+        cfg.logger = settings.logger
+      end
     end
 
 	  # Creates uri-friendly codes/keys/hashes from raw unfriendly strings (like BCrypt hashes). 
