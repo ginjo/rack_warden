@@ -184,17 +184,18 @@ module RackWarden
         
         def authenticate!
           begin
+            App.logger.debug "RW Warden Strategy Omniauth 'authenticate!' using env['omniauth.auth']:"
+            App.logger.debug env['omniauth.auth'].to_h
             identity = IdentityRepo.upsert_from_auth_hash(env['omniauth.auth'])
-            user = identity.user
+            user = identity.user if identity
             #App.logger.debug env['omniauth.auth'].to_yaml
-            App.logger.debug "RW Warden Strategy Omniauth retrieved/created identity: #{identity}, guid:#{identity.guid}, self: #{self}"
             #App.logger.debug env['omniauth.auth'].to_h.to_yaml
             #App.logger.debug identity.to_yaml
-            if user
-              #session['identity'] = identity.id
+            if (identity && user = identity.user)
+              App.logger.debug "RW Warden Strategy Omniauth retrieved/created identity: #{identity}, guid:#{identity.guid}, self: #{self}"
               App.logger.info "RW OmniAuth Strategy#authenticate! SUCCESS"
               # 'success()' is different from 'set_user()', but I'm not sure why the difference.
-              # If we don't use 'set_user()' the warden object is not considered logged in yet
+              # If we don't use 'set_user()' the warden object is not considered logged in yet.
               env['warden'].set_user user
               env['warden'].session['identity'] = identity.id #if env['warden'].authenticated?
               success!(user)
@@ -205,9 +206,9 @@ module RackWarden
           rescue Exception
             App.logger.warn "RW strategy for omniauth has raised an exception."
             App.logger.warn "RW #{$!}"
-            fail!("Could not authenticate omniauth identity, exception raised")
+            fail!("Could not authenticate omniauth identity, exception raised: #{$! if ENV['RACK_ENV'] != 'production'}")
             # Should this really throw an exception here? Isn't there a friendly failure action?
-            raise $!
+            #raise $!
           end
         end
         

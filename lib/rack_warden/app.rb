@@ -65,6 +65,7 @@ module RackWarden
       block = Proc.new if block_given?
       settings.initialize_settings_from_instance(@app, self, *args[1..-1], &block) if @app && !settings.initialized
       #logger.debug "RW about to call problem 'super', ancestors: #{self.class.ancestors}"
+      logger.info "RW Initialization complete for app: #{@app}"
       #super(@app, &block)
       self
     end    

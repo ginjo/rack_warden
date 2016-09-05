@@ -136,10 +136,9 @@ module RackWarden
       # TODO: This should probably be in repo, maybe?
       def by_guid(provider, uid=nil, email=nil)
         unless uid && email
-          by_guid *provider.split('-')
-        else
-          where :provider => provider, :uid => uid, :email => email
+          provider, uid, email = provider.split('-')
         end
+        where :provider => provider, :uid => uid, :email => email
       end
       
     end # identities_rel 
@@ -244,9 +243,13 @@ module RackWarden
     end
     
     def create_from_identity(identity)
-      new_rec = create(:email => identity.email, :username => identity.email)
-      (identity.user_id = new_rec.id) #&& identity.save
-      RackWarden::User.new(new_rec)
+      if identity.email.to_s != ''
+        new_rec = create(:email => identity.email, :username => identity.email)
+        (identity.user_id = new_rec.id) #&& identity.save
+        RackWarden::User.new(new_rec)
+      else
+        raise "RackWarden::UsersRepo.create_from_identity: email cannot be empty."
+      end
     end
     
     def locate_or_create_from_identity(identity)
@@ -331,7 +334,8 @@ module RackWarden
     end
     
     def by_guid(*args)
-      identities.by_guid(*args).one
+      App.logger.debug "RW Rom IdentityRepo#by_guid, args: #{args}"
+      identities.by_guid(*args).one    #identities.by_guid(*args).tap{|i| !i.nil? && i.one}
     end
     
     
@@ -341,7 +345,7 @@ module RackWarden
     # I think the changeset isn't aware of the to/from yaml stuff.
     # TODO: Try this manually and see what happens.
     def save_attributes(_id, _attrs)
-      #puts "UserRepoClass#save_attributes"
+      App.logger.debug "UserRepo#save_attributes (id: #{_id})"
       #puts [_id, _attrs].to_yaml
       _changeset = changeset(_id, _attrs)
       case
@@ -367,11 +371,14 @@ module RackWarden
     # ah2_from_db = RackWarden::IdentityRepo.first
     
     def create_from_auth_hash(auth_hash)
-      #puts "RW IdentityRepo.create_from_auth_hash #{auth_hash.to_yaml}"
+      App.logger.debug "RW IdentityRepo.create_from_auth_hash"  # #{auth_hash.to_yaml}"
       auth_hash.email = auth_hash.info.email
       # This might erase all references to the AuthHash class.
       #Identity.new(create(auth_hash.merge({:email => auth_hash.info.email})))
       Identity.new(create(auth_hash))
+    # rescue
+    #   App.logger.info "RW create_from_auth_hash raised an exception: #{$!}"
+    #   nil
     end
     
     
@@ -395,11 +402,17 @@ module RackWarden
     # end
     
     def upsert_from_auth_hash(auth_hash)
-      identity = locate_from_auth_hash(auth_hash)
+      App.logger.debug "RW Rom upsert_from_auth_hash:"
       auth_hash.email = auth_hash.info.email
-      Identity.new(save_attributes(identity.id, auth_hash))
+      identity = locate_from_auth_hash(auth_hash)
+      if identity
+        Identity.new(save_attributes(identity.id, auth_hash))
+      else
+        create_from_auth_hash(auth_hash)
+      end
     rescue
-      create_from_auth_hash(auth_hash)
+      App.logger.debug "RW Rom upsert_from_auth_hash raised exception: #{$!}"
+      nil
     end
     
     
@@ -412,6 +425,7 @@ module RackWarden
     end
     
     def locate_from_auth_hash(auth_hash) # locate existing identity given raw auth_hash.
+      App.logger.debug "RW Rom locate_from_auth_hash"
       by_guid(auth_hash.provider, auth_hash.uid, auth_hash.info.email)
     end    
     
@@ -515,7 +529,7 @@ module RackWarden
     def save!
       save
     rescue
-      puts "#{self.class.name}#save ERROR: #{$!}"
+      App.logger.debug "RW #{self.class.name}#save ERROR: #{$!}"
       false
     end
     
