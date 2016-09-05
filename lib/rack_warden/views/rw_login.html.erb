@@ -26,7 +26,9 @@
   	OR login with any of these oAuth services
   	</p>
   	<ul>
-      <li><a href='/auth/developer'>Sign in with Developer (demo strategy)</a></li>
+      <% if settings.development? %>
+        <li><a href='/auth/developer'>Sign in with Developer (demo strategy)</a></li>
+      <% end %>
     	<% settings.omniauth_adapters.each do |a|
     	   s = a.split(/^[^-]*-/)[1]
     	   next if (s.to_s.empty? || s.to_s == 'oauth2')

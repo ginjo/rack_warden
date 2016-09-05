@@ -18,17 +18,20 @@ module RackWarden
 		end
 	
 		def current_user
+		  @current_user ||=
 	    #warden.authenticated? && warden.user
 	    logged_in? && warden.user
 		end
 		
 		def current_identity
-		  App.logger.debug "RW Getting current_identity with warden.session['identity']:  #{session['warden.user.default.session']}"
-		  if warden.authenticated? && warden.session['identity']  #session['identity']
-  		  identity = IdentityRepo.by_id(warden.session['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
-  		  App.logger.debug "RW retrieved current_identity #{identity.guid}"
-  		  identity
-		  end
+		  @current_identity ||= (
+  		  App.logger.debug "RW Getting current_identity with warden.session['identity']:  #{session['warden.user.default.session']}"
+  		  if warden.authenticated? && warden.session['identity']  #session['identity']
+    		  identity = IdentityRepo.by_id(warden.session['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
+    		  App.logger.debug "RW retrieved current_identity #{identity.guid}"
+    		  identity
+  		  end
+  		)
 		rescue
 		  logger.info "RW current_identity error: #{$!}"
 		  nil
