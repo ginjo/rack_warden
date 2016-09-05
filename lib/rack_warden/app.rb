@@ -87,32 +87,39 @@ module RackWarden
       # 	  logger.debug "RW App#call self: #{self}, not calling initialize_settings_from_instance"
       # 	end
 		  
-		  # Set this now, so you can access the rw app instance from the endpoint app.
-		  logger.debug "RW App#call storing rw app instance #{self} in env['rack_warden_instance']"
-		  self.request = Rack::Request.new(env)
-		  env.rack_warden = self
-		  
-		  logger.debug "RW App#call request.path_info: #{request.path_info}"
-		  logger.debug "RW App#call session: #{env['rack.session'].inspect}"
-			
-			# Authenticate here-and-now.
-			# TODO: Change this name to Authorize here-and-now ??
-			prefix_regex = Regexp.new("^#{settings.rw_prefix}")  
-		  if settings.rack_authentication && !request.script_name.to_s[prefix_regex] && !request.path_info.to_s[prefix_regex]   # /^\/auth/
-			  logger.debug "RW App#call rack_authentication for path_info: #{request.path_info}"
-			  Array(settings.rack_authentication).each do |rule|
-			  	logger.debug "RW App#call rack_authentication rule #{rule}"
-			  	(require_login) if rule && request.path_info.to_s.match(Regexp.new rule.to_s)
-			  end
-		  end
-		  
-		  # Send to super, then build & process response.
-			# resp = Rack::Response.new *super(env).tap{|e| e.unshift e.pop}
-			# #resp.set_cookie :wbr_cookie, :value=>"Yay!", :expires=>Time.now+60*10
-			# logger.debug "App.call: #{resp.finish}"
-			# resp.finish
-			logger.debug "RW App#call super(env), self: #{self}"
-			super
+		  # Dupe this rw app inst, and store in env, so you can access the rw app instance from the endpoint app.
+		  # The super 'call' also dupes the inst, but so far it isn't causing problems.
+		  new_inst = self.dup
+		  new_inst.instance_eval do
+  		  logger.debug "RW App#call storing rw app new_inst #{self} in env['rack_warden_instance']"
+  		  self.request = Rack::Request.new(env)
+  		  env.rack_warden = self
+  		  
+  		  logger.debug "RW App#call request.path_info: #{request.path_info}"
+  		  logger.debug "RW App#call session: #{env['rack.session'].inspect}"
+  			
+  			# Authenticate here-and-now.
+  			# TODO: Change this name to Authorize here-and-now ??
+  			prefix_regex = Regexp.new("^#{settings.rw_prefix}")  
+  		  if settings.rack_authentication && !request.script_name.to_s[prefix_regex] && !request.path_info.to_s[prefix_regex]   # /^\/auth/
+  			  logger.debug "RW App#call rack_authentication for path_info: #{request.path_info}"
+  			  Array(settings.rack_authentication).each do |rule|
+  			  	logger.debug "RW App#call rack_authentication rule #{rule}"
+  			  	(new_inst.require_login) if rule && request.path_info.to_s.match(Regexp.new rule.to_s)
+  			  end
+  		  end
+  		  
+  		  # Send to super, then build & process response.
+  			# resp = Rack::Response.new *super(env).tap{|e| e.unshift e.pop}
+  			# #resp.set_cookie :wbr_cookie, :value=>"Yay!", :expires=>Time.now+60*10
+  			# logger.debug "App.call: #{resp.finish}"
+  			# resp.finish
+  			#
+        # logger.debug "RW App#call super(env), self: #{self}"
+        # super
+        logger.debug "RW App#call super(env), self: #{self}"
+        super
+      end
 		end 
 		
 		# Only initialize app after all above have loaded.

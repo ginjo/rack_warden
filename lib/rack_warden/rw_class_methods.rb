@@ -50,7 +50,7 @@ module RackWarden
 			logger.debug "RW yielding to initialization block if block_given? #{block_given?}"
 			# TODO:  I don't think passing rw_app_instance here is reliable.
 			#        It may be instanciated without a request or env.
-			yield(rw_app_instance.settings, rw_app_instance) if block_given?
+			yield(rw_app_instance.settings.settings, rw_app_instance) if block_given?
 			
 			# Originally in setup_framework:
 			overlay_settings(:views=>settings.extra_views) if settings.extra_views #&& ![settings.views, opts[:views]].flatten.include?(false)			

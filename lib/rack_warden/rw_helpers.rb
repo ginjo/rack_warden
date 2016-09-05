@@ -3,7 +3,7 @@ module RackWarden
 	module RackWardenHelpers
 	
 		def require_login
-			App.logger.debug "RW UniversalHelpers...  #{self}#require_login with #{rack_warden}, and #{warden}"
+			logger.debug "RW Helpers...  #{self}#require_login with #{rack_warden}, and #{warden}"
 			#logged_in? || warden.authenticate!
 			#warden.authenticated? || warden.authenticate!
 			warden.authenticate!
@@ -25,10 +25,10 @@ module RackWarden
 		
 		def current_identity
 		  @current_identity ||= (
-  		  App.logger.debug "RW Getting current_identity with warden.session['identity']:  #{session['warden.user.default.session']}"
+  		  logger.debug "RW Getting current_identity with warden.session['identity']:  #{session['warden.user.default.session']}"
   		  if warden.authenticated? && warden.session['identity']  #session['identity']
     		  identity = IdentityRepo.by_id(warden.session['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
-    		  App.logger.debug "RW retrieved current_identity #{identity.guid}"
+    		  logger.debug "RW retrieved current_identity #{identity.guid}"
     		  identity
   		  end
   		)
@@ -38,17 +38,17 @@ module RackWarden
 		end
 	
 		def logged_in?
-			App.logger.debug "RW UniversalHelpers#logged_in? #{warden.authenticated?}"
+			logger.debug "RW UniversalHelpers#logged_in? #{warden.authenticated?}"
 	    warden.authenticated? || warden.authenticate(:remember_me)
 		end
 		
 		def authorized?(options=request)
-			App.logger.debug "RW UniversalHelpers#authorized? user '#{current_user}'"
+			logger.debug "RW UniversalHelpers#authorized? user '#{current_user}'"
 			current_user && current_user.authorized?(options) || request.script_name[/login|new|create|logout/]
 		end
 
 		def require_authorization(authenticate_on_fail=false, options=request)
-			App.logger.debug "RW UniversalHelpers#require_authorization"
+			logger.debug "RW UniversalHelpers#require_authorization"
 			logged_in? || warden.authenticate!
 			unless authorized?(options)
 				if authenticate_on_fail
@@ -63,7 +63,7 @@ module RackWarden
 
 		# Returns the current rack_warden app instance stored in env.
 	  def rack_warden
-	  	App.logger.debug "RW UniversalHelpers.rack_warden #{request.env['rack_warden_instance']}"
+	  	logger.debug "RW UniversalHelpers.rack_warden #{request.env['rack_warden_instance']}"
 	  	#request.env['rack_warden_instance'] #.tap {|rw| rw.request = request}    #request}
 	  	request.env.rack_warden
 	  end
@@ -73,9 +73,9 @@ module RackWarden
 	  end
 	  
 	  def flash_widget
-			# App.logger.debug "RW UniversalHelpers#flash_widget self.flash #{self.flash}"
-			# App.logger.debug "RW UniversalHelpers#flash_widget rack.flash #{env['x-rack.flash']}"
-			# App.logger.debug "RW UniversalHelpers#flash_widget.rack_warden.flash #{rack_warden.request.env['x-rack.flash']}"
+			# logger.debug "RW UniversalHelpers#flash_widget self.flash #{self.flash}"
+			# logger.debug "RW UniversalHelpers#flash_widget rack.flash #{env['x-rack.flash']}"
+			# logger.debug "RW UniversalHelpers#flash_widget.rack_warden.flash #{rack_warden.request.env['x-rack.flash']}"
 	  	rack_warden.erb :'rw_flash_widget.html', :layout=>false
 	  end
 
