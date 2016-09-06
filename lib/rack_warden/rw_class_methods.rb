@@ -59,6 +59,8 @@ module RackWarden
 		  logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance setting erb layout: #{settings.layout}"
 			set :erb, :layout=>settings.layout
 			
+			set :sessions, true unless sessions
+			
 			# Needs to get specific settings from rw & main app.
 			helpers RackWarden::WardenConfig
 			

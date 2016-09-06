@@ -31,7 +31,9 @@ module RackWarden
     set :logger, nil
     set :use_common_logger, false
     set :reset_logger, false
-    set :sessions, true # Will use parent app sessions?
+    #set :sessions, true # Will use parent app sessions? I dunno.
+    # See initialize_settings_from_instance.
+    #
     # set :sessions, :key => 'rack_warden',
     #     :path => '/',
     #     :expire_after => 14400, # In seconds
@@ -96,7 +98,7 @@ module RackWarden
   		  env.rack_warden = self
   		  
   		  logger.debug "RW App#call request.path_info: #{request.path_info}"
-  		  logger.debug "RW App#call session: #{env['rack.session'].inspect}"
+  		  logger.debug "RW App#call session: #{session.inspect}"
   			
   			# Authenticate here-and-now.
   			# TODO: Change this name to Authorize here-and-now ??
@@ -131,7 +133,7 @@ module RackWarden
 		end
 		
   	after do
-      logger.debug "SS after-request env['rack.session']: #{env['rack.session'].inspect}"
+      logger.debug "SS after-request session: #{session.inspect}"
       #logger.debug "SS after-request env['warden'].session: #{env['warden'].session.inspect}" if env['warden'].authenticated?
   	end
 

@@ -63,12 +63,12 @@ module RackWarden
           %w(get post).each do |method|
             send(method, "/:provider/callback") do
               logger.debug "RW /provider/callback before-auth env: #{env.object_id}, warden: #{env['warden']}"
-              #logger.debug "RW /provider/callback before-auth env: #{env.object_id}, session: #{env['rack.session'].to_h.to_yaml}"
+              #logger.debug "RW /provider/callback before-auth env: #{env.object_id}, session: #{session.to_h.to_yaml}"
               #warden.logout
               #logger.debug "RW /provider/callback before-auth-after-logout env: #{env.object_id}, warden: #{env['warden']}"
               warden.authenticate!(:omniauth)
               #logger.debug "RW /provider/callback after-auth env: #{env.object_id}, warden: #{env['warden']}"
-              #logger.debug "RW /provider/callback after-auth env: #{env.object_id}, session: #{env['rack.session'].to_h.to_yaml}"
+              #logger.debug "RW /provider/callback after-auth env: #{env.object_id}, session: #{session.to_h.to_yaml}"
               #erb "<pre>#{current_user.to_yaml}</pre>"
               # The .. is to go up one level above the rw_prefix.
               return_to #'/protected'
@@ -225,7 +225,7 @@ module RackWarden
           get '/admin/debug' do
             require_authorization
             content_type :text
-            env['rack.session'].to_yaml
+            session.to_yaml
           end
 				
 				end # namespace

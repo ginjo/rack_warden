@@ -26,7 +26,7 @@ module RackWarden
 		def current_identity
 		  @current_identity ||= (
   		  logger.debug "RW Getting current_identity with warden.session['identity']:  #{session['warden.user.default.session']}"
-  		  if warden.authenticated? && warden.session['identity']  #session['identity']
+  		  if logged_in? && warden.session['identity']  #session['identity']
     		  identity = IdentityRepo.by_id(warden.session['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
     		  logger.debug "RW retrieved current_identity #{identity.guid}"
     		  identity
@@ -37,14 +37,14 @@ module RackWarden
 		  nil
 		end
 	
-		def logged_in?
-			logger.debug "RW UniversalHelpers#logged_in? #{warden.authenticated?}"
-	    warden.authenticated? || warden.authenticate(:remember_me)
+		def logged_in?(*args)
+			logger.debug "RW UniversalHelpers#logged_in? #{warden.authenticated?(*args)}"
+	    warden.authenticated?(*args) || warden.authenticate(:remember_me)
 		end
 		
 		def authorized?(options=request)
 			logger.debug "RW UniversalHelpers#authorized? user '#{current_user}'"
-			current_user && current_user.authorized?(options) || request.script_name[/login|new|create|logout/]
+			logged_in? && current_user.authorized?(options) || request.script_name[/login|new|create|logout/]
 		end
 
 		def require_authorization(authenticate_on_fail=false, options=request)
