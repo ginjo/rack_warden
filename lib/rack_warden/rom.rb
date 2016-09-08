@@ -45,6 +45,20 @@ module RackWarden
       YAML.load(dat.to_s)
     end
     
+    ToMarshal = Dry::Types::Definition.new(String).constructor do |dat|
+      App.logger.debug "RW Rom Types::ToMarshal constructor with data: #{dat.to_yaml}"
+      if dat.is_a?(::String)
+        dat
+      else
+        Marshal.dump(dat)
+      end
+    end
+    
+    FromMarshal = Dry::Types::Definition.new(Hash).constructor do |dat|
+      App.logger.debug "RW Rom Types::FromMarshal constructor with data: #{dat}"
+      Marshal.load(dat.to_s)
+    end
+    
   end # Types
   
   
@@ -134,11 +148,15 @@ module RackWarden
       # Args can be passed as all 3 or string concat of all 3 (separated by dash "-").
       # TODO: Use something other than dash, it will eventually conflict with data.
       # TODO: This should probably be in repo, maybe?
-      def by_guid(provider, uid=nil, email=nil)
-        unless uid && email
-          provider, uid, email = provider.split('-')
+      def by_guid(_provider, _uid=nil, _email=nil)
+        unless _uid && _email
+          _provider, _uid, _email = _provider.split('-')
         end
-        where :provider => provider, :uid => uid, :email => email
+        App.logger.debug "RW Rom users_relation#by_guid #{[_provider, _uid, _email]}"
+        rslt = where :provider => _provider, :uid => _uid, :email => _email
+        #App.logger.debug "RW Rom users_relation#by_guid result:"
+        #App.logger.debug rslt.to_a
+        rslt
       end
       
     end # identities_rel 
@@ -345,7 +363,7 @@ module RackWarden
     # I think the changeset isn't aware of the to/from yaml stuff.
     # TODO: Try this manually and see what happens.
     def save_attributes(_id, _attrs)
-      App.logger.debug "UserRepo#save_attributes (id: #{_id})"
+      App.logger.debug "RW Rom IdentityRepo#save_attributes (id: #{_id})"
       #puts [_id, _attrs].to_yaml
       _changeset = changeset(_id, _attrs)
       case
@@ -371,14 +389,14 @@ module RackWarden
     # ah2_from_db = RackWarden::IdentityRepo.first
     
     def create_from_auth_hash(auth_hash)
-      App.logger.debug "RW IdentityRepo.create_from_auth_hash"  # #{auth_hash.to_yaml}"
+      App.logger.debug "RW ROM IdentityRepo.create_from_auth_hash"  # #{auth_hash.to_yaml}"
       auth_hash.email = auth_hash.info.email
       # This might erase all references to the AuthHash class.
       #Identity.new(create(auth_hash.merge({:email => auth_hash.info.email})))
       Identity.new(create(auth_hash))
-    # rescue
-    #   App.logger.info "RW create_from_auth_hash raised an exception: #{$!}"
-    #   nil
+      # rescue
+      #   App.logger.info "RW create_from_auth_hash raised an exception: #{$!}"
+      #   nil
     end
     
     
@@ -410,9 +428,9 @@ module RackWarden
       else
         create_from_auth_hash(auth_hash)
       end
-    rescue
-      App.logger.debug "RW Rom upsert_from_auth_hash raised exception: #{$!}"
-      nil
+      # rescue
+      #   App.logger.debug "RW Rom upsert_from_auth_hash raised exception: #{$!}"
+      #   nil
     end
     
     

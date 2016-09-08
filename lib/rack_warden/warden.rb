@@ -185,7 +185,7 @@ module RackWarden
         def authenticate!
           begin
             App.logger.debug "RW Warden Strategy Omniauth 'authenticate!' using env['omniauth.auth']:"
-            App.logger.debug env['omniauth.auth'].to_h
+            App.logger.debug env['omniauth.auth'].to_h.to_yaml
             identity = IdentityRepo.upsert_from_auth_hash(env['omniauth.auth'])
             user = identity.user if identity
             #App.logger.debug env['omniauth.auth'].to_yaml
