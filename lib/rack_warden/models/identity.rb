@@ -29,7 +29,7 @@ module RackWarden
     end
     
     def guid
-      "#{provider}-#{uid}-#{email}"
+      "#{provider}:#{uid}"
     end
     
     # Get user and link it with identity.

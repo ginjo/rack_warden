@@ -144,20 +144,21 @@ module RackWarden
       
       include RelationIncludes
       
-      # Get a single record by uique combo of provider-uid-email.
-      # Args can be passed as all 3 or string concat of all 3 (separated by dash "-").
-      # TODO: Use something other than dash, it will eventually conflict with data.
-      # TODO: This should probably be in repo, maybe?
-      def by_guid(_provider, _uid=nil, _email=nil)
-        unless _uid && _email
-          _provider, _uid, _email = _provider.split('-')
-        end
-        App.logger.debug "RW Rom users_relation#by_guid #{[_provider, _uid, _email]}"
-        rslt = where :provider => _provider, :uid => _uid, :email => _email
-        #App.logger.debug "RW Rom users_relation#by_guid result:"
-        #App.logger.debug rslt.to_a
-        rslt
-      end
+      #   # Get a single record by uique combo of provider-uid. Email is no longer used.
+      #   # Args can be passed as all 2 or string concat of all 2 (separated by dash "-").
+      #   # TODO: Use something other than dash, it will eventually conflict with data.
+      #   # TODO: This should probably be in repo, maybe?
+      #   #def by_guid(_provider, _uid=nil, _email=nil)
+      #   def by_guid(_provider, _uid=nil, _email=nil)
+      #     unless _uid && _email
+      #       _provider, _uid, _email = _provider.split('-')
+      #     end
+      #     App.logger.debug "RW Rom users_relation#by_guid #{[_provider, _uid, _email]}"
+      #     rslt = where :provider => _provider, :uid => _uid, :email => _email
+      #     #App.logger.debug "RW Rom users_relation#by_guid result:"
+      #     #App.logger.debug rslt.to_a
+      #     rslt
+      #   end
       
     end # identities_rel 
 
@@ -351,9 +352,23 @@ module RackWarden
       identities.last.one
     end
     
-    def by_guid(*args)
-      App.logger.debug "RW Rom IdentityRepo#by_guid, args: #{args}"
-      identities.by_guid(*args).one    #identities.by_guid(*args).tap{|i| !i.nil? && i.one}
+    #   def by_guid(*args)
+    #     App.logger.debug "RW Rom IdentityRepo#by_guid, args: #{args}"
+    #     identities.by_guid(*args).one    #identities.by_guid(*args).tap{|i| !i.nil? && i.one}
+    #   end
+    
+    # Get a single record by uique combo of provider-uid. Email is no longer used.
+    # Args can be passed separately or as a string delimited by a colon ':'.
+    #def by_guid(_provider, _uid=nil)
+    def by_guid(_provider, _uid=nil)
+      unless _uid 
+        _provider, _uid = _provider.split(':')
+      end
+      App.logger.debug "RW UsersRepo#by_guid #{[_provider, _uid]}"
+      rslt = query :provider => _provider, :uid => _uid
+      #App.logger.debug "RW Rom users_relation#by_guid result:"
+      #App.logger.debug rslt.to_a
+      rslt.one
     end
     
     
@@ -444,7 +459,7 @@ module RackWarden
     
     def locate_from_auth_hash(auth_hash) # locate existing identity given raw auth_hash.
       App.logger.debug "RW Rom locate_from_auth_hash"
-      by_guid(auth_hash.provider, auth_hash.uid, auth_hash.info.email)
+      by_guid(auth_hash.provider, auth_hash.uid)  #, auth_hash.info.email)
     end    
     
   
