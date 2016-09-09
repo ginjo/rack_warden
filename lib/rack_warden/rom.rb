@@ -379,17 +379,17 @@ module RackWarden
     # TODO: Try this manually and see what happens.
     def save_attributes(_id, _attrs)
       App.logger.debug "RW Rom IdentityRepo#save_attributes (id: #{_id})"
-      #puts [_id, _attrs].to_yaml
       _changeset = changeset(_id, _attrs)
       case
       when _changeset.update?
-        #puts "\nChangeset diff #{_changeset.diff}"
+        App.logger.debug "RW Rom IdentityRepo#save_attributes update"
         saved = update(_id, _changeset)
       when _changeset.create?
+        App.logger.debug "RW Rom IdentityRepo#save_attributes create"
         saved = create(_changeset)
       end
-      #puts "\nResponse from updater"
-      #puts saved.to_yaml
+      App.logger.debug "RW Rom identity changeset"
+      App.logger.debug _changeset.to_yaml
       saved
     end
 
@@ -439,7 +439,10 @@ module RackWarden
       auth_hash.email = auth_hash.info.email
       identity = locate_from_auth_hash(auth_hash)
       if identity
-        Identity.new(save_attributes(identity.id, auth_hash))
+        # Using save_attributes here doesn't seem to work.
+        #Identity.new(save_attributes(identity.id, auth_hash))
+        auth_hash.email = auth_hash.info.email
+        Identity.new(update(identity.id, auth_hash))
       else
         create_from_auth_hash(auth_hash)
       end
@@ -453,12 +456,12 @@ module RackWarden
     ###  Class methods from legacy Identity model  ###
     
     def locate_or_create_from_auth_hash(auth_hash) # identifier should be auth_hash
-      #puts "Identity.locate_or_create: #{identifier.class}"
+      App.logger.debug "RW Rom IdentityRepo locate_or_create"
       identity = (locate_from_auth_hash(auth_hash) || create_from_auth_hash(auth_hash))
     end
     
     def locate_from_auth_hash(auth_hash) # locate existing identity given raw auth_hash.
-      App.logger.debug "RW Rom locate_from_auth_hash"
+      App.logger.debug "RW Rom IdentityRepo locate_from_auth_hash"
       by_guid(auth_hash.provider, auth_hash.uid)  #, auth_hash.info.email)
     end    
     
@@ -551,6 +554,8 @@ module RackWarden
     end
     
     # TODO: This is shomehow breaking the toyaml constructors.
+    # TODO: I think the save & save! logic is wrong.
+    #       Find out where each is used here.
     def save
       #set_password
       yield if block_given?
