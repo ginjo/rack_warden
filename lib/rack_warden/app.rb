@@ -79,7 +79,7 @@ module RackWarden
 		#       a new rw app instance. That's how sinatra works (new app instance for each request).
 		def call(env)
 			logger.debug "RW App#call self: #{self}, parent app: #{@app}"
-			env.extend Env
+			env.extend RackEnv
 			
       # 	# Initialize if not already (may only be usefull for stand-alone mode (no parent app)).
       # 	if !settings.initialized

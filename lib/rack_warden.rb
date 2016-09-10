@@ -40,7 +40,7 @@ autoload :Base64, 'base64'
 
 module RackWarden
   autoload :App, 'rack_warden/app'
-  autoload :Env, 'rack_warden/env'
+  autoload :RackEnv, 'rack_warden/rack_env'
   #autoload :User, "rack_warden/models"
   #autoload :Pref, "rack_warden/models"
   #autoload :Identity, "rack_warden/models/identity"  # OMNIAUTH
