@@ -388,8 +388,8 @@ module RackWarden
         App.logger.debug "RW Rom IdentityRepo#save_attributes create"
         saved = create(_changeset)
       end
-      App.logger.debug "RW Rom identity changeset"
-      App.logger.debug _changeset.to_yaml
+      #App.logger.debug "RW Rom identity changeset"
+      #App.logger.debug _changeset.to_yaml
       saved
     end
 
