@@ -145,12 +145,18 @@ module RackWarden
 					  # end
 					end
 					
+					# For omniauth failures that happen at the provider, thus
+					# hitting the callback url with an 'error' pramater.
+					# The callback should redirect the browser here.
+				  # You can prevent failure exceptions in dev mode with this:
+          #   OmniAuth.config.failure_raise_out_environments = []
 					get '/failure' do
             @message = params['message']
             @origin = params['origin']
             @strategy = params['stragety']
-            flash[:rw_error] = "<pre>#{params.to_yaml}</pre>"
-            redirect('/')
+            flash[:rw_error] = "The authentication provider returned this message: #{@message}"
+            logger.info "RW OmniAuth provider callback had error param: #{params}"
+            redirect(settings.default_route)
           end
 					
 					get "/error" do
