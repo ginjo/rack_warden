@@ -66,11 +66,13 @@ module RackWarden
             # The action is a route to send the user to when
             # warden.authenticate! returns a false answer. We'll show
             # this route below.
-            :action => "#{settings.rw_prefix.to_s.gsub(/^\//,'')}/unauthenticated"
+            #:action => "#{settings.rw_prefix.to_s.gsub(/^\//,'')}/unauthenticated"
             #:action => "auth/unauthenticated"
+            :action => settings.warden_failure_action.is_a?(Proc) ? Proc.call(self) : settings.warden_failure_action
           # When a user tries to log in and cannot, this specifies the
           # app to send the user to.
-          config.failure_app = self
+          #config.failure_app = self
+          config.failure_app = settings.warden_failure_app.is_a?(Proc) ? Proc.call(self) : settings.warden_failure_app
 		    end
         
         

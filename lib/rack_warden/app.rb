@@ -47,6 +47,8 @@ module RackWarden
     set :login_on_create, true
     set :login_on_activate, false
     set :rw_prefix, '/auth'
+    set :warden_failure_app, proc {self}
+    set :warden_failure_action, proc {"#{rw_prefix.to_s.gsub(/^\//,'')}/unauthenticated"}
     set :mail_options,
     		:delivery_method => :test,
     		:delivery_options => {:from => 'my@email.com'} #, :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE
