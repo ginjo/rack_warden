@@ -40,7 +40,7 @@ module RackWarden
 					get '/login' do
 						logger.debug "RW /login action"
 						# Trigger authentication on remember_me, in case they haven't hit a protected page yet.
-            warden.authenticate :remember_me
+            warden.authenticate :remember_me if settings.allow_remember_me
 					  if User.count > 0
 					    respond_with :'rw_login'
 					  else

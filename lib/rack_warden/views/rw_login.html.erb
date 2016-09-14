@@ -11,9 +11,11 @@
   <label for="user_password">Password</label>
   <input type="password" name="user[password]" id="user_password" />
 
-  <label for="user_remember_me">Remember me
-  	<input name="user[remember_me]" type="checkbox" value="1" id="user_remember_me" />
-  </label>
+  <% if settings.allow_remember_me %>
+    <label for="user_remember_me">Remember me
+    	<input name="user[remember_me]" type="checkbox" value="1" id="user_remember_me" />
+    </label>
+  <% end %>
 
   <input type="submit" value="Log In" />
 	<% if settings.allow_public_signup %>
