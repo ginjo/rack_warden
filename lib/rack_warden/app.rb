@@ -39,6 +39,7 @@ module RackWarden
     #     :expire_after => 14400, # In seconds
     #     :secret => 'skj3l4kgjsl3kkgjlsd0f98slkjrewlksufdjlksefk'
     set :remember_token_cookie_name, 'rack_warden_remember_token'
+    set :allow_remember_me, false
     set :user_table_name, 'rack_warden_users'
     set :field_maps, {}
     set :views, File.expand_path("../views/", __FILE__) unless views
@@ -49,6 +50,7 @@ module RackWarden
     set :rw_prefix, '/auth'
     set :warden_failure_app, proc {self}
     set :warden_failure_action, proc {"#{rw_prefix.to_s.gsub(/^\//,'')}/unauthenticated"}
+    set :warden_additional_scopes, []
     set :mail_options,
     		:delivery_method => :test,
     		:delivery_options => {:from => 'my@email.com'} #, :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE

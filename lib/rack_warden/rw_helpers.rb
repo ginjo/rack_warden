@@ -2,11 +2,11 @@ module RackWarden
 	# Also bring these into your main app helpers. What?
 	module RackWardenHelpers
 	
-		def require_login
+		def require_login(*args)
 			logger.debug "RW Helpers...  #{self}#require_login with #{rack_warden}, and #{warden}"
 			#logged_in? || warden.authenticate!
 			#warden.authenticated? || warden.authenticate!
-			warden.authenticate!
+			warden.authenticate!(*args)
 	  end
 	
 		def warden
@@ -17,29 +17,30 @@ module RackWarden
 	    request.env['warden.options']
 		end
 	
-		def current_user
-		  @current_user ||=
-	    #warden.authenticated? && warden.user
-	    logged_in? && warden.user
+		def current_user(*args)
+	    logger.debug "RW helper current_user with args: #{args}"
+	    rslt = warden.user(*args)
+	    logger.debug "RW helper current_user retrieved: #{rslt}"
+	    rslt
 		end
 		
-		def current_identity
-		  @current_identity ||= (
-  		  logger.debug "RW Getting current_identity with warden.session['identity']:  #{session['warden.user.default.session']}"
-  		  if logged_in? && warden.session['identity']  #session['identity']
-    		  identity = IdentityRepo.by_id(warden.session['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
-    		  logger.debug "RW retrieved current_identity #{identity.guid}"
-    		  identity
-  		  end
-  		)
+		def current_identity(*args)
+		  logger.debug "RW Getting current_identity with warden.session['identity']:  #{session['warden.user.default.session']}"
+		  if logged_in?(*args) && warden.session(*args)['identity']  #session['identity']
+  		  identity = IdentityRepo.by_id(warden.session(*args)['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
+  		  logger.debug "RW retrieved current_identity #{identity.guid}"
+  		  identity
+		  end
 		rescue
 		  logger.info "RW current_identity error: #{$!}"
 		  nil
 		end
 	
 		def logged_in?(*args)
-			logger.debug "RW UniversalHelpers#logged_in? #{warden.authenticated?(*args)}"
-	    warden.authenticated?(*args) || warden.authenticate(:remember_me)
+			logger.debug "RW helpers logged_in? args: #{args}"
+	    rslt = warden.authenticated?(*args) || (settings.allow_remember_me && warden.authenticate(:remember_me))
+	    logger.debug "RW helpers logged_in? result: #{rslt}"
+	    rslt
 		end
 		
 		def authorized?(options=request)
@@ -126,6 +127,7 @@ module RackWarden
 	    end
 	  end
 	
+    # TODO: take the param from settings (create a setting for rw_index).
 	  def default_page
 			#nested_erb :'rw_index.html', :'rw_layout.html', settings.layout
 			respond_with :rw_index

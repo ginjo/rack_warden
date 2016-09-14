@@ -58,7 +58,7 @@ module RackWarden
           # and get a User from that information.
           config.serialize_from_session{|id| User.get(id) || Identity.get(id)}
         
-          logger.info "RW Warden::Manager config.scope_defaults :action => #{settings.rw_prefix}/unauthenticated"
+          logger.info "RW Warden::Manager config.scope_defaults(:default)"
           config.scope_defaults :default,
             # "strategies" is an array of named methods with which to
             # attempt authentication. We have to define this later.
@@ -69,6 +69,11 @@ module RackWarden
             #:action => "#{settings.rw_prefix.to_s.gsub(/^\//,'')}/unauthenticated"
             #:action => "auth/unauthenticated"
             :action => settings.warden_failure_action.is_a?(Proc) ? Proc.call(self) : settings.warden_failure_action
+          # Configure additional custom scopes defined in rw settings.
+          [settings.warden_additional_scopes].flatten(1).each do |add_scope|
+            logger.info "RW Warden::Manager adding additional warden scope #{add_scope}"
+            config.scope_defaults *add_scope
+          end
           # When a user tries to log in and cannot, this specifies the
           # app to send the user to.
           #config.failure_app = self
@@ -160,7 +165,7 @@ module RackWarden
 			  	App.logger.debug "RW checking existence of remember_token cookie: #{env['rack.request.cookie_hash']['rack_warden_remember_me']}"
 			    #env['rack.cookies']['rack_warden_remember_me']
 			    #env['rack.request.cookie_hash']['rack_warden_remember_me']
-			    env.remember_token
+			    env.remember_token.to_s != ''
 			  end
 			
 	      def authenticate!
@@ -168,8 +173,9 @@ module RackWarden
 	      	App.logger.debug "RW authenticating with rack_warden_remember_me token: #{env.remember_token}"
 	      	user = User.query(:remember_token => env.remember_token).first
 	      	if user.is_a?(User) && !user.remember_token.to_s.empty?
-						success!(user)
+						rslt = success!(user)
 	      		App.logger.info "RW remember-me-user logged in with remember_me token '#{user.username}'"
+	      		rslt
 	      	else
 	          App.logger.debug "RW remember-me-user failed remember_me token login '#{env.remember_token}'"
 	          nil	        	
