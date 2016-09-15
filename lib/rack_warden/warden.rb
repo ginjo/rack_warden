@@ -50,6 +50,7 @@ module RackWarden
 
 
 		    use Warden::Manager do |config|
+		      
           # Tell Warden how to save our User info into a session.
           # Sessions can only take strings, not Ruby code, we'll store
           # the User's `id`
@@ -70,15 +71,17 @@ module RackWarden
             #:action => "auth/unauthenticated"
             :action => settings.warden_failure_action.is_a?(Proc) ? Proc.call(self) : settings.warden_failure_action
           # Configure additional custom scopes defined in rw settings.
-          [settings.warden_additional_scopes].flatten(1).each do |add_scope|
+          [settings.warden_additional_scopes].flatten(1).each do |*add_scope|
             logger.info "RW Warden::Manager adding additional warden scope #{add_scope}"
             config.scope_defaults *add_scope
           end
           # When a user tries to log in and cannot, this specifies the
           # app to send the user to.
           #config.failure_app = self
-          config.failure_app = settings.warden_failure_app.is_a?(Proc) ? Proc.call(self) : settings.warden_failure_app
-		    end
+          config.failure_app = settings.warden_failure_app.is_a?(Proc) ? settings.warden_failure_app.call(self) : settings.warden_failure_app
+		      RackWarden.instance_variable_set :@last_warden_config, config
+		      logger.debug "RW last warden config: #{config.to_yaml}"
+		    end # use
         
         
     		###  OMNIAUTH CODE  ###

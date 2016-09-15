@@ -80,7 +80,7 @@ module RackWarden
 		# NOTE: Up to this point, the app instance is the same for every call,
 		#       since that's what rack does. However, once super(env) is run
 		#       at the end of this override method, Sinatra kicks in and creates
-		#       a new rw app instance. That's how sinatra works (new app instance for each request).
+		#       a dup rw app instance. That's how sinatra works (dup app instance for each request).
 		def call(env)
 			logger.debug "RW App#call self: #{self}, parent app: #{@app}"
 			env.extend RackEnv
@@ -137,7 +137,8 @@ module RackWarden
 		end
 		
   	after do
-      logger.debug "SS after-request session: #{session.inspect}"
+      logger.debug "RW after-request session: #{session.inspect}"
+      logger.debug "RW after-request params: #{params}"
       #logger.debug "SS after-request env['warden'].session: #{env['warden'].session.inspect}" if env['warden'].authenticated?
   	end
 
