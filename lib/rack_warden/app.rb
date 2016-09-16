@@ -48,9 +48,9 @@ module RackWarden
     set :login_on_create, true
     set :login_on_activate, false
     set :rw_prefix, '/auth'
-    set :warden_failure_app, proc {self}
+    set :warden_failure_app, Proc.new {self}
     set :warden_failure_action, proc {"#{rw_prefix.to_s.gsub(/^\//,'')}/unauthenticated"}
-    set :warden_additional_scopes, []
+    set :warden_config, nil
     set :mail_options,
     		:delivery_method => :test,
     		:delivery_options => {:from => 'my@email.com'} #, :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE
@@ -67,11 +67,13 @@ module RackWarden
       @app = args[0] if args[0]
       @template_cache = Tilt::Cache.new
       
-      logger.info "RW #{self.class}#initialize self: #{self}, args:#{args}, block? #{block_given?}"
-      block = Proc.new if block_given?
-      settings.initialize_settings_from_instance(@app, self, *args[1..-1], &block) if @app && !settings.initialized
-      #logger.debug "RW about to call problem 'super', ancestors: #{self.class.ancestors}"
-      logger.info "RW Initialization complete for app: #{@app}"
+      if @app && !settings.initialized
+        logger.info "RW #{self.class}#initialize, self: #{self}, args:#{args}, block? #{block_given?}"
+        block = Proc.new if block_given?
+        settings.initialize_settings_from_instance(@app, self, *args[1..-1], &block)
+        #logger.debug "RW about to call problem 'super', ancestors: #{self.class.ancestors}"
+        logger.info "RW initialization complete for app: #{@app}"
+      end
       #super(@app, &block)
       self
     end    
@@ -97,9 +99,12 @@ module RackWarden
 		  # The super 'call' also dupes the inst, but so far it isn't causing problems.
 		  new_inst = self.dup
 		  new_inst.instance_eval do
-  		  logger.debug "RW App#call storing rw app new_inst #{self} in env['rack_warden_instance']"
   		  self.request = Rack::Request.new(env)
-  		  env.rack_warden = self
+  		  
+  		  unless env.rack_warden
+    		  logger.debug "RW App#call storing rw app new_inst #{self} in env['rack_warden_instance']"
+    		  env.rack_warden = self
+  		  end
   		  
   		  logger.debug "RW App#call request.path_info: #{request.path_info}"
   		  logger.debug "RW App#call session: #{session.inspect}"
@@ -125,8 +130,8 @@ module RackWarden
         # super
         logger.debug "RW App#call super(env), self: #{self}"
         super
-      end
-		end 
+      end # inst-eval
+		end # call
 		
 		# Only initialize app after all above have loaded.
 		#initialize_app_class

@@ -15,6 +15,8 @@ module RackWarden
 	  	initialize_logging  # again, in case log settings changed in config files.
 	  		  	
 	    use Rack::Cookies
+	    
+	    #use(Warden::Manager){ |config| config.replace WardenConfig }
 			
 	    helpers RackWardenHelpers
 			
@@ -27,13 +29,12 @@ module RackWarden
 	  # Also see App#initialize method.
 	  def initialize_settings_from_instance(parent_app_instance, rw_app_instance, *initialization_args)
       options = initialization_args.last.is_a?(Hash) ? initialization_args.pop : Hash.new
-	     
-      #parent_app_instance = yield(rw_app_instance.settings, rw_app_instance) if block_given?
-	  
-  	  logger.info "RW RackWardenClassMethods.initialize_settings_from_instance self: #{self}"
+	     	  
+  	  logger.info "RW initialize_settings_from_instance, self: #{self}"
       logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance parent_app_instance: #{parent_app_instance}"
       logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance rw_app_instance: #{rw_app_instance}"
 			logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance initialization_args: #{initialization_args}"
+			logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance middleware: #{middleware}"
 			
 			# TODO: Figure out how to integrate new framework model with rw sublclass settings.
 			#setup_framework(parent_app_instance, *initialization_args)
@@ -62,7 +63,18 @@ module RackWarden
 			set :sessions, true unless sessions
 			
 			# Needs to get specific settings from rw & main app.
-			helpers RackWarden::WardenConfig
+			#helpers RackWarden::WardenConfig
+			#use(Warden::Manager){ |config| config.replace WardenConfig } unless middleware.include?(Warden::Manager)
+			logger.info "RW using Warden::Manager"
+			unless middleware.find {|m| m[0].name == "Warden::Manager"}
+  			use(Warden::Manager) do |config|
+          default = WardenConfig.new_with_defaults(settings)
+          config.merge!(default)
+          config.merge! settings.warden_config if settings.warden_config
+          logger.debug "RW Warden final config: #{config}"
+          config
+        end
+			end
 			
   		# Setup flash if not already
   		# TODO: This needs to be handled after RW app subclass is created
@@ -103,7 +115,7 @@ module RackWarden
 
     # Load config from file, if any exist.
     def initialize_config_files(more_config={})
-      logger.info "RW RackWardenClassMethods.initialize_config_files self: #{self}, extra-config: #{more_config}"
+      logger.info "RW initialize_config_files, self: #{self}, extra-config: #{more_config}"
 	    Hash.new.tap do |hash|
 	      config_files.each {|c| hash.merge!(YAML.load_file(File.join(Dir.pwd, c))) rescue nil}
 	      hash.merge! more_config
@@ -149,14 +161,14 @@ module RackWarden
 			  # logger.info "RW DataMapper using log_file #{_log_file.inspect}"
 		  #end
 	    
-	    logger.info "RW RackWardenClassMethods.initialize_logging level: #{logger.level}, _log_file: #{_log_file.inspect}"
+	    logger.info "RW initialize logging, level: #{logger.level}, _log_file: #{_log_file.inspect}"
 	  rescue
 	  	puts "RW - There was an error setting up logging: #{$!}"
 	  end
 	  
 	  # Set omniauth path_prefix, for all omniauth builders in this RW subclass, with rw_prefix.
     def manipulate_omniauth_settings
-      logger.info "RW RackWardenClassMethods.manipulate_omniauth_settings setting omniauth path_prefix with rw_prefix '#{settings.rw_prefix}'"
+      logger.info "RW set omniauth path_prefix with rw_prefix '#{settings.rw_prefix}'"
       ## This was the old way but turns out you can't set omniauth config per omni-builder,
       ## So see below for global omni config.
       # rw_omniauth_middleware = settings.middleware.select{|m| m[0] == (OmniAuth::Builder)}
