@@ -53,10 +53,23 @@ module RackWarden
   # eventually 'use'd in rw app dup.
   class WardenConfig < Warden::Config
     # Attach forwarding hooks to config object for Warden callback hooks.
-    # This is only good for this single config object.
     extend Forwardable
     forwardable_hooks = Warden::Hooks.instance_methods.select {|h| !h.to_s[/^_/]}
     def_delegators Warden::Manager, *forwardable_hooks
+    
+    def merge_into(other=Warden::Config.new)
+      safe = dup
+      my_default_strategies = safe.delete(:default_strategies)
+      my_scope_defaults = safe.delete(:scope_defaults)
+      
+      App.logger.debug "RW WardenConfig#merge_into my_default_strategies: #{my_default_strategies}"
+      App.logger.debug "RW WardenConfig#merge_into my_scope_defaults: #{my_scope_defaults}"
+      
+      other.merge!(safe)
+      my_default_strategies.each {|k,v| other.default_strategies(*v, scope:k)} if my_default_strategies
+      my_scope_defaults.each {|k,v| other.scope_defaults(k,v)} if my_scope_defaults
+      other
+    end
     
     def self.new_with_defaults(rw_app=RackWarden::App, config=new)
       rw_app.logger.debug "RW WardenConfig.new_with_defaults"

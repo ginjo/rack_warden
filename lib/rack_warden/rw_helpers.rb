@@ -3,7 +3,7 @@ module RackWarden
 	module RackWardenHelpers
 	
 		def require_login(*args)
-			logger.debug "RW Helpers...  #{self}#require_login with #{rack_warden}, and #{warden}"
+			logger.debug "RW Helpers...  #{self}#require_login with #{rack_warden}, and #{warden}, with args #{args}"
 			#logged_in? || warden.authenticate!
 			#warden.authenticated? || warden.authenticate!
 			warden.authenticate!(*args)

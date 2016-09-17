@@ -65,12 +65,16 @@ module RackWarden
 			# Needs to get specific settings from rw & main app.
 			#helpers RackWarden::WardenConfig
 			#use(Warden::Manager){ |config| config.replace WardenConfig } unless middleware.include?(Warden::Manager)
-			logger.info "RW using Warden::Manager"
 			unless middleware.find {|m| m[0].name == "Warden::Manager"}
+        logger.info "RW using Warden::Manager"
   			use(Warden::Manager) do |config|
+          # Create new custom warden config, passing the current class-instance of rw.
           default = WardenConfig.new_with_defaults(settings)
-          config.merge!(default)
-          config.merge! settings.warden_config if settings.warden_config
+          
+          #config.merge!(default)
+          #config.merge! settings.warden_config if settings.warden_config
+          default.merge_into(config)
+          settings.warden_config.merge_into(config) if settings.warden_config
           logger.debug "RW Warden final config: #{config}"
           config
         end
