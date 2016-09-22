@@ -48,8 +48,10 @@ module RackWarden
     set :login_on_create, true
     set :login_on_activate, false
     set :rw_prefix, '/auth'
-    set :warden_failure_app, Proc.new {self}
-    set :warden_failure_action, proc {"#{rw_prefix.to_s.gsub(/^\//,'')}/unauthenticated"}
+    # Note that sinatra settings can be a proc and take args.
+    # See 'settings.method(:warden_failure_app).arity or .parameters for introspective info.
+    set :warden_failure_app, Proc.new {|*args| self}
+    set :warden_failure_action, Proc.new {|*args| ("#{settings.rw_prefix.to_s.gsub(/^\//,'')}/unauthenticated")}
     set :warden_config, nil
     set :mail_options,
     		:delivery_method => :test,

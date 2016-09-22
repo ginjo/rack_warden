@@ -77,13 +77,13 @@ module RackWarden
       config.serialize_into_session{|user| user.id }
 
       config.serialize_from_session{|id| User.get(id) || Identity.get(id)}
+
+      config.failure_app = rw_app.settings.method(:warden_failure_app).arity > 0 ? rw_app.settings.warden_failure_app(self) : rw_app.settings.warden_failure_app
     
       config.scope_defaults :default,
         :strategies => [:remember_me, :password],
-        :action => rw_app.settings.warden_failure_action.is_a?(Proc) ? Proc.call(rw_app) : rw_app.settings.warden_failure_action
+        :action => rw_app.settings.method(:warden_failure_action).arity > 0 ? rw_app.settings.warden_failure_action(self) : rw_app.settings.warden_failure_action
 
-      config.failure_app = rw_app.settings.warden_failure_app #.is_a?(Proc) ? settings.warden_failure_app.call(self) : settings.warden_failure_app
-      
       config.before_failure do |env,opts|
         rw_app.logger.info "RW warden before_failure, opts: #{opts}"
         env['REQUEST_METHOD'] = 'POST'
