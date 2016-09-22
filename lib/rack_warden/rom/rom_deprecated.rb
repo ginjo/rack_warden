@@ -144,22 +144,6 @@ module RackWarden
       
       include RelationIncludes
       
-      #   # Get a single record by uique combo of provider-uid. Email is no longer used.
-      #   # Args can be passed as all 2 or string concat of all 2 (separated by dash "-").
-      #   # TODO: Use something other than dash, it will eventually conflict with data.
-      #   # TODO: This should probably be in repo, maybe?
-      #   #def by_guid(_provider, _uid=nil, _email=nil)
-      #   def by_guid(_provider, _uid=nil, _email=nil)
-      #     unless _uid && _email
-      #       _provider, _uid, _email = _provider.split('-')
-      #     end
-      #     App.logger.debug "RW Rom users_relation#by_guid #{[_provider, _uid, _email]}"
-      #     rslt = where :provider => _provider, :uid => _uid, :email => _email
-      #     #App.logger.debug "RW Rom users_relation#by_guid result:"
-      #     #App.logger.debug rslt.to_a
-      #     rslt
-      #   end
-      
     end # identities_rel 
 
         

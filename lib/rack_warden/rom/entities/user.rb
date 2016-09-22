@@ -1,4 +1,4 @@
-require 'dry-types'
+require_relative 'base'
 
 module RackWarden
 

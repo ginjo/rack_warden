@@ -1,3 +1,5 @@
+require_relative 'base'
+
 module RackWarden
 
   # TODO: Make sure OmniAuth classes are loaded before loading auth_hash yaml.

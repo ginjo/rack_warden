@@ -32,7 +32,8 @@ require 'yaml'
 require 'erb'
 require 'tilt/erb'  # An error somwhere suggested this be explicity required.
 require 'rack_warden/core_patches'
-require 'rack_warden/rom'
+require 'rack_warden/rom/rom'
+
 
 autoload :Mail, 'mail'
 autoload :URI, 'open-uri'
@@ -41,9 +42,6 @@ autoload :Base64, 'base64'
 module RackWarden
   autoload :App, 'rack_warden/app'
   autoload :RackEnv, 'rack_warden/rack_env'
-  #autoload :User, "rack_warden/models"
-  #autoload :Pref, "rack_warden/models"
-  #autoload :Identity, "rack_warden/models/identity"  # OMNIAUTH
   autoload :Mail, "rack_warden/mail"
   autoload :Routes, "rack_warden/routes"
   autoload :VERSION, "rack_warden/version"
@@ -51,24 +49,13 @@ module RackWarden
   autoload :RackWardenClassMethods, "rack_warden/rw_class_methods"
   autoload :UniversalHelpers, "rack_warden/universal_helpers"
   autoload :RackWardenHelpers, "rack_warden/rw_helpers"
-  # Autload patched versions of respond_with & namespace.
-  # respond_with handles uri dot-format extension,
-  # and namespace handles require_login.
-  #autoload :RespondWith, "rack_warden/sinatra/respond_with"
-  #autoload :Namespace, "rack_warden/sinatra/namespace"
-  #autoload :Frameworks, "rack_warden/frameworks"
   autoload :FrameworkHelpers, "rack_warden/framework_helpers"
   module Frameworks
     autoload :Sinatra, 'rack_warden/frameworks/sinatra'
     autoload :Rails, 'rack_warden/frameworks/rails'
     autoload :Rack, 'rack_warden/frameworks/rack'
   end
-  
-  # OLD:
-  # def self.new(*args)
-  # 	App.new(*args)
-  # end
-  
+
   # Creating a new App class before a new App instance
   # allows multiple rw instances to be used in a single ruby process,
   # for example, a rack app with multiple rack or sinatra endpoints.
@@ -80,7 +67,6 @@ module RackWarden
     Class.new(App).new(*args, &block)
 	end
 	
-
 	# Utility to get middleware stack. Maybe temporary.
 	def self.middleware_classes(app=nil)                                                                                                                                              
 	  r = [app || Rack::Builder.parse_file(File.join(Dir.pwd, 'config.ru')).first]
