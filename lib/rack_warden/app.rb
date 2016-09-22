@@ -53,10 +53,12 @@ module RackWarden
     set :warden_failure_app, Proc.new {|*args| self}
     set :warden_failure_action, Proc.new {|*args| ("#{settings.rw_prefix.to_s.gsub(/^\//,'')}/unauthenticated")}
     set :warden_config, nil
+    # omniauth_adapters might not be used any more.
+    set :omniauth_adapters, Gem.loaded_specs.keys.select{|k| k =~ /omniauth/ && k}
+    set :omniauth_config, nil # must be a hash containing a proc at key :proc. Example: {:proc=>some_omniauth_config_proc}.
     set :mail_options,
     		:delivery_method => :test,
     		:delivery_options => {:from => 'my@email.com'} #, :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE
-    set :omniauth_adapters, Gem.loaded_specs.keys.select{|k| k =~ /omniauth/ && k}
 	  
 	  
     def self.inherited(subclass)

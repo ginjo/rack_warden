@@ -46,11 +46,11 @@ module RackWarden
 	# There is a looping paradox here:
 	# You need WardenConfig to exist so that user can customize it before loading RW.
 	# But WardenConfig needs to know which RW app dup it'w being setup from.
+	# This solution handles that situation correctly.
 
-  # TODO: Try make WardenConfig a subclass of Warden::Config for the purpose of defining
-  # the setup method(s).
-  # Then create a new config from that class to be manipulated by end-user-dev, and
-  # eventually 'use'd in rw app dup.
+  # To customize warden for the endpoint app, create a new WardenConfig,
+  # and manipulate it according to your needs. Then 'use Warden::Manager, my_customized_warden_config'.
+  # See http://www.rubydoc.info/github/hassox/warden/Warden/Hooks for info on callback params.
   class WardenConfig < Warden::Config
     # Attach forwarding hooks to config object for Warden callback hooks.
     extend Forwardable
@@ -206,61 +206,6 @@ module RackWarden
     end # omniauth strategy
 		
 	end # Warden::Strategies
-		
-  # See http://www.rubydoc.info/github/hassox/warden/Warden/Hooks for info on callback params.
-
-  # class Warden::Manager
-  # 	    
-  #   before_failure do |env,opts|
-  #     env['REQUEST_METHOD'] = 'POST'
-  #   end
-  # 	
-  # 	after_authentication  do |user, auth, opts|
-  # 		#App.logger.debug "RW after_authentication callback - self: #{self}"
-  # 		#App.logger.debug "RW after_authentication callback - auth methods: #{auth.methods.sort}"
-  # 		#App.logger.debug "RW after_authentication callback - opts: #{opts.inspect}"
-  # 		#App.logger.debug "RW after_authentication callback - auth.manager: #{auth.manager.inspect}"
-  # 		#App.logger.debug "RW after_authentication callback - user: #{user.username}"
-  # 		
-  # 		# This works! But I don't think it's the right place to set the identity.
-  #     # if auth.env['omniauth.auth'] && auth.env['warden'].authenticated?
-  #     # 	identity = IdentityRepo.upsert_from_auth_hash(auth.env['omniauth.auth'])
-  #     # 	auth.env['warden'].session['identity'] = identity.id
-  #     # end
-  # 			
-  #   	
-  #   	if user.is_a?(User) && (!user.remember_token.to_s.empty? || (auth.params['user'] && auth.params['user']['remember_me'] == '1'))
-  #   		App.logger.info "RW after_authenticate user.remember_me '#{user.username}'"
-  #   		user.remember_me
-  # 			
-  # 			# We have no path to response object here :(
-  # 			#auth.response.set_cookie 'rack_warden_remember_me', :value => user.remember_token , :expires => user.remember_token_expires_at
-  # 			# So we have to do this
-  # 	  	auth.env.remember_token = { :value => user.remember_token , :expires => user.remember_token_expires_at.to_time }   #user.remember_me # sets its remember_token attribute to some large random value and returns the value.
-  # 			App.logger.debug "RW cookie set auth.env.remember_token: #{auth.env.remember_token}"
-  # 		end
-  # 	end
-  # 	
-  # 	before_logout do |user, auth, opts|
-  # 		App.logger.debug "RW before_logout callback - self: #{self}"
-  # 		App.logger.debug "RW before_logout callback - auth: #{auth.instance_variables}"
-  # 		App.logger.debug "RW before_logout callback - opts: #{opts.inspect}"
-  # 		App.logger.debug "RW before_logout callback - user: #{user.inspect}"
-  # 		#App.logger.debug "RW before_logout callback - auth.env: #{auth.env.keys}"
-  # 		#App.logger.debug "RW before_logout callback - auth.env['rack.session']: #{auth.env['rack.session'].to_h.to_yaml}"
-  # 		
-  # 		user && user.forget_me
-  # 	  
-  # 	  #auth.response.set_cookie 'rack_warden_remember_me', nil  ## doesn't work, there is no auth.response object !!!
-  # 	  App.logger.debug "RW cookie unset 'rack_warden_remember_token': #{auth.env.remember_token}"
-  # 	  auth.env.remember_token = nil
-  # 	  
-  # 	  #auth.env['warden'].session['identity'] = nil  # This bombs "Warden::NotAuthenticated at /session/slackspace/callback
-  #                                                   # :default user is not logged in"
-  # 	  #auth.env['rack.session']['identity'] = nil
-  # 	end
-  # 	
-  # end # Warden::Manager
 
 end # RackWarden
 

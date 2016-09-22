@@ -80,6 +80,13 @@ module RackWarden
         end
 			end
 			
+			unless middleware.find {|m| m[0].name[/omniauth/i]}
+        # We have to encase the proc in a hash,
+        # or else the proc will be called when we try to access it,
+        # which is too soon.
+        use OmniAuth::Builder, &settings.omniauth_config[:proc] if settings.omniauth_config.to_h.has_key?(:proc)
+			end
+			
   		# Setup flash if not already
   		# TODO: This needs to be handled after RW app subclass is created
 			use Rack::Flash, :accessorize=>[:rw_error, :rw_success, :rw_test] | settings.flash_accessories
