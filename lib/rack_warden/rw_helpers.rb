@@ -17,28 +17,34 @@ module RackWarden
 	    request.env['warden.options']
 		end
 	
-		def current_user(*args)
-	    logger.debug "RW helper current_user with args: #{args}"
-	    rslt = warden.user(*args)
-	    logger.debug "RW helper current_user retrieved: #{rslt}"
-	    rslt
+		def current_user(scope = :default)
+		  @current_user ||= {}
+		  @current_user[scope] ||= (
+  	    logger.debug "RW helper current_user with args: #{scope}"
+  	    rslt = warden.user(scope)
+  	    logger.debug "RW helper current_user retrieved: #{rslt}"
+  	    rslt
+	    )
 		end
 		
-		def current_identity(*args)
-		  logger.debug "RW Getting current_identity with warden.session['identity']:  #{session['warden.user.default.session']}"
-		  if logged_in?(*args) && warden.session(*args)['identity']  #session['identity']
-  		  identity = IdentityRepo.by_id(warden.session(*args)['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
-  		  logger.debug "RW retrieved current_identity #{identity.guid}"
-  		  identity
-		  end
+		def current_identity(scope = :default)
+		  @current_identity ||= {}
+		  @current_identity[scope] ||= (
+  		  logger.debug "RW Getting current_identity with warden.session['identity']:  #{session['warden.user.default.session']}"
+  		  if logged_in?(scope) && warden.session(scope)['identity']  #session['identity']
+    		  identity = IdentityRepo.by_id(warden.session(scope)['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
+    		  logger.debug "RW retrieved current_identity #{identity.guid}"
+    		  identity
+  		  end
+		  )
 		rescue
 		  logger.info "RW current_identity error: #{$!}"
 		  nil
 		end
 	
-		def logged_in?(*args)
-			logger.debug "RW helpers logged_in? args: #{args}"
-	    rslt = warden.authenticated?(*args) || (settings.allow_remember_me && warden.authenticate(:remember_me))
+		def logged_in?(scope=:default)
+			logger.debug "RW helpers logged_in? args: #{scope}"
+	    rslt = warden.authenticated?(scope) || (settings.allow_remember_me && warden.authenticate(:remember_me))
 	    logger.debug "RW helpers logged_in? result: #{rslt}"
 	    rslt
 		end
