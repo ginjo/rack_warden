@@ -1,6 +1,9 @@
+require_relative 'base'
+
 module RackWarden
 
   class IdentityRepoClass < ROM::Repository[:identities]
+    include Repository
     
     commands :create, :update=>:by_pk, :delete=>:by_pk
         
@@ -25,6 +28,7 @@ module RackWarden
     def by_id(_id)
       identities.by_id(_id).one
     end
+    alias_method :get, :by_id
 
     def first
       identities.first
@@ -54,26 +58,30 @@ module RackWarden
     end
     
     
-    ## Make it easier to save changed models.
-    # TODO: Somewhere the yaml objects in the entities are getting
-    # re-saved as plain hashes.
-    # I think the changeset isn't aware of the to/from yaml stuff.
-    # TODO: Try this manually and see what happens.
-    def save_attributes(_id, _attrs)
-      App.logger.debug "RW Rom IdentityRepo#save_attributes (id: #{_id})"
-      _changeset = changeset(_id, _attrs)
-      case
-      when _changeset.update?
-        App.logger.debug "RW Rom IdentityRepo#save_attributes update"
-        saved = update(_id, _changeset)
-      when _changeset.create?
-        App.logger.debug "RW Rom IdentityRepo#save_attributes create"
-        saved = create(_changeset)
-      end
-      #App.logger.debug "RW Rom identity changeset"
-      #App.logger.debug _changeset.to_yaml
-      saved
-    end
+    #   ## Makes it easier to save changed models.
+    #   # TODO: Somewhere the yaml objects in the entities are getting
+    #   # re-saved as plain hashes.
+    #   # I think the changeset isn't aware of the to/from yaml stuff.
+    #   # TODO: Try this manually and see what happens.
+    #   def save_attributes(_id, _attrs)
+    #     App.logger.debug "RW Rom IdentityRepo#save_attributes (id: #{_id})"
+    #     App.logger.debug _attrs.to_yaml
+    #     _attrs.delete_if {|k,v| v==nil} unless _id
+    #     _changeset = changeset(_id, _attrs)
+    #     #App.logger.debug "RW Rom identity changeset"
+    #     #App.logger.debug _changeset.to_yaml
+    #     case
+    #     when _changeset.update?
+    #       App.logger.debug "RW Rom IdentityRepo#save_attributes update"
+    #       App.logger.debug "RW Rom identity changeset.diff"
+    #       App.logger.debug _changeset.diff.to_yaml
+    #       saved = update(_id, _changeset)
+    #     when _changeset.create?
+    #       App.logger.debug "RW Rom IdentityRepo#save_attributes create"
+    #       saved = create(_changeset)
+    #     end
+    #     saved
+    #   end
 
     # TEST:
     # ih = YAML.load_file '../RackWarden/spec/info_hash_data.yml'

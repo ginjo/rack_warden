@@ -43,9 +43,9 @@ module RackWarden
 		end
 	
 		def logged_in?(scope=:default)
-			logger.debug "RW helpers logged_in? args: #{scope}"
+			#logger.debug "RW helpers logged_in? args: #{scope}"
 	    rslt = warden.authenticated?(scope) || (settings.allow_remember_me && warden.authenticate(:remember_me))
-	    logger.debug "RW helpers logged_in? result: #{rslt}"
+	    #logger.debug "RW helpers logged_in? result: #{rslt}"
 	    rslt
 		end
 		
@@ -107,20 +107,51 @@ module RackWarden
 	    params['user'] && params['user']['email'] && params['user']['password']
 	  end
 
-		def rw_prefix(_route='')
-			settings.rw_prefix.to_s + _route.to_s
+		def rw_prefix(_extra_route='')
+			settings.rw_prefix.to_s + _extra_route.to_s
 		end
 		
-		# Generate partial or full URL, including base-uri-prefix-whatever,
+		def omniauth_prefix(_extra_route='')
+			settings.omniauth_prefix.to_s + _extra_route.to_s
+		end
+		
+		# Generate partial or full URL, including base-uri-prefix-whatever, and namespace,
 		# with params hash, if exists.
-		# Arg 2 is _full_uri true or false, default false.
-		def url_for(_url, *args)
+    # args[0] (optional): symbol=namespace
+    # args[1]: string=path
+    # args[2]: truth=give-full-uri
+    # options: hash=params
+		def url_for(*args)
 		  _params = args.last.is_a?(Hash) ? args.pop : Hash.new
-		  _full_uri = args[0] || false
+		  _namespace_sym = args[0].is_a?(Symbol) ? args.shift : :rw
+		  _namespace = case _namespace_sym
+  		  when :rw; rw_prefix;
+  		  when :omniauth; omniauth_prefix;
+  		  else rw_prefix
+		  end 
+		  _path = args[0] || false
+		  _give_full_uri = args[1] || false
+
 		  #logger.debug "RW RackWardenHelpers#url_for _url: #{_url}, _full_uri: #{_full_uri.to_s}, _params: #{_params.__to_params__}"
-			url(rw_prefix(_url), _full_uri).to_s +
+			url(File.join(_namespace.to_s, _path.to_s), _give_full_uri).to_s +
 			(_params.empty? ? '' : "?#{_params.__to_params__}")
 		end
+		
+    # 	# Generate partial or full URL, including base-uri-prefix-whatever,
+    # 	# with params hash, if exists.
+    # 	# Arg 2 is _full_uri true or false, default false.
+    # 	def url_for(_url, *args)
+    # 	  _params = args.last.is_a?(Hash) ? args.pop : Hash.new
+    # 	  _full_uri = args[0] || false
+    # 	  _namespace = case args[1]
+    # 	  when :rw; rw_prefix(_url);
+    # 	  when :omni; omniauth_prefix;
+    # 	  else rw_prefix(_url)
+    # 	  end 
+    # 	  #logger.debug "RW RackWardenHelpers#url_for _url: #{_url}, _full_uri: #{_full_uri.to_s}, _params: #{_params.__to_params__}"
+    # 		url(rw_prefix(_url), _full_uri).to_s +
+    # 		(_params.empty? ? '' : "?#{_params.__to_params__}")
+    # 	end
 			
 		def verify_recaptcha(skip_redirect=false, ip=request.ip, response=params['g-recaptcha-response'])
 			secret = settings.recaptcha[:secret]

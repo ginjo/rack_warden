@@ -18,7 +18,48 @@ module RackWarden
 						default_page
 					end
 				end
+				
+        
+        ###  OMNIAUTH NAMESPACE  ###
+        logger.info "RW Routes setting up omniauth namespace for #{settings} at #{settings.omniauth_prefix}"
+				namespace settings.omniauth_prefix do
 
+    		  # Omniauth callback
+          # See this for omniauth.auth hash standardized schema:
+          # https://github.com/intridea/omniauth/wiki/Auth-Hash-Schema
+          %w(get post).each do |method|
+            send(method, "/:provider/callback") do
+              logger.debug "RW /provider/callback before-auth env: #{env.object_id}, warden: #{env['warden']}"
+              #logger.debug "RW /provider/callback before-auth env: #{env.object_id}, session: #{session.to_h.to_yaml}"
+              #warden.logout
+              #logger.debug "RW /provider/callback before-auth-after-logout env: #{env.object_id}, warden: #{env['warden']}"
+              warden.authenticate!(:omniauth)
+              #logger.debug "RW /provider/callback after-auth env: #{env.object_id}, warden: #{env['warden']}"
+              #logger.debug "RW /provider/callback after-auth env: #{env.object_id}, session: #{session.to_h.to_yaml}"
+              #erb "<pre>#{current_user.to_yaml}</pre>"
+              # The .. is to go up one level above the rw_prefix.
+              return_to #'/protected'
+            end
+          end						
+				
+					# For omniauth failures that happen at the provider, thus
+					# hitting the callback url with an 'error' pramater.
+					# The callback should redirect the browser here.
+				  # You can prevent failure exceptions in dev mode with this:
+          #   OmniAuth.config.failure_raise_out_environments = []
+					get '/failure' do
+            @message = params['message']
+            @origin = params['origin']
+            @strategy = params['stragety']
+            flash[:rw_error] = "The authentication provider returned this message: #{@message}"
+            logger.info "RW OmniAuth provider callback had error param: #{params}"
+            redirect(settings.default_route)
+          end
+				
+				end # omniauth namespace
+				
+        
+        ###  RW NAMESPACE  ###
         logger.info "RW Routes setting up rw namespace for #{settings} at #{settings.rw_prefix}"
 				namespace settings.rw_prefix do
 				
@@ -56,24 +97,6 @@ module RackWarden
 					
 					  return_to
 					end
-					
-    		  # Omniauth callback
-          # See this for omniauth.auth hash standardized schema:
-          # https://github.com/intridea/omniauth/wiki/Auth-Hash-Schema
-          %w(get post).each do |method|
-            send(method, "/:provider/callback") do
-              logger.debug "RW /provider/callback before-auth env: #{env.object_id}, warden: #{env['warden']}"
-              #logger.debug "RW /provider/callback before-auth env: #{env.object_id}, session: #{session.to_h.to_yaml}"
-              #warden.logout
-              #logger.debug "RW /provider/callback before-auth-after-logout env: #{env.object_id}, warden: #{env['warden']}"
-              warden.authenticate!(:omniauth)
-              #logger.debug "RW /provider/callback after-auth env: #{env.object_id}, warden: #{env['warden']}"
-              #logger.debug "RW /provider/callback after-auth env: #{env.object_id}, session: #{session.to_h.to_yaml}"
-              #erb "<pre>#{current_user.to_yaml}</pre>"
-              # The .. is to go up one level above the rw_prefix.
-              return_to #'/protected'
-            end
-          end		
 					
 					get '/logout' do
 					  #warden.raw_session.inspect
@@ -144,20 +167,6 @@ module RackWarden
 					  #   redirect url('/auth/new', false)
 					  # end
 					end
-					
-					# For omniauth failures that happen at the provider, thus
-					# hitting the callback url with an 'error' pramater.
-					# The callback should redirect the browser here.
-				  # You can prevent failure exceptions in dev mode with this:
-          #   OmniAuth.config.failure_raise_out_environments = []
-					get '/failure' do
-            @message = params['message']
-            @origin = params['origin']
-            @strategy = params['stragety']
-            flash[:rw_error] = "The authentication provider returned this message: #{@message}"
-            logger.info "RW OmniAuth provider callback had error param: #{params}"
-            redirect(settings.default_route)
-          end
 					
 					get "/error" do
 						respond_with :'rw_error'

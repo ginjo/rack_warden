@@ -57,6 +57,7 @@ module RackWarden
     forwardable_hooks = Warden::Hooks.instance_methods.select {|h| !h.to_s[/^_/]}
     def_delegators Warden::Manager, *forwardable_hooks
     
+    # Use to help merge these settings into the config object created by 'use Warden::Manager'
     def merge_into(other=Warden::Config.new)
       safe = dup
       my_default_strategies = safe.delete(:default_strategies)
@@ -71,6 +72,7 @@ module RackWarden
       other
     end
     
+    # Use to create custom custom config with default settings.
     def self.new_with_defaults(rw_app=RackWarden::App, config=new)
       rw_app.logger.debug "RW WardenConfig.new_with_defaults"
       

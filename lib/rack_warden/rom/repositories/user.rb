@@ -1,8 +1,11 @@
+require_relative 'base'
+
 module RackWarden
 
   ## Put domain-specific methods in this class.
   # TODO: Make this a base repo to inherit from.
   class UserRepoClass < ROM::Repository[:users]
+    include Repository
     
     # You can also bring other relations into this repo (mostly for associations & aggregates).
     #relations :users, :sequence
@@ -45,22 +48,22 @@ module RackWarden
       users.count
     end
     
-    ## Make it easier to save changed models.
-    def save_attributes(_id, _attrs)
-      #puts "UserRepoClass#save_attributes"
-      #puts [_id, _attrs].to_yaml
-      _changeset = changeset(_id, _attrs)
-      case
-      when _changeset.update?
-        #puts "\nChangeset diff #{_changeset.diff}"
-        saved = update(_id, _changeset)
-      when _changeset.create?
-        saved = create(_changeset)
-      end
-      #puts "\nResponse from updater"
-      #puts saved.to_yaml
-      saved
-    end
+    #   ## Make it easier to save changed models.
+    #   def save_attributes(_id, _attrs)
+    #     #puts "UserRepoClass#save_attributes"
+    #     #puts [_id, _attrs].to_yaml
+    #     _changeset = changeset(_id, _attrs)
+    #     case
+    #     when _changeset.update?
+    #       #puts "\nChangeset diff #{_changeset.diff}"
+    #       saved = update(_id, _changeset)
+    #     when _changeset.create?
+    #       saved = create(_changeset)
+    #     end
+    #     #puts "\nResponse from updater"
+    #     #puts saved.to_yaml
+    #     saved
+    #   end
     
     def locate_from_identity(identity)
       query(email: identity.email).union(query(id: identity.user_id)).first

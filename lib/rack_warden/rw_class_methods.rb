@@ -195,7 +195,7 @@ module RackWarden
       # end
       
       OmniAuth.configure do |cfg| 
-        cfg.path_prefix = settings.rw_prefix
+        cfg.path_prefix = settings.omniauth_prefix
         cfg.logger = settings.logger
       end
     end

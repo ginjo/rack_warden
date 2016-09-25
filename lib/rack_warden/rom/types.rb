@@ -33,7 +33,7 @@ module RackWarden
     
     FromYaml = Dry::Types::Definition.new(Hash).constructor do |dat|
       #puts "FromYaml constructor with data: #{dat}"
-      YAML.load(dat.to_s)
+      YAML.load(dat.to_s) || nil
     end
     
     ToMarshal = Dry::Types::Definition.new(String).constructor do |dat|

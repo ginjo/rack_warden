@@ -18,11 +18,14 @@ module RackWarden
     # #attribute :auth_hash, Types::FromYaml
     
     # Use schema attributes from base relation, put overrides in the block.
+    # TODO: Find way to instrospect relation instead of hard-coding it.
     initialize_attributes(RomContainer.relation(:identities).schema.attributes) do
       {
       :info => Types::FromYaml,
       :credentials => Types::FromYaml,
-      :extra => Types::FromYaml
+      :extra => Types::FromYaml,
+      :created_at => Types::DateTime,
+      :updated_at => Types::DateTime     
       }
     end
     

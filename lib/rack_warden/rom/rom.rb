@@ -24,6 +24,13 @@ module RackWarden
   IdentityRepo = IdentityRepoClass.new(RomContainer)
   
   Dir.glob(File.join(RackWarden.root, 'lib/rack_warden/rom/entities/', '**', '*.rb'), &method(:require))
+  
+  
+  # TEMP: for testing schema & table creation.
+  RackWarden::RomContainer.relation(:users).drop_table
+  RackWarden::RomContainer.relation(:users).create_table
+  RackWarden::RomContainer.relation(:identities).drop_table
+  RackWarden::RomContainer.relation(:identities).create_table
 
 
 end # SlackSpace

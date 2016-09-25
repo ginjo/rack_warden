@@ -53,6 +53,7 @@ module RackWarden
     set :warden_failure_app, Proc.new {|*args| self}
     set :warden_failure_action, Proc.new {|*args| ("#{settings.rw_prefix.to_s.gsub(/^\//,'')}/unauthenticated")}
     set :warden_config, nil
+    set :omniauth_prefix, '/auth'
     # omniauth_adapters might not be used any more.
     set :omniauth_adapters, Gem.loaded_specs.keys.select{|k| k =~ /omniauth/ && k}
     set :omniauth_config, nil # must be a hash containing a proc at key :proc. Example: {:proc=>some_omniauth_config_proc}.

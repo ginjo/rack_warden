@@ -19,7 +19,13 @@ module RackWarden
     # Because built-in 'last' method can only return a hash ('as' doesn't work).
     def last
       order(:id).reverse.limit(1)
-    end   
-  end
+    end
+    
+    def drop_table
+      puts "RackWarden droping table '#{table}' in database: #{dataset}"
+      dataset.db.drop_table?(table)
+    end
+    
+  end # RelationIncludes
 
-end
+end # RackWarden

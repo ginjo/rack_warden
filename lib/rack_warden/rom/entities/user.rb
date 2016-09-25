@@ -18,7 +18,10 @@ module RackWarden
     
     # Use schema attributes from base relation, put overrides in the block.
     initialize_attributes(RomContainer.relation(:users).schema.attributes) do
-      {:encrypted_password => Types::BCryptPassword}
+      {:encrypted_password => Types::BCryptPassword,
+      :created_at => Types::DateTime,
+      :updated_at => Types::DateTime
+      }
     end
     
     # Update local attributes. No write to datastore.
