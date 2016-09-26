@@ -1,6 +1,7 @@
 module RackWarden
 
-  class Entity < Dry::Types::Struct
+  #class Entity < Dry::Types::Struct
+  class Entity < Dry::Struct
   
     # NOTE: dry-struct.new does most of the work in setting up the struct & populating attributes.
     #       The #initialize method doesn't really do anything.

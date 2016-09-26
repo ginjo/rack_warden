@@ -125,12 +125,12 @@ module RackWarden
 					    # TODO: maybe put this line in the user model?
 					    @user.activate if settings.mail_options[:delivery_method] == :test
 					  	flash.rw_success = warden.message || "Account created"
-					  	App.logger.info "RW /.../create succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"
+					  	App.logger.info "RW /.../create succeeded for '#{@user.username rescue nil}'"  # #{@user.errors.entries}"
 					    #redirect session[:return_to] || url(settings.default_route, false)
 					    return_to url_for(logged_in? ? settings.default_route : '/login')
 					  else
-					  	flash.rw_error = "#{warden.message} => #{@user.errors.entries.join('. ')}"
-					  	App.logger.info "RW /.../create failed for '#{@user.username rescue nil}' #{@user.errors.entries}"
+					  	flash.rw_error = "There was a problem creating the account: #{warden.message}"  # => #{@user.errors.entries.join('. ')}"
+					  	App.logger.info "RW /.../create failed for '#{@user.username rescue nil}'"  # #{@user.errors.entries}"
 					  	redirect back
 					  end
 					end
@@ -143,7 +143,7 @@ module RackWarden
 							@user.activate
 							warden.set_user(@user) if settings.login_on_activate
 							flash.rw_success = "Account activated"
-							App.logger.info "RW /.../activate succeeded for '#{@user.username rescue nil}' #{@user.errors.entries}"
+							App.logger.info "RW /.../activate succeeded for '#{@user.username rescue nil}'"  # #{@user.errors.entries}"
 							#redirect "/auth/login"
 							return_to url_for(logged_in? ? '/' : '/login')
 						else

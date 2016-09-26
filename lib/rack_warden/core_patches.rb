@@ -1,5 +1,6 @@
 require 'dry-types'
-require 'dry/types/struct'
+#require 'dry/types/struct'
+require 'dry-struct'
 require 'uri'
 
 # Simple conversion to html (intended for yaml output)
@@ -55,7 +56,8 @@ class Time
 	end
 end
 
-class Dry::Types::Struct
+#class Dry::Types::Struct
+class Dry::Struct
   # The original to_h changes the values.
   # This version does not change the values.
   # File 'lib/dry/types/struct.rb', line 67

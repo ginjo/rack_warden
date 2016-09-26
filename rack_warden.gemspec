@@ -20,8 +20,8 @@ Gem::Specification.new do |spec|
     
 	spec.add_dependency "backports"
 	spec.add_dependency "bcrypt"
-  spec.add_dependency "data_mapper"
-  spec.add_dependency "dm-sqlite-adapter"
+	spec.add_dependency "dry-types"
+	spec.add_dependency "dry-struct"
   spec.add_dependency "mail"
   spec.add_dependency "multi_json"
   spec.add_dependency "omniauth"

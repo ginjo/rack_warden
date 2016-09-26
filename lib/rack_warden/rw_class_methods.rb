@@ -165,10 +165,11 @@ module RackWarden
 		    mw ? mw[1]=[_log_file] : use(Rack::CommonLogger, _log_file)
 	    end
 	    
+	    # TODO: Do we need to handle ROM logging here?
 		  #if logger.level < 2
 			  #DataMapper::Logger.new(_log_file)  #$stdout) #App.log_path)
-			  DataMapper.logger.instance_variable_set :@log, _log_file
-			  DataMapper.logger.instance_variable_set :@level, DataMapper::Logger::Levels[log_level.to_s.downcase.to_sym]
+			  #DataMapper.logger.instance_variable_set :@log, _log_file
+			  #DataMapper.logger.instance_variable_set :@level, DataMapper::Logger::Levels[log_level.to_s.downcase.to_sym]
 			  # logger.info "RW DataMapper using log_file #{_log_file.inspect}"
 		  #end
 	    

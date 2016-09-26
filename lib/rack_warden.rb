@@ -26,11 +26,12 @@ require "sinatra/contrib" # not compatible with rails 2.3 because of rack depend
 require "rack/flash" # this somehow loads rack/flash3
 require "rack/contrib/cookies"  # This is needed to set cookies in warden callbacks.
 require 'bcrypt'
-require 'data_mapper'
 require 'warden'
 require 'yaml'
 require 'erb'
 require 'tilt/erb'  # An error somwhere suggested this be explicity required.
+require 'dry-types'
+require 'dry-struct'
 require 'rack_warden/core_patches'
 require 'rack_warden/rom/rom'
 
