@@ -9,7 +9,7 @@ module RackWarden
     
     # TODO: figure out the best way to initialize sessions.
     #use Rack::Session::Cookie
-    disable :protection if development?
+    disable :protection unless production?
           
     set :config_files, [ENV['RACK_WARDEN_CONFIG_FILE'], 'rack_warden.yml', 'config/rack_warden.yml'].compact.uniq
     set :layout, :'rw_layout.html'
@@ -26,8 +26,8 @@ module RackWarden
     set :flash_accessories, []
     set :logging, true
     set :log_path, "#{Dir.pwd}/log/rack_warden.#{settings.environment}.log"
-    set :log_file, ($0[/rails|irb|ruby|rack|server/i] && development? ? $stdout : nil)
-    set :log_level => ENV['RACK_WARDEN_LOG_LEVEL'] || (development? ? 'INFO' : 'WARN')
+    set :log_file, ($0[/rails|irb|ruby|rack|server/i] && !production? ? $stdout : nil)
+    set :log_level => ENV['RACK_WARDEN_LOG_LEVEL'] || (!production? ? 'INFO' : 'WARN')
     set :logger, nil
     set :use_common_logger, false
     set :reset_logger, false

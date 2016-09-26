@@ -21,6 +21,10 @@ module RackWarden
       order(:id).reverse.limit(1)
     end
     
+    def table_exists?
+      dataset.db.table_exists?(table)
+    end
+    
     def drop_table
       puts "RackWarden droping table '#{table}' in database: #{dataset}"
       dataset.db.drop_table?(table)

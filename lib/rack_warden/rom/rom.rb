@@ -26,11 +26,12 @@ module RackWarden
   Dir.glob(File.join(RackWarden.root, 'lib/rack_warden/rom/entities/', '**', '*.rb'), &method(:require))
   
   
-  # TEMP: for testing schema & table creation.
-  RackWarden::RomContainer.relation(:users).drop_table
-  RackWarden::RomContainer.relation(:users).create_table
-  RackWarden::RomContainer.relation(:identities).drop_table
-  RackWarden::RomContainer.relation(:identities).create_table
-
+  # Initialize database tables.
+  %w(identities users).each do |name|
+    if ENV['RACK_ENV'].to_s[/test/i]
+      RackWarden::RomContainer.relation(name).drop_table
+    end
+    RackWarden::RomContainer.relation(name).create_table
+  end
 
 end # SlackSpace

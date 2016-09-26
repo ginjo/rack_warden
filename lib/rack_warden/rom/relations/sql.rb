@@ -39,7 +39,7 @@ module RackWarden
       include RelationIncludes
       
       def create_table
-        puts "RackWarden creating table '#{table}' in database: #{dataset}"
+        puts "RackWarden creating table '#{table}' in database: #{dataset}"  unless table_exists?
         dataset.db.create_table?(table) do
           # rel.schema.attributes.each do |k,v|
           #   name = k.to_sym
@@ -86,7 +86,7 @@ module RackWarden
       include RelationIncludes
       
       def create_table
-        puts "RackWarden creating table '#{table}' in database: #{dataset}"
+        puts "RackWarden creating table '#{table}' in database: #{dataset}" unless table_exists?
         dataset.db.create_table?(table) do
           # rel.schema.attributes.each do |k,v|
           #   name = k.to_sym
@@ -105,7 +105,6 @@ module RackWarden
           column :created_at, 'timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP'
           column :updated_at, DateTime
         end
-        #puts "RackWarden created new table in database: #{identities_rel.dataset}"
       rescue
         puts "RackWarden trouble creating '#{table}' table: #{$!}"
       end
