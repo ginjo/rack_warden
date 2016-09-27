@@ -15,9 +15,8 @@ module RackWarden
     set :layout, :'rw_layout.html'
     set :default_route, '/'
     set :exclude_from_return_to, 'login|logout|new|create|activate|unauthenticated|error|failure|(.*\/callback)'
-    set :repository_name, :default
-    set :database_config, nil
-    set :database_default,  "sqlite3:///#{Dir.pwd}/rack_warden.sqlite3.db"
+    set :rom_adapter, :sql
+    set :database_config, "sqlite://" + File.join(Dir.getwd, "rack_warden.#{environment}.sqlite3.db")
     set :disable_erubis, false # Had to be true for Tilt 1.3, or if erubis is loaded
     set :recaptcha, {}
     set :require_login, false   # was nil, changing default to no-security, so must declare in main app.

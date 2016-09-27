@@ -13,6 +13,9 @@ module RackWarden
 	  	logger.debug "RW RackWardenClassMethods.initialize_app_class environment: #{environment}, process: #{$0}, self: #{self}"
 	  	initialize_config_files
 	  	initialize_logging  # again, in case log settings changed in config files.
+	  	
+			# Setup database.
+			RackWarden.setup_database(settings)
 	  		  	
 	    use Rack::Cookies
 	    
@@ -39,7 +42,7 @@ module RackWarden
 			# TODO: Figure out how to integrate new framework model with rw sublclass settings.
 			#setup_framework(parent_app_instance, *initialization_args)
       # Originally in setup_framework:
-      overlay_settings(options)
+      load_config_from_hash(options)
       
       # Evaluate 'use' block. Note that settings performed in 'use' block
       # will overwrite any settings set as params, from config file, or from any earlier manipulation.
@@ -54,11 +57,14 @@ module RackWarden
 			yield(rw_app_instance.settings.settings, rw_app_instance) if block_given?
 			
 			# Originally in setup_framework:
-			overlay_settings(:views=>settings.extra_views) if settings.extra_views #&& ![settings.views, opts[:views]].flatten.include?(false)			
+			load_config_from_hash(:views=>settings.extra_views) if settings.extra_views #&& ![settings.views, opts[:views]].flatten.include?(false)			
 			
 		  # Set global layout (remember to use :layout=>false in your calls to partials).
 		  logger.debug "RW RackWardenClassMethods.initialize_settings_from_instance setting erb layout: #{settings.layout}"
 			set :erb, :layout=>settings.layout
+			
+			# Setup database (possibly again, with new settings).
+			#RackWarden.setup_database(settings)
 			
 			set :sessions, true unless sessions
 			
@@ -125,20 +131,65 @@ module RackWarden
     # end
 
     # Load config from file, if any exist.
+    # Config files are yaml and may contain any settable RW setting,
+    # any number of environments as main keys (like :development => config-hash-here),
+    # and values that are rw-hash-procs (:proc => code-to-eval-when-setting-is-read).
+    # Note that the proc code is read as a string and eval'd to form the proc.
+    # Example yaml:
+    #     database_config:
+    #       # Creates separate databases for each environment
+    #       # The outter parentheses (or surrounding single or double quotes)
+    #       # are required, or yaml will fail.
+    #       proc: ( "sqlite://" + File.join(Dir.getwd, "db", "slackspace.#{environment}.sqlite3.db") )
+    #       
+    #     development:
+    #       layout: rw_development_layout.html
+    #       other_setting: bobloblaw
+    #
     def initialize_config_files(more_config={})
-      logger.info "RW initialize_config_files, self: #{self}, extra-config: #{more_config}"
+      logger.debug "RW initialize_config_files, self: #{self}, extra-config: #{more_config}"
 	    Hash.new.tap do |hash|
-	      config_files.each {|c| hash.merge!(YAML.load_file(File.join(Dir.pwd, c))) rescue nil}
-	      hash.merge! more_config
-	      overlay_settings hash
+	      settings.config_files.each do |c|
+  	      begin
+            new_yaml_config = YAML.load_file(File.join(Dir.pwd, c))
+            load_config_from_hash(new_yaml_config)
+            logger.info "RW initialize_config_files loaded file: #{File.join(Dir.pwd, c)}"
+            logger.info "RW initialize_config_files loaded file config: #{new_yaml_config}"
+          rescue
+            logger.debug "RW initialize_config_files failed to load: #{File.join(Dir.pwd, c)}, error: #{$!}"
+          end
+        end
+        if !more_config.empty?
+          logger.info "RW initialize_config_files adding more_config: #{more_config}" 
+  	      load_config_from_hash(more_config)
+        end
 	    end
+    end
+    
+    # Merge hash into rw settings, accounting for hash keys containing:
+    # :<rack-environment> (will process the sub-hash for current environment),
+    # and hash values containing a :proc=>code-to-eval hash (turn to code into a proc
+    # and attach to current config key.
+    def load_config_from_hash(input_hash={})
+      output_hash = {}
+      input_hash.each do |k,v|
+        if k.to_s == settings.environment.to_s
+          load_config_from_hash(v)
+        elsif v.is_a?(Hash) && v.keys[0].to_s == 'proc'
+          new_proc = eval("Proc.new {#{v.values[0]}}")
+          output_hash[k] = new_proc
+        else
+          output_hash[k] = v
+        end
+      end
+      overlay_settings output_hash
     end
     
     # Apply new settings on top of existing settings, prepending new views to old views.
     def overlay_settings(new_settings)
       existing_views = settings.views
     	new_views = new_settings.__extract__(:views).values
-    	logger.debug "RW RackWardenClassMethods.overlay_settings self: #{self}, new_settings: #{new_settings} "   #App.object_id #{settings.object_id}"
+    	logger.debug "RW RackWardenClassMethods.overlay_settings self: #{self}, new_settings: #{new_settings} "   #settings.object_id #{settings.object_id}"
     	#logger.debug "RW existing_views #{existing_views.inspect}"
     	#logger.debug "RW new_views #{new_views.inspect}"
     	# TODO: Should these next two steps be reversed? 2016-08-02
@@ -146,6 +197,7 @@ module RackWarden
     	set new_settings
 	  	logger.debug "RW compiled_views"
 	  	logger.debug views.to_yaml
+	  	settings
     end
     	
     # Initialize logging.
@@ -167,7 +219,7 @@ module RackWarden
 	    
 	    # TODO: Do we need to handle ROM logging here?
 		  #if logger.level < 2
-			  #DataMapper::Logger.new(_log_file)  #$stdout) #App.log_path)
+			  #DataMapper::Logger.new(_log_file)  #$stdout) #settings.log_path)
 			  #DataMapper.logger.instance_variable_set :@log, _log_file
 			  #DataMapper.logger.instance_variable_set :@level, DataMapper::Logger::Levels[log_level.to_s.downcase.to_sym]
 			  # logger.info "RW DataMapper using log_file #{_log_file.inspect}"
@@ -218,7 +270,7 @@ module RackWarden
 		  if tmpl
 		  	tmpl.render(object, locals_hash)
 		  else
-			  App.logger.info "RW RackWardenClassMethods.render_template found no templates to render" 
+			  settings.logger.info "RW RackWardenClassMethods.render_template found no templates to render" 
 			  nil
 			end
 		end
