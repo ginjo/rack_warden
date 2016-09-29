@@ -145,6 +145,10 @@ module RackWarden
           fail!("Could not login")
           App.logger.info "RW warden password-user failed regular login '#{params['user']['username']}'"		        	
         end
+      rescue Exception => error
+        App.logger.warn "RW strategy for :password has raised an exception."
+        App.logger.warn "RW #{error}"
+        fail!("Could not authenticate :password user, exception raised: #{$! if ENV['RACK_ENV'] != 'production'}")
       end # authenticate!
     end	# password strategy
   
@@ -177,33 +181,31 @@ module RackWarden
       end
       
       def authenticate!
-        begin
-          App.logger.debug "RW Warden Strategy Omniauth 'authenticate!' using env['omniauth.auth']"
-          #App.logger.debug env['omniauth.auth'].to_h.to_yaml
-          identity = IdentityRepo.upsert_from_auth_hash(env['omniauth.auth'])
-          user = identity.user if identity
-          #App.logger.debug env['omniauth.auth'].to_yaml
-          #App.logger.debug env['omniauth.auth'].to_h.to_yaml
-          #App.logger.debug identity.to_yaml
-          if (identity && user = identity.user)
-            App.logger.debug "RW Warden Strategy Omniauth retrieved/created identity: #{identity}, guid:#{identity.guid}, self: #{self}"
-            App.logger.info "RW warden omniauth authenticate! SUCCESS"
-            # 'success()' is different from 'set_user()', but I'm not sure why the difference.
-            # If we don't use 'set_user()' the warden object is not considered logged in yet.
-            env['warden'].set_user user
-            env['warden'].session['identity'] = identity.id #if env['warden'].authenticated?
-            success!(user)
-          else
-            App.logger.info "RW warden omniauth authenticate! FAIL"
-            fail!("Could not authenticate omniauth identity")
-          end
-        rescue Exception => error
-          App.logger.warn "RW strategy for omniauth has raised an exception."
-          App.logger.warn "RW #{error}"
-          fail!("Could not authenticate omniauth identity, exception raised: #{$! if ENV['RACK_ENV'] != 'production'}")
-          # Should this really throw an exception here? Isn't there a friendly failure action?
-          #raise $!
+        App.logger.debug "RW Warden Strategy Omniauth 'authenticate!' using env['omniauth.auth']"
+        #App.logger.debug env['omniauth.auth'].to_h.to_yaml
+        identity = Identity.upsert_from_auth_hash(env['omniauth.auth'])
+        user = identity.user if identity
+        #App.logger.debug env['omniauth.auth'].to_yaml
+        #App.logger.debug env['omniauth.auth'].to_h.to_yaml
+        #App.logger.debug identity.to_yaml
+        if (identity && user = identity.user)
+          App.logger.debug "RW Warden Strategy Omniauth retrieved/created identity: #{identity}, guid:#{identity.guid}, self: #{self}"
+          App.logger.info "RW warden omniauth authenticate! SUCCESS"
+          # 'success()' is different from 'set_user()', but I'm not sure why the difference.
+          # If we don't use 'set_user()' the warden object is not considered logged in yet.
+          env['warden'].set_user user
+          env['warden'].session['identity'] = identity.id #if env['warden'].authenticated?
+          success!(user)
+        else
+          App.logger.info "RW warden omniauth authenticate! FAIL"
+          fail!("Could not authenticate omniauth identity")
         end
+      rescue Exception => error
+        App.logger.warn "RW strategy for :omniauth has raised an exception."
+        App.logger.warn "RW #{error}"
+        fail!("Could not authenticate :omniauth identity, exception raised: #{$! if ENV['RACK_ENV'] != 'production'}")
+        # Should this really throw an exception here? Isn't there a friendly failure action?
+        #raise $!
       end # authenticate!
     end # omniauth strategy
 		

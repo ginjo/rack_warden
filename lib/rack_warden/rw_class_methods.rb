@@ -15,7 +15,8 @@ module RackWarden
 	  	initialize_logging  # again, in case log settings changed in config files.
 	  	
 			# Setup database.
-			RackWarden.setup_database(settings)
+			
+			RackWarden::Rom.setup_database(settings)
 	  		  	
 	    use Rack::Cookies
 	    

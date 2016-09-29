@@ -33,7 +33,7 @@ require 'tilt/erb'  # An error somwhere suggested this be explicity required.
 require 'dry-types'
 require 'dry-struct'
 require 'rack_warden/core_patches'
-require 'rack_warden/rom/rom'
+require 'rack_warden/rom_modular/rom'
 
 
 autoload :Mail, 'mail'
