@@ -23,7 +23,7 @@ module RackWarden
       end
       
       # Finalize the rom config
-      const_set :RomContainer, ROM.container(RomConfig)
+      const_set :RomContainer, ROM.container(RomConfig.dup)
       
       # Create rom repos with containers
       const_set :UserRepo, UserRepoClass.new(RomContainer)

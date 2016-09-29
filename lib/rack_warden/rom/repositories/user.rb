@@ -14,7 +14,7 @@ module RackWarden
         
     # Always return any call to users relation as a User 
     def users
-      super.as(User)
+      super.as(:user)
     end
     
     def query(*args)

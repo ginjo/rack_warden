@@ -8,7 +8,7 @@ module RackWarden
     commands :create, :update=>:by_pk, :delete=>:by_pk
         
     def identities
-      super.as(RackWarden::Identity)
+      super.as(:identity)
     end
     
     def query(*args)
