@@ -197,9 +197,9 @@ module RackWarden
             App.logger.info "RW warden omniauth authenticate! FAIL"
             fail!("Could not authenticate omniauth identity")
           end
-        rescue Exception
+        rescue Exception => error
           App.logger.warn "RW strategy for omniauth has raised an exception."
-          App.logger.warn "RW #{$!}"
+          App.logger.warn "RW #{error}"
           fail!("Could not authenticate omniauth identity, exception raised: #{$! if ENV['RACK_ENV'] != 'production'}")
           # Should this really throw an exception here? Isn't there a friendly failure action?
           #raise $!
