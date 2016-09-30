@@ -6,8 +6,9 @@ module RackWarden
 		def self.included(base)
 			base.instance_eval do
 		    register Sinatra::Namespace
-
-  	    Sinatra::Namespace::NamespacedMethods.prefixed(:require_login, :require_authorization)
+        
+        # Moved to higher-up in the load heirarchy.
+  	    #Sinatra::Namespace::NamespacedMethods.prefixed(:require_login, :require_authorization)
 				
 				# Before does not have access to uri-embedded params yet.				
 				#before do

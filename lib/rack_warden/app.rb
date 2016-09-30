@@ -19,7 +19,7 @@ module RackWarden
     set :database_config, "sqlite://" + File.join(Dir.getwd, "rack_warden.#{environment}.sqlite3.db")
     set :disable_erubis, false # Had to be true for Tilt 1.3, or if erubis is loaded
     set :recaptcha, {}
-    set :require_login, false   # was nil, changing default to no-security, so must declare in main app.
+    set :require_login, false   # was nil, changing default to no-security, so must declare in main app or in rw config.
     set :rack_authentication, nil
     set :allow_public_signup, false
     set :flash_accessories, []
@@ -113,7 +113,8 @@ module RackWarden
   		  logger.debug "RW App#call request.path_info: #{request.path_info}"
   		  logger.debug "RW App#call session: #{session.inspect}"
   			
-  			# Authenticate here-and-now.
+  			# Authenticate here-and-now, against path_info, with regexp.
+  			# TODO: This might be broken.
   			# TODO: Change this name to Authorize here-and-now ??
   			prefix_regex = Regexp.new("^#{settings.rw_prefix}")  
   		  if settings.rack_authentication && !request.script_name.to_s[prefix_regex] && !request.path_info.to_s[prefix_regex]   # /^\/auth/

@@ -3,6 +3,8 @@ require 'dry-types'
 require 'dry-struct'
 require 'uri'
 
+Sinatra::Namespace::NamespacedMethods.prefixed(:require_login, :require_authorization)
+
 # Simple conversion to html (intended for yaml output)
 class String
 	def to_html

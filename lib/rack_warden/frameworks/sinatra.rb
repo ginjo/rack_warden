@@ -16,7 +16,7 @@ module RackWarden
       def self.included(base)
         base.helpers FrameworkHelpers
         base.register ClassMethods
-        ###base.require_login(RackWarden::App.require_login) if RackWarden::App.require_login != false
+        base.require_login(RackWarden::App.require_login) if RackWarden::App.require_login != false
       end
     	
     end # Sinatra

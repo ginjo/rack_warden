@@ -19,7 +19,7 @@ module RackWarden
         base.send :protected, *FrameworkHelpers.instance_methods
         base.helper_method *FrameworkHelpers.instance_methods
         base.extend ClassMethods
-        ###base.require_login(RackWarden::App.require_login || {})) if RackWarden::App.require_login != false
+        base.require_login(RackWarden::App.require_login || {})) if RackWarden::App.require_login != false
       end
 
     end
