@@ -2,7 +2,7 @@ module RackWarden
   module Rom
     
     class << self
-      attr_accessor :rom_config, :rom_container, :user_relation, :identity_relation, :user_repo, :identity_repo
+      attr_accessor :rom_config, :rom_container, :users_relation, :identities_relation, :users_repo, :identities_repo
     end
     
     def self.setup_database(_settings)
@@ -18,25 +18,29 @@ module RackWarden
       #@rom_config.relation(:identities, &Relation.const_get(adapter.capitalize).identities)
       
       # Register relations from procs.
-      [:users, :identities].each {|name| @rom_config.relation(name, &Relation.const_get(adapter.capitalize).send(name))}
+      [:identities, :users].each do |name|
+        instance_variable_set :"@#{name}_relation", \
+          @rom_config.relation(name, &Relation.const_get(adapter.capitalize).send(name))
+      end
       
       # Finalize the rom config
       @rom_container = ROM.container(@rom_config)
       
       # Create rom repos with containers
-      @user_repo = UserRepoClass.new(@rom_container)
-      @identity_repo = IdentityRepoClass.new(@rom_container)
+      @identities_repo = Repository.identities.new(@rom_container)
+      @users_repo = Repository.users.new(@rom_container)
       
-      RackWarden.const_set(:Identity, Entity.identity(@identity_repo))
-      RackWarden.const_set(:User, Entity.user(@user_repo))
+      # Create entity classes under RackWarden
+      RackWarden.const_set(:Identity, Entity.identity(@identities_repo))
+      RackWarden.const_set(:User, Entity.user(@users_repo))
       
-      #   # Initialize database tables.
-      #   %w(identities users).each do |name|
-      #     if ENV['RACK_ENV'].to_s[/test/i]
-      #       RackWarden::RomContainer.relation(name).drop_table
-      #     end
-      #     RackWarden::RomContainer.relation(name).create_table
-      #   end
+      # Initialize database tables.
+      %w(identities users).each do |name|
+        if ENV['RACK_ENV'].to_s[/test/i]
+          @rom_container.relation(name).drop_table
+        end
+        @rom_container.relation(name).create_table
+      end
       
     end # setup_database
     
