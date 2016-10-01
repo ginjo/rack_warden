@@ -6,7 +6,7 @@ module RackWarden
     
       def self.identities
         Class.new(ROM::Repository[:identities]) do
-          include Repository
+          include Includes
           
           commands :create, :update=>:by_pk, :delete=>:by_pk
               

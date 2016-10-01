@@ -1,14 +1,14 @@
 module RackWarden
   module Rom
     
-    class << self
-      attr_accessor :rom_config, :rom_container, :users_relation, :identities_relation, :users_repo, :identities_repo
-    end
-    
-    def self.setup_database(_settings)
+    def self.setup_database(_settings, _attach_to=_settings)
+      
+      class << _attach_to
+        attr_accessor :rom_config, :rom_container, :users_relation, :identities_relation, :users_repo, :identities_repo
+      end
       
       adapter = _settings.rom_adapter.to_s
-      @rom_config = send "config_#{adapter}", _settings
+      _attach_to.rom_config = send "config_#{adapter}", _settings
       
       #@user_relation = Relation.const_get(adapter.capitalize).users
       #@identity_relation = Relation.const_get(adapter.capitalize).identities
@@ -20,26 +20,26 @@ module RackWarden
       # Register relations from procs.
       [:identities, :users].each do |name|
         instance_variable_set :"@#{name}_relation", \
-          @rom_config.relation(name, &Relation.const_get(adapter.capitalize).send(name))
+          _attach_to.rom_config.relation(name, &Relation.const_get(adapter.capitalize).send(name))
       end
       
       # Finalize the rom config
-      @rom_container = ROM.container(@rom_config)
+      _attach_to.rom_container = ROM.container(_attach_to.rom_config)
       
       # Create rom repos with containers
-      @identities_repo = Repository.identities.new(@rom_container)
-      @users_repo = Repository.users.new(@rom_container)
+      _attach_to.identities_repo = Repository.identities.new(_attach_to.rom_container)
+      _attach_to.users_repo = Repository.users.new(_attach_to.rom_container)
       
       # Create entity classes under RackWarden
-      RackWarden.const_set(:Identity, Entity.identity(@identities_repo))
-      RackWarden.const_set(:User, Entity.user(@users_repo))
+      _attach_to.const_set(:Identity, Entity.identity(_attach_to.identities_repo))
+      _attach_to.const_set(:User, Entity.user(_attach_to.users_repo))
       
       # Initialize database tables.
       %w(identities users).each do |name|
         if ENV['RACK_ENV'].to_s[/test/i]
-          @rom_container.relation(name).drop_table
+          _attach_to.rom_container.relation(name).drop_table
         end
-        @rom_container.relation(name).create_table
+        _attach_to.rom_container.relation(name).create_table
       end
       
     end # setup_database

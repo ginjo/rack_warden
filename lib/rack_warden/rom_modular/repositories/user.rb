@@ -8,7 +8,7 @@ module RackWarden
       # TODO: Make this a base repo to inherit from.
       def self.users
         Class.new(ROM::Repository[:users]) do
-          include Repository
+          include Includes
           
           # You can also bring other relations into this repo (mostly for associations & aggregates).
           #relations :users, :sequence
