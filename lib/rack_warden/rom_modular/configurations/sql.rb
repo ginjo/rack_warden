@@ -1,6 +1,7 @@
 module RackWarden
   module Rom
 
+    # DEPRECATED: This functionality has been integrated into the setup_database method.
     def self.config_sql(_settings)
       db_config = get_database_config(_settings)
       _settings.logger.info "RW Rom.config_sql with db config: #{db_config}"

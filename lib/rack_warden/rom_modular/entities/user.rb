@@ -270,7 +270,9 @@ module RackWarden
       	    @recently_generated_password
       	  end	      
           
-        
+          def current_identity
+            Identity.by_id @current_identity if @current_identity
+          end
           
         end # Class.new
       end # def self.user

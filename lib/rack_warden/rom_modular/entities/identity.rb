@@ -51,7 +51,10 @@ module RackWarden
                 self.user_id = _user.id
                 save
               end
-              _user.current_identity = self
+              # This used to store entire identity in user,
+              # but I don't know why. So now just storing id.
+              # See User model current_identity method.
+              _user.current_identity = id   #self
             end
             _user
           end

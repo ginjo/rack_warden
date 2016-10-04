@@ -7,8 +7,10 @@ module RackWarden
         attr_accessor :rom_config, :rom_container, :users_relation, :identities_relation, :users_repo, :identities_repo
       end
       
-      adapter = _settings.rom_adapter.to_s
-      _attach_to.rom_config = send "config_#{adapter}", _settings
+      adapter = _settings.rom_adapter
+      db_config = get_database_config(_settings)
+      #_attach_to.rom_config = send "config_#{adapter}", _settings
+      _attach_to.rom_config = ROM::Configuration.new(adapter, db_config)
       
       #@user_relation = Relation.const_get(adapter.capitalize).users
       #@identity_relation = Relation.const_get(adapter.capitalize).identities

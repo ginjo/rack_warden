@@ -6,7 +6,6 @@ require_relative 'types'
 module RackWarden
   module Rom
 
-    
     # Require all ruby files in a directory, recursively.
     # See http://stackoverflow.com/questions/10132949/finding-the-gem-root
     def self.load
