@@ -35,7 +35,11 @@ module RackWarden
       
       FromYaml = Dry::Types::Definition.new(Hash).constructor do |dat|
         #puts "FromYaml constructor with data: #{dat}"
-        YAML.load(dat.to_s) || nil
+        if dat.is_a?(::String)
+          YAML.load(dat.to_s) || nil
+        else
+          dat
+        end
       end
       
       ToMarshal = Dry::Types::Definition.new(String).constructor do |dat|
@@ -49,7 +53,11 @@ module RackWarden
       
       FromMarshal = Dry::Types::Definition.new(Hash).constructor do |dat|
         App.logger.debug "RW Rom Types::FromMarshal constructor with data: #{dat}"
-        Marshal.load(dat.to_s)
+        if dat.is_a?(::String)
+          Marshal.load(dat.to_s)
+        else
+          dat
+        end
       end
       
     end # Types
