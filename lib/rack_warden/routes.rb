@@ -31,6 +31,7 @@ module RackWarden
           %w(get post).each do |method|
             send(method, "/:provider/callback") do
               logger.debug "RW /provider/callback before-auth env: #{env.object_id}, warden: #{env['warden']}"
+              logger.debug "RW /provider/callback before-auth env['omniauth.auth'] #{env['omniauth.auth']}"
               #logger.debug "RW /provider/callback before-auth env: #{env.object_id}, session: #{session.to_h.to_yaml}"
               #warden.logout
               #logger.debug "RW /provider/callback before-auth-after-logout env: #{env.object_id}, warden: #{env['warden']}"

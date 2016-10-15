@@ -52,7 +52,8 @@ module RackWarden
   # and manipulate it according to your needs. Then 'use Warden::Manager, my_customized_warden_config'.
   # See http://www.rubydoc.info/github/hassox/warden/Warden/Hooks for info on callback params.
   class WardenConfig < Warden::Config
-    # Attach forwarding hooks to config object for Warden callback hooks.
+    # Attach forwarding hooks to config object for Warden callback hooks,
+    # since class inheritance doesn't include class-level mixins.
     extend Forwardable
     forwardable_hooks = Warden::Hooks.instance_methods.select {|h| !h.to_s[/^_/]}
     def_delegators Warden::Manager, *forwardable_hooks
@@ -72,7 +73,7 @@ module RackWarden
       other
     end
     
-    # Use to create custom custom config with default settings.
+    # Use to create custom config with default settings.
     def self.new_with_defaults(rw_app=RackWarden::App, config=new)
       rw_app.logger.debug "RW WardenConfig.new_with_defaults"
       
