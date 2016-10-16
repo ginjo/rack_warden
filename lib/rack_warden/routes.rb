@@ -30,14 +30,16 @@ module RackWarden
           # https://github.com/intridea/omniauth/wiki/Auth-Hash-Schema
           %w(get post).each do |method|
             send(method, "/:provider/callback") do
-              logger.debug "RW /provider/callback before-auth env: #{env.object_id}, warden: #{env['warden']}"
-              logger.debug "RW /provider/callback before-auth env['omniauth.auth'] #{env['omniauth.auth']}"
-              #logger.debug "RW /provider/callback before-auth env: #{env.object_id}, session: #{session.to_h.to_yaml}"
+              #logger.debug "RW /provider/callback before-auth env: #{env.object_id}, warden: #{env['warden']}"
+              #logger.debug "RW /provider/callback before-auth env['omniauth.auth'] #{env['omniauth.auth']}"
+              logger.debug "RW /provider/callback before-auth env: #{env.object_id}, session: #{session.to_h}"
+              logger.debug "RW /provider/callback before-auth warden: #{env['warden']}"
+              # This works for SlackSpace, but we wouldn't want it as a default for RW.
               #warden.logout
               #logger.debug "RW /provider/callback before-auth-after-logout env: #{env.object_id}, warden: #{env['warden']}"
               warden.authenticate!(:omniauth)
               #logger.debug "RW /provider/callback after-auth env: #{env.object_id}, warden: #{env['warden']}"
-              #logger.debug "RW /provider/callback after-auth env: #{env.object_id}, session: #{session.to_h.to_yaml}"
+              logger.debug "RW /provider/callback after-auth env: #{env.object_id}, session: #{session.to_h}"
               #erb "<pre>#{current_user.to_yaml}</pre>"
               # The .. is to go up one level above the rw_prefix.
               return_to #'/protected'

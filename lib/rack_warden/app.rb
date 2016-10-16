@@ -81,15 +81,17 @@ module RackWarden
       #super(@app, &block)
       self
     end    
+    
   	
 		# Store this app instance in the env.
 		# NOTE: Up to this point, the app instance is the same for every call,
 		#       since that's what rack does. However, once super(env) is run
 		#       at the end of this override method, Sinatra kicks in and creates
 		#       a dup rw app instance. That's how sinatra works (dup app instance for each request).
+		alias_method :call_orig, :call
 		def call(env)
 			logger.debug "RW App#call self: #{self}, parent app: #{@app}"
-			env.extend RackEnv
+			env.extend RackEnv			
 			
       # 	# Initialize if not already (may only be usefull for stand-alone mode (no parent app)).
       # 	if !settings.initialized
@@ -109,7 +111,7 @@ module RackWarden
     		  logger.debug "RW App#call storing rw app new_inst #{self} in env['rack_warden_instance']"
     		  env.rack_warden = self
   		  end
-  		  
+  		    		  
   		  logger.debug "RW App#call request.path_info: #{request.path_info}"
   		  logger.debug "RW App#call session: #{session.inspect}"
   			
@@ -125,6 +127,10 @@ module RackWarden
   			  end
   		  end
   		  
+  		  logger.debug "RW App#call env.object_id: #{env.object_id}"
+        logger.debug "RW App#call warden: #{env['warden'].inspect}"  		  
+        #logger.debug "RW App#call env['rack.session']: #{env['rack.session'].to_h.to_yaml}"
+  		  
   		  # Send to super, then build & process response.
   			# resp = Rack::Response.new *super(env).tap{|e| e.unshift e.pop}
   			# #resp.set_cookie :wbr_cookie, :value=>"Yay!", :expires=>Time.now+60*10
@@ -133,8 +139,10 @@ module RackWarden
   			#
         # logger.debug "RW App#call super(env), self: #{self}"
         # super
-        logger.debug "RW App#call super(env), self: #{self}"
-        super
+        #logger.debug "RW App#call super(env), self: #{self}"
+        #super(env)
+        logger.debug "RW App#call call_orig(env), self: #{self}"
+        call_orig(env)
       end # inst-eval
 		end # call
 		

@@ -20,6 +20,7 @@ module RackWarden
 	  		  	
 	    use Rack::Cookies
 	    
+	    # Moved... see below.
 	    #use(Warden::Manager){ |config| config.replace WardenConfig }
 			
 	    helpers RackWardenHelpers

@@ -196,7 +196,7 @@ module RackWarden
           # If we don't use 'set_user()' the warden object is not considered logged in yet.
           env['warden'].set_user user
           env['warden'].session['identity'] = identity.id #if env['warden'].authenticated?
-          success!(user)
+          success!(user) #(<user>, <message>)
         else
           App.logger.info "RW warden omniauth authenticate! FAIL"
           fail!("Could not authenticate omniauth identity")
