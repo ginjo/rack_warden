@@ -6,9 +6,9 @@ module RackWarden
     module Relations
       module Sql
     
-        class Users < Base[:sql]
-
-          #register_as :users
+        class Users < Base
+          register_as :users
+          
           #dataset :rack_warden_users     
           schema(:rack_warden_users) do
             

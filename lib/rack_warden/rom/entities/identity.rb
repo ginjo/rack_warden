@@ -8,6 +8,8 @@ module RackWarden
       # TODO: Make sure OmniAuth classes are loaded before loading auth_hash yaml.
   
       class Identity < Base[:identities]
+        # BUG: 'attribute' method is broken here.
+        attribute :test, Types::String
         
         # Use schema attributes from base relation, put overrides in the block.
         # TODO: Find way to instrospect relation instead of hard-coding it.

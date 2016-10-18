@@ -6,9 +6,9 @@ module RackWarden
     module Relations
       module Sql
     
-        class Identities < Base[:sql]
-
-          #register_as :identities
+        class Identities < Base
+          register_as :identities
+                              
           #dataset :rack_warden_identities    
           schema(:rack_warden_identities) do
             attribute :id, Types::Int

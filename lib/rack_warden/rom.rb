@@ -1,6 +1,6 @@
 require 'rom-repository'
 require 'rom-sql'
-require_relative 'types'
+require_relative 'rom/types'
 
 
 module RackWarden
@@ -13,29 +13,30 @@ module RackWarden
 
       _attach_to.instance_eval do
       
-        RomConfig = ROM::Configuration.new(adapter, db_config)
+        const_set :RomConfig, ROM::Configuration.new(adapter, db_config)
         
-        Dir.glob(File.join(File.dirname(__FILE__), 'rom/relations', '*.rb'), &method(:require))
+        Dir.glob(File.join(File.dirname(__FILE__), 'rom/relations', adapter.to_s, '*.rb'), &method(:require))
         
         # Register relations from procs.
         %w(identities users).each do |name|
-          RomConfig.relation(name, Rom::Relations.const_get(adapter.capitalize).const_get(name.capitalize))
+          #RomConfig.relation(name, Rom::Relations.const_get(adapter.capitalize).const_get(name.capitalize))
+          RomConfig.register_relation(Rom::Relations.const_get(adapter.capitalize).const_get(name.capitalize))
         end
-        
+
         # Finalize the rom config
-        RomContainer = ROM.container(RomConfig)
+        const_set :RomContainer, ROM.container(RomConfig)
         
-        Dir.glob(File.join(File.dirname(__FILE__), 'rom/repositories', '*.rb'), &method(:require))
+        Dir.glob(File.join(File.dirname(__FILE__), 'rom/repositories', '**', '*.rb'), &method(:require))
         
         # Create rom repos with containers
-        Identities = Rom::Repositories::Identities.new(RomContainer)
-        Users = Rom::Repositories::Users.new(RomContainer)
+        const_set :Identities, Rom::Repositories::Identities.new(RomContainer)
+        const_set :Users, Rom::Repositories::Users.new(RomContainer)
         
-        Dir.glob(File.join(File.dirname(__FILE__), 'rom/entities', '*.rb'), &method(:require))
+        Dir.glob(File.join(File.dirname(__FILE__), 'rom/entities', '**', '*.rb'), &method(:require))
         
         # Create entity classes under RackWarden
-        Identity = Rom::Entities::Identity #[Identities]
-        User = Rom::Entities::User #[Users]
+        const_set :Identity, Rom::Entities::Identity #[Identities]
+        const_set :User, Rom::Entities::User #[Users]
         
         # Initialize database tables.
         %w(identities users).each do |name|

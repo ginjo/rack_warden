@@ -3,7 +3,7 @@ module RackWarden
     module Relations
       module Sql
     
-        class Base < ROM::Relation
+        class Base < ROM::Relation[:sql]
           ### Hide database-specific calls behind generic methods
           def query(*conditions)
             where(*conditions)
