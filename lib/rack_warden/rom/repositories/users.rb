@@ -6,10 +6,9 @@ module RackWarden
 
       ## Put domain-specific methods in repositories.
       # TODO: Make this a base repo to inherit from.
-      class Users < Base[:users]
+      class Users < Base#[:users]
         
-        # You can also bring other relations into this repo (mostly for associations & aggregates).
-        #relations :users, :sequence
+        relations :users
             
         commands :create, :update => :by_pk, :delete => :by_pk  #by_pk is a rom-sql thing
             

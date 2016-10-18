@@ -3,7 +3,9 @@ require_relative 'base'
 module RackWarden
   module Rom
     module Repositories
-      class Identities < Base[:identities]
+      class Identities < Base#[:identities]
+        
+        relations :identities
         
         commands :create, :update=>:by_pk, :delete=>:by_pk
             

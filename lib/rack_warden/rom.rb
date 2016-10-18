@@ -17,7 +17,7 @@ module RackWarden
         
         Dir.glob(File.join(File.dirname(__FILE__), 'rom/relations', adapter.to_s, '*.rb'), &method(:require))
         
-        # Register relations from procs.
+        # Register relations.
         %w(identities users).each do |name|
           #RomConfig.relation(name, Rom::Relations.const_get(adapter.capitalize).const_get(name.capitalize))
           RomConfig.register_relation(Rom::Relations.const_get(adapter.capitalize).const_get(name.capitalize))

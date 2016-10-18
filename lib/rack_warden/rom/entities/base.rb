@@ -7,6 +7,8 @@ module RackWarden
       
         class << self; attr_accessor :repository; end
         
+        def repository; self.class.repository; end
+        
         def self.[](repo)
           # Need interim subclass to set repo with.
           interim_class = Class.new(self)
@@ -78,8 +80,6 @@ module RackWarden
           new_instance.update(extra_attrs)
           new_instance
         end
-
-        def repository; self.class.repository; end
         
         # Update local attributes. No write to datastore.
         # TODO: Does this need a different name, like 'update_local_attributes'?
