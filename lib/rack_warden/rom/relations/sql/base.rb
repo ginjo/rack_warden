@@ -1,9 +1,9 @@
 module RackWarden
   module Rom
-    module Relation
+    module Relations
       module Sql
     
-        module Includes
+        class Base < ROM::Relation
           ### Hide database-specific calls behind generic methods
           def query(*conditions)
             where(*conditions)
@@ -33,7 +33,7 @@ module RackWarden
             dataset.db.drop_table?(table)
           end
           
-        end # Includes
+        end # Base
         
       end # Sql
     end # Relation

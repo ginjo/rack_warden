@@ -1,10 +1,28 @@
 module RackWarden
-
   module Rom
-    module Entity
+    module Entities
 
       #class Entity < Dry::Types::Struct
       class Base < Dry::Struct
+      
+        class << self
+          attr_accessor :repository
+        end
+        
+        def self.[](repo)
+          new_class = self.dup
+          new_class.repository = repo
+          new_class
+        end
+        
+        def self.repository
+          case
+            when @repository.is_a?(String); eval(@repository)
+            when @repository.is_a?(Symbol); const_get(@repository.to_s.capitalize)
+            when @repository.is_a?(Class); @repository
+            when @repository.is_a?(ROM::Repository); @repository
+          end
+        end
       
         # NOTE: dry-struct.new does most of the work in setting up the struct & populating attributes.
         #       The #initialize method doesn't really do anything.
@@ -14,7 +32,7 @@ module RackWarden
         # Send class methods to UserRepo.
         def self.method_missing(*args)
           begin
-            repo.send(*args)
+            repository.send(*args)
           #rescue NoMethodError
           #  super(*args)
           end
@@ -37,12 +55,6 @@ module RackWarden
             attr_writer k
           end
         end
-        
-    
-                
-        def self.repo
-          @repository ||= eval("#{name}RepoClass").new(RomContainer)
-        end
     
         # Needed to handle extra non-db attributes,
         # since the dry-struct deletes them within its own 'new'.
@@ -55,9 +67,8 @@ module RackWarden
           new_instance.update(extra_attrs)
           new_instance
         end
-    
-    
-        def repo; self.class.repo; end
+
+        def repository; self.class.repository; end
         
         # Update local attributes. No write to datastore.
         # TODO: Does this need a different name, like 'update_local_attributes'?
@@ -78,7 +89,7 @@ module RackWarden
         def save
           #set_password
           yield if block_given?
-          resp = repo.save_attributes self[:id], to_h
+          resp = repository.save_attributes self[:id], to_h
           self.update(resp.to_h)
           true
         end
@@ -91,10 +102,10 @@ module RackWarden
         end
         
         def delete
-          repo.delete(self[:id])
+          repository.delete(self[:id])
         end
     
       end # Base
-    end # Entity
+    end # Entities
   end # Rom
 end # RackWarden

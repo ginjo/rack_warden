@@ -18,10 +18,10 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
     
-	spec.add_dependency "backports"
-	spec.add_dependency "bcrypt"
-	spec.add_dependency "dry-types"
-	spec.add_dependency "dry-struct"
+  spec.add_dependency "backports"
+  spec.add_dependency "bcrypt"
+  spec.add_dependency "dry-types"
+  spec.add_dependency "dry-struct"
   spec.add_dependency "mail"
   spec.add_dependency "multi_json"
   spec.add_dependency "omniauth"
@@ -35,6 +35,6 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
-	spec.add_development_dependency "thin"
+  spec.add_development_dependency "thin"
   spec.add_development_dependency "tux"
 end

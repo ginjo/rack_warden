@@ -1,7 +1,22 @@
 module RackWarden
   module Rom
-    module Repository
-      module Includes
+    module Repositories
+      class Base < ROM::Repository
+      
+        attr_accessor :entity
+      
+        def entity
+          case
+            when @entity.is_a?(String); eval(@entity)
+            when @entity.is_a?(Symbol); const_get(@entity.to_s.capitalize)
+            when @entity.is_a?(Class); @entity
+          end
+        end
+        
+        def initialize(_relation, _entity=nil)
+          super(_relation)
+          @entity = _entity
+        end
 
         # Makes it easier to save changed models.
         def save_attributes(_id, _attrs)
@@ -24,7 +39,7 @@ module RackWarden
           saved
         end
         
-      end # Includes
-    end # Repository
+      end # Base
+    end # Repositories
   end # Rom
 end # RackWarden

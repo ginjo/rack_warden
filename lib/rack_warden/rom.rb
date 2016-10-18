@@ -1,48 +1,51 @@
+require 'rom-repository'
+require 'rom-sql'
+require_relative 'types'
+
+
 module RackWarden
-  module Rom
+  module Rom    
     
     def self.setup_database(_settings, _attach_to=_settings)
-      
-      class << _attach_to
-        attr_accessor :rom_config, :rom_container, :users_relation, :identities_relation, :users_repo, :identities_repo
-      end
-      
+
       adapter = _settings.rom_adapter
       db_config = get_database_config(_settings)
-      #_attach_to.rom_config = send "config_#{adapter}", _settings
-      _attach_to.rom_config = ROM::Configuration.new(adapter, db_config)
+
+      _attach_to.instance_eval do
       
-      #@user_relation = Relation.const_get(adapter.capitalize).users
-      #@identity_relation = Relation.const_get(adapter.capitalize).identities
-      #@rom_config.register_relation @user_relation, @identity_relation
-      
-      #@rom_config.relation(:users, &Relation.const_get(adapter.capitalize).users)
-      #@rom_config.relation(:identities, &Relation.const_get(adapter.capitalize).identities)
-      
-      # Register relations from procs.
-      [:identities, :users].each do |name|
-        instance_variable_set :"@#{name}_relation", \
-          _attach_to.rom_config.relation(name, &Relation.const_get(adapter.capitalize).send(name))
-      end
-      
-      # Finalize the rom config
-      _attach_to.rom_container = ROM.container(_attach_to.rom_config)
-      
-      # Create rom repos with containers
-      _attach_to.identities_repo = Repository.identities.new(_attach_to.rom_container)
-      _attach_to.users_repo = Repository.users.new(_attach_to.rom_container)
-      
-      # Create entity classes under RackWarden
-      _attach_to.const_set(:Identity, Entity.identity(_attach_to.identities_repo))
-      _attach_to.const_set(:User, Entity.user(_attach_to.users_repo))
-      
-      # Initialize database tables.
-      %w(identities users).each do |name|
-        if ENV['RACK_ENV'].to_s[/test/i]
-          _attach_to.rom_container.relation(name).drop_table
+        RomConfig = ROM::Configuration.new(adapter, db_config)
+        
+        Dir.glob(File.join(File.dirname(__FILE__), 'rom/relations', '*.rb'), &method(:require))
+        
+        # Register relations from procs.
+        %w(identities users).each do |name|
+          RomConfig.relation(name, Rom::Relations.const_get(adapter.capitalize).const_get(name.capitalize))
         end
-        _attach_to.rom_container.relation(name).create_table
-      end
+        
+        # Finalize the rom config
+        RomContainer = ROM.container(RomConfig)
+        
+        Dir.glob(File.join(File.dirname(__FILE__), 'rom/repositories', '*.rb'), &method(:require))
+        
+        # Create rom repos with containers
+        Identities = Rom::Repositories::Identities.new(RomContainer)
+        Users = Rom::Repositories::Users.new(RomContainer)
+        
+        Dir.glob(File.join(File.dirname(__FILE__), 'rom/entities', '*.rb'), &method(:require))
+        
+        # Create entity classes under RackWarden
+        Identity = Rom::Entities::Identity #[Identities]
+        User = Rom::Entities::User #[Users]
+        
+        # Initialize database tables.
+        %w(identities users).each do |name|
+          if ENV['RACK_ENV'].to_s[/test/i]
+            RomContainer.relation(name).drop_table
+          end
+          RomContainer.relation(name).create_table
+        end
+      
+      end # _attach_to.instance_eval
       
     end # setup_database
     
@@ -82,6 +85,6 @@ module RackWarden
 	    
 	    return *conf
 	  end
-  
+        
   end # Rom
-end #RackWarden
+end # RackWarden
