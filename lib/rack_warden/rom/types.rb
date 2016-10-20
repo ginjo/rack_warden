@@ -25,10 +25,11 @@ module RackWarden
       end
       
       ToYaml = Dry::Types::Definition.new(String).constructor do |dat|
-        #puts "\nToYaml constructor with data: #{dat.to_yaml}"
         if dat.is_a?(::String)
+          #App.logger.debug "RW ToYaml keeping string: #{dat[0..100]}"
           dat
         else
+          #App.logger.debug "RW ToYaml converting to yaml: #{dat.to_yaml[0..100]}"
           dat.to_yaml
         end
       end

@@ -6,15 +6,19 @@ require_relative 'rom/types'
 module RackWarden
   module Rom    
     
-    def self.setup_database(_settings, _attach_to=_settings)
+    def self.setup_database(_settings, _attach_to=RackWarden)
+    
+      puts "RW Rom.setup_database, settings: #{_settings}, attaching-to: #{_attach_to}"
 
       adapter = _settings.rom_adapter
       db_config = get_database_config(_settings)
 
       _attach_to.instance_eval do
       
+        # Set RomConfig.
         const_set :RomConfig, ROM::Configuration.new(adapter, db_config)
         
+        # Load relation classes.
         Dir.glob(File.join(File.dirname(__FILE__), 'rom/relations', adapter.to_s, '*.rb'), &method(:require))
         
         # Register relations.
@@ -23,22 +27,29 @@ module RackWarden
           RomConfig.register_relation(Rom::Relations.const_get(adapter.capitalize).const_get(name.capitalize))
         end
 
-        # Finalize the rom config
+        # Finalize the rom config.
         const_set :RomContainer, ROM.container(RomConfig)
         
+        # Load repository classes.
         Dir.glob(File.join(File.dirname(__FILE__), 'rom/repositories', '**', '*.rb'), &method(:require))
         
         # Create rom repos with containers
-        const_set :Identities, Rom::Repositories::Identities.new(RomContainer)
-        const_set :Users, Rom::Repositories::Users.new(RomContainer)
+        Repositories.const_set :Identities, Rom::Repositories::IdentitiesClass.new(RomContainer, :Identity)
+        Repositories.const_set :Users, Rom::Repositories::UsersClass.new(RomContainer, :User)
         
+        # Alias repos to RackWarden namspace
+        const_set :Identities, Rom::Repositories::Identities
+        const_set :Users, Rom::Repositories::Users
+        
+        # Load entity classes.
         Dir.glob(File.join(File.dirname(__FILE__), 'rom/entities', '**', '*.rb'), &method(:require))
         
-        # Create entity classes under RackWarden
-        const_set :Identity, Rom::Entities::Identity #[Identities]
-        const_set :User, Rom::Entities::User #[Users]
+        # Alias entity classes to RackWarden namspace
+        const_set :Identity, Rom::Entities::Identity
+        const_set :User, Rom::Entities::User
         
         # Initialize database tables.
+        # TODO: methodize this like in SlackSpace.
         %w(identities users).each do |name|
           if ENV['RACK_ENV'].to_s[/test/i]
             RomContainer.relation(name).drop_table

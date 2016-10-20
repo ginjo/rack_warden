@@ -9,34 +9,39 @@ module RackWarden
         
         def repository; self.class.repository; end
         
+        # Pass in a repository when you sublcass Base.
+        # For RW, you can use a symbol or string.
+        # For external apps using this library, you must use an actual namespaced constant (like Repositories::Messages).
         def self.[](repo)
           # Need interim subclass to set repo with.
-          interim_class = Class.new(self)
+          interim_class = dup #Class.new(self)
           interim_class.repository = repo
-          App.logger.debug "RW set repository for class #{interim_class} to #{repo}"
+          App.logger.info "RW set repository for interim_class #{interim_class} to #{repo}"
           # Return interim_class to entity class setup. The new entity class inherits from interim_class
           interim_class
         end
         
         # This helps set the repo of the entity from the interim_class
-        def self.inherited(base)
+        def self.inherited(entity)
+          App.logger.info "RW #{self} inherited by entity #{entity} with @repository #{@repository}"
+          #decoded_repository = entity.instance_exec(@repository, &method(:decode_repository)) if @repository
+          #App.logger.info "RW #{self}.inherited, decoded repository: #{decoded_repository}"
+          #entity.repository = decoded_repository
+          repo = @repository # This is for instance_eval below.
+          entity.repository = case
+            when repo.is_a?(String); eval(repo)
+            # The instance_eval doesn't seem to help with getting a Repositories class outside the namespace of RackWarden,
+            # but it doesn't seem to hurt either. You could also eliminate it and directly call Repositories.const_get...
+            when repo.is_a?(Symbol); entity.instance_eval{ Repositories.const_get(repo.to_s.capitalize,true) }
+            when repo.is_a?(Proc); repo.call
+            else repo
+          end    
+          
           # Dry::Types::ClassInterface has a 'inherited' method,
           # so this 'super' is absolutely necessary, or that method will be clobbered.
           super
-          base.repository = @repository
         end
         
-        def self.repository
-          case
-            when @repository.is_a?(String); eval(@repository)
-            when @repository.is_a?(Symbol); eval(@repository.to_s.capitalize)
-            when @repository.is_a?(Class); @repository
-            when @repository.is_a?(ROM::Repository); @repository
-            #else @repository
-          end
-        end
-        
-      
         # NOTE: dry-struct.new does most of the work in setting up the struct & populating attributes.
         #       The #initialize method doesn't really do anything.
       
@@ -58,7 +63,7 @@ module RackWarden
         # initialize_attributes(RomContainer.relation(:users).schema.attributes.tap{|a| a.delete(:encrypted_password)}) do
         #   {:encrypted_password => Types::BCryptString}
         # end
-        def self.initialize_attributes(_attributes = Hash.new)
+        def self.initialize_attributes(_attributes = repository.root.schema.attributes)  #default used to be Hash.new
           _extra = block_given? ? yield : Hash.new
           _attributes.merge!(_extra)
           App.logger.debug "RW initializing attributes for model: #{self}, ancestors: #{self.ancestors}, attributes: #{_attributes}"

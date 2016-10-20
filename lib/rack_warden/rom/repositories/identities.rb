@@ -3,47 +3,43 @@ require_relative 'base'
 module RackWarden
   module Rom
     module Repositories
-      class Identities < Base#[:identities]
+      class IdentitiesClass < Base[:identities]
         
         relations :identities
+        root :identities
         
         commands :create, :update=>:by_pk, :delete=>:by_pk
             
-        def identities
-          super.as(Identity)
-        end
-        
-        def query(*args)
-          identities.query(*args)
-        end
-        
-        # I think rom-sql already does this as :by_pk,
-        # but how does it work?
-        # def by_primary_key(provider, uid, email)
-        #   identities.where(uid: uid, provider: provider, email: email).one
-        # end
-        
-        def ids
-          identities.ids
-        end
-        
-        def by_id(_id)
-          identities.by_id(_id).one
-        end
-        alias_method :get, :by_id
-    
-        def first
-          identities.first
-        end
-            
-        def last
-          identities.last.one
-        end
-        
-        #   def by_guid(*args)
-        #     App.logger.debug "RW Rom IdentityRepo#by_guid, args: #{args}"
-        #     identities.by_guid(*args).one    #identities.by_guid(*args).tap{|i| !i.nil? && i.one}
-        #   end
+#         def identities
+#           super.as(Identity)
+#         end
+#         
+#         def query(*args)
+#           identities.query(*args)
+#         end
+#         
+#         # I think rom-sql already does this as :by_pk,
+#         # but how does it work?
+#         # def by_primary_key(provider, uid, email)
+#         #   identities.where(uid: uid, provider: provider, email: email).one
+#         # end
+#         
+#         def ids
+#           identities.ids
+#         end
+#         
+#         def by_id(_id)
+#           identities.by_id(_id).one
+#         end
+#         alias_method :get, :by_id
+#     
+#         def first
+#           identities.first
+#         end
+#             
+#         def last
+#           identities.last.one
+#         end
         
         # Get a single record by uique combo of provider-uid. Email is no longer used.
         # Args can be passed separately or as a string delimited by a colon ':'.
@@ -59,31 +55,6 @@ module RackWarden
           rslt.one
         end
         
-        
-        #   ## Makes it easier to save changed models.
-        #   # TODO: Somewhere the yaml objects in the entities are getting
-        #   # re-saved as plain hashes.
-        #   # I think the changeset isn't aware of the to/from yaml stuff.
-        #   # TODO: Try this manually and see what happens.
-        #   def save_attributes(_id, _attrs)
-        #     App.logger.debug "RW Rom IdentityRepo#save_attributes (id: #{_id})"
-        #     App.logger.debug _attrs.to_yaml
-        #     _attrs.delete_if {|k,v| v==nil} unless _id
-        #     _changeset = changeset(_id, _attrs)
-        #     #App.logger.debug "RW Rom identity changeset"
-        #     #App.logger.debug _changeset.to_yaml
-        #     case
-        #     when _changeset.update?
-        #       App.logger.debug "RW Rom IdentityRepo#save_attributes update"
-        #       App.logger.debug "RW Rom identity changeset.diff"
-        #       App.logger.debug _changeset.diff.to_yaml
-        #       saved = update(_id, _changeset)
-        #     when _changeset.create?
-        #       App.logger.debug "RW Rom IdentityRepo#save_attributes create"
-        #       saved = create(_changeset)
-        #     end
-        #     saved
-        #   end
     
         # TEST:
         # ih = YAML.load_file '../RackWarden/spec/info_hash_data.yml'
@@ -106,26 +77,6 @@ module RackWarden
           #   nil
         end
         
-        
-        ## Should not be needed any more.
-        # def load_legacy_yaml
-        #   # This isn't working.
-        #   identities = YAML.load_file 'identities.yml'
-        #   identities.each do |identity|
-        #     auth_hash = identity.instance_variable_get(:@auth_hash)
-        #     create(auth_hash.merge({user_id: identity.user_id, email: auth_hash.info.email}))
-        #   end
-        #   puts "RackWarden::Identity loaded records into sqlite3::memory"
-        #   
-        #   ## So try this, it works.
-        #   # ii = YAML.load_file 'identities.yml'
-        #   # h = ii.last.instance_variable_get(:@auth_hash)
-        #   # r = RackWarden::IdentityRepo.create h
-        #   
-        #   # You can also use this for cleanup
-        #   #RackWarden::RomContainer.gateways[:default].connection.execute("select * from rack_warden_identities")
-        # end
-        
         def upsert_from_auth_hash(auth_hash)
           App.logger.debug "RW Rom upsert_from_auth_hash:"
           auth_hash.email = auth_hash.info.email
@@ -142,7 +93,6 @@ module RackWarden
           #   App.logger.debug "RW Rom upsert_from_auth_hash raised exception: #{$!}"
           #   nil
         end
-        
         
         
         ###  Class methods from legacy Identity model  ###

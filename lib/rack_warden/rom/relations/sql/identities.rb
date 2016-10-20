@@ -26,7 +26,7 @@ module RackWarden
           end
                       
           def create_table
-            puts "RackWarden creating table '#{table}' in database: #{dataset}" unless table_exists?
+            App.logger.info "RackWarden creating table '#{table}' in database: #{dataset}" unless table_exists?
             dataset.db.create_table?(table) do
               # rel.schema.attributes.each do |k,v|
               #   name = k.to_sym
@@ -46,7 +46,7 @@ module RackWarden
               column :updated_at, DateTime
             end
           rescue
-            puts "RackWarden trouble creating '#{table}' table: #{$!}"
+            App.logger.warn "RackWarden trouble creating '#{table}' table: #{$!}"
           end
                     
         end # def identities

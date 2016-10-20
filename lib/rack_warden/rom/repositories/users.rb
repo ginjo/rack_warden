@@ -3,67 +3,48 @@ require_relative 'base'
 module RackWarden
   module Rom
     module Repositories
-
-      ## Put domain-specific methods in repositories.
-      # TODO: Make this a base repo to inherit from.
-      class Users < Base#[:users]
+      class UsersClass < Base[:users]
         
         relations :users
+        root :users
             
         commands :create, :update => :by_pk, :delete => :by_pk  #by_pk is a rom-sql thing
             
-        # Always return any call to users relation as a User 
-        def users
-          super.as(User)
-        end
-        
-        def query(*args)
-          users.query(*args)
-        end
-        
-        def ids
-          users.ids
-        end
-        
-        def by_id(_id)
-          users.by_id(_id).one
-        end
-        alias_method :get, :by_id
-        
-        def first
-          users.first
-        end
-        
-        def last
-          users.last.one
-        end
-        
-        # An 'all' method really should not be here,
-        # since when the table gets large, it won't make any sense.
-        def all
-          users.to_a
-        end
-        
-        def count
-          users.count
-        end
-        
-        #   ## Make it easier to save changed models.
-        #   def save_attributes(_id, _attrs)
-        #     #puts "UserRepoClass#save_attributes"
-        #     #puts [_id, _attrs].to_yaml
-        #     _changeset = changeset(_id, _attrs)
-        #     case
-        #     when _changeset.update?
-        #       #puts "\nChangeset diff #{_changeset.diff}"
-        #       saved = update(_id, _changeset)
-        #     when _changeset.create?
-        #       saved = create(_changeset)
-        #     end
-        #     #puts "\nResponse from updater"
-        #     #puts saved.to_yaml
-        #     saved
-        #   end
+#         # Always return any call to users relation as a User 
+#         def users
+#           super.as(User)
+#         end
+#         
+#         def query(*args)
+#           users.query(*args)
+#         end
+#         
+#         def ids
+#           users.ids
+#         end
+#         
+#         def by_id(_id)
+#           users.by_id(_id).one
+#         end
+#         alias_method :get, :by_id
+#         
+#         def first
+#           users.first
+#         end
+#         
+#         def last
+#           users.last.one
+#         end
+#         
+#         # An 'all' method really should not be here,
+#         # since when the table gets large, it won't make any sense.
+#         def all
+#           users.to_a
+#         end
+#         
+#         def count
+#           users.count
+#         end
         
         def locate_from_identity(identity)
           query(email: identity.email).union(query(id: identity.user_id)).first

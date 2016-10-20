@@ -105,7 +105,7 @@ module RackWarden
   			end
   		end
   		
-  		config.before_logout do |user, auth, opts|  			
+  		config.before_logout(:scope=>:default) do |user, auth, opts|  			
   			user && user.forget_me
   		  
   		  #auth.response.set_cookie 'rack_warden_remember_me', nil  ## doesn't work, there is no auth.response object !!!

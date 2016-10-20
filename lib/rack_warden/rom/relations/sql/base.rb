@@ -29,7 +29,7 @@ module RackWarden
           end
           
           def drop_table
-            puts "RackWarden droping table '#{table}' in database: #{dataset}"
+            App.logger.warn "RackWarden droping table '#{table}' in database: #{dataset}"
             dataset.db.drop_table?(table)
           end
           
