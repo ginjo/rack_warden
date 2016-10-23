@@ -4,18 +4,22 @@ module RackWarden
 
       #class Entity < Dry::Types::Struct
       class Base < Dry::Struct
-      
-        class << self; attr_accessor :repository; end
+              
+        class << self
+          attr_accessor :repository, :rom_container
+          def method_missing(*args)
+            repository.send(*args)
+          end
+        end
         
         def repository; self.class.repository; end
         
-        # Pass in a repository when you sublcass Base.
-        # For RW, you can use a symbol or string.
-        # For external apps using this library, you must use an actual namespaced constant (like Repositories::Messages).
-        def self.[](repo)
+        # Pass in a repository class when you sublcass Base.
+        def self.[](repo, container=Proc.new{RomContainer})
           # Need interim subclass to set repo with.
-          interim_class = dup #Class.new(self)
+          interim_class = clone
           interim_class.repository = repo
+          interim_class.rom_container = container
           App.logger.info "RW set repository for interim_class #{interim_class} to #{repo}"
           # Return interim_class to entity class setup. The new entity class inherits from interim_class
           interim_class
@@ -23,21 +27,11 @@ module RackWarden
         
         # This helps set the repo of the entity from the interim_class
         def self.inherited(entity)
-          App.logger.info "RW #{self} inherited by entity #{entity} with @repository #{@repository}"
-          #decoded_repository = entity.instance_exec(@repository, &method(:decode_repository)) if @repository
-          #App.logger.info "RW #{self}.inherited, decoded repository: #{decoded_repository}"
-          #entity.repository = decoded_repository
-          repo = @repository # This is for instance_eval below.
-          entity.repository = case
-            when repo.is_a?(String); eval(repo)
-            # The instance_eval doesn't seem to help with getting a Repositories class outside the namespace of RackWarden,
-            # but it doesn't seem to hurt either. You could also eliminate it and directly call Repositories.const_get...
-            when repo.is_a?(Symbol); entity.instance_eval{ Repositories.const_get(repo.to_s.capitalize,true) }
-            when repo.is_a?(Proc); repo.call
-            else repo
-          end    
-          
-          # Dry::Types::ClassInterface has a 'inherited' method,
+          App.logger.info "RW #{self} inherited by entity #{entity} with repository class #{@repository}"
+          repo_class = repository.is_a?(Proc) ? repository.call : repository
+          entity.repository = repo_class.new(rom_container, entity)  
+          App.logger.info "RW entity #{entity} set repository with #{entity.repository}"
+          # Dry::Struct::ClassInterface has a 'inherited' method,
           # so this 'super' is absolutely necessary, or that method will be clobbered.
           super
         end
@@ -46,15 +40,6 @@ module RackWarden
         #       The #initialize method doesn't really do anything.
       
         constructor_type(:schema) #I think this makes it less strict (allows missing keys).
-            
-        # Send class methods to UserRepo.
-        def self.method_missing(*args)
-          begin
-            repository.send(*args)
-          #rescue NoMethodError
-          #  super(*args)
-          end
-        end
         
         # Load attributes from somewhere else.
         #   Pass param of attrbibutes from somewhere else (like schema)
@@ -63,7 +48,7 @@ module RackWarden
         # initialize_attributes(RomContainer.relation(:users).schema.attributes.tap{|a| a.delete(:encrypted_password)}) do
         #   {:encrypted_password => Types::BCryptString}
         # end
-        def self.initialize_attributes(_attributes = repository.root.schema.attributes)  #default used to be Hash.new
+        def self.initialize_attributes(_attributes = repository.root.schema.attributes.clone)  #default used to be Hash.new
           _extra = block_given? ? yield : Hash.new
           _attributes.merge!(_extra)
           App.logger.debug "RW initializing attributes for model: #{self}, ancestors: #{self.ancestors}, attributes: #{_attributes}"

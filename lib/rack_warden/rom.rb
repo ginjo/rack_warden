@@ -33,14 +33,6 @@ module RackWarden
         # Load repository classes.
         Dir.glob(File.join(File.dirname(__FILE__), 'rom/repositories', '**', '*.rb'), &method(:require))
         
-        # Create rom repos with containers
-        Repositories.const_set :Identities, Rom::Repositories::IdentitiesClass.new(RomContainer, :Identity)
-        Repositories.const_set :Users, Rom::Repositories::UsersClass.new(RomContainer, :User)
-        
-        # Alias repos to RackWarden namspace
-        const_set :Identities, Rom::Repositories::Identities
-        const_set :Users, Rom::Repositories::Users
-        
         # Load entity classes.
         Dir.glob(File.join(File.dirname(__FILE__), 'rom/entities', '**', '*.rb'), &method(:require))
         

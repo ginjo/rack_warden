@@ -5,41 +5,10 @@ module RackWarden
     module Repositories
       class IdentitiesClass < Base[:identities]
         
-        relations :identities
-        root :identities
+        #relations :identities
+        #root :identities
         
         commands :create, :update=>:by_pk, :delete=>:by_pk
-            
-#         def identities
-#           super.as(Identity)
-#         end
-#         
-#         def query(*args)
-#           identities.query(*args)
-#         end
-#         
-#         # I think rom-sql already does this as :by_pk,
-#         # but how does it work?
-#         # def by_primary_key(provider, uid, email)
-#         #   identities.where(uid: uid, provider: provider, email: email).one
-#         # end
-#         
-#         def ids
-#           identities.ids
-#         end
-#         
-#         def by_id(_id)
-#           identities.by_id(_id).one
-#         end
-#         alias_method :get, :by_id
-#     
-#         def first
-#           identities.first
-#         end
-#             
-#         def last
-#           identities.last.one
-#         end
         
         # Get a single record by uique combo of provider-uid. Email is no longer used.
         # Args can be passed separately or as a string delimited by a colon ':'.
@@ -54,17 +23,6 @@ module RackWarden
           #App.logger.debug rslt.to_a
           rslt.one
         end
-        
-    
-        # TEST:
-        # ih = YAML.load_file '../RackWarden/spec/info_hash_data.yml'
-        # ah = OmniAuth::AuthHash.new(provider:'slack', uid:12345, email:'wbr@mac.com', info:ih)
-        # #i = RackWarden::IdentityRepo.create(provider:'slack', uid:12345, email:'wbr@mac.com', info:ih)
-        # i = RackWarden::IdentityRepo.create(ah)
-        # #i = RackWarden::IdentityRepo.create(ah.to_h)
-        # ah_from_db = RackWarden::IdentityRepo.first
-        # ah_from_db.user_id=1
-        # ah2_from_db = RackWarden::IdentityRepo.first
         
         def create_from_auth_hash(auth_hash)
           App.logger.debug "RW ROM IdentityRepo.create_from_auth_hash"  # #{auth_hash.to_yaml}"

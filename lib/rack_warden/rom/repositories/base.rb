@@ -4,23 +4,17 @@ module RackWarden
       class Base < ROM::Repository::Root
       
         attr_accessor :entity
-      
-        # Entities can't be resolved until they are set up - which happens after repositories.
-        def entity
-          case
-            when @entity.is_a?(String); eval(@entity)
-            when @entity.is_a?(Symbol); instance_eval{ Entities.const_get(@entity.to_s.capitalize) }
-            when @entity.is_a?(Proc); @entity.call
-            else @entity
-          end
+              
+        def root
+          entity ? super.as(entity) : super
         end
         
         def initialize(_container, _entity=nil)
+          _container = _container.is_a?(Proc) ? _container.call : _container
           App.logger.info "RW #{self} initializing with rom-container: #{_container}, entity: #{_entity}"
-
-          @entity = _entity
           super(_container)
-          #self
+          @entity = _entity
+          self
         end
 
         # Makes it easier to save changed models.
@@ -47,20 +41,6 @@ module RackWarden
         
         
         ###  NEWLY ATSTRACTED METHODS  ###
-        
-        #   def identities
-        #     super.as(Identity)
-        #   end
-
-        def root
-          super.as(entity)
-        end
-        
-        # def rel
-        #   puts "RW #{self} sending #{root.options[:name]}"
-        #   #send(root.options[:name])
-        #   root
-        # end
                 
         def query(*args)
           root.query(*args)
