@@ -2,7 +2,7 @@ module RackWarden
 	module RackWardenClassMethods
 	
 		def self.registered(app)
-		  puts "RW RackWardenClassMethods.registered app #{app}" if !app.production?
+		  puts "RW RackWardenClassMethods.registered app #{app}" if !app.production? if !App.production?
 			app.initialize_app_class
 		end
 	

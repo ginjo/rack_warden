@@ -4,6 +4,16 @@ module RackWarden
       class Base < ROM::Repository::Root
       
         attr_accessor :entity
+        
+        # Allow custom repo class to be subclassed from this one.
+        # Clears relations & roots in interim annonymous class.
+        def self.[](relation_root)
+          cl = super
+          cl.relations.clear
+          cl.relations(relation_root)
+          cl.root(relation_root)
+          cl
+        end
               
         def root
           entity ? super.as(entity) : super

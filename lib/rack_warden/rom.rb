@@ -8,7 +8,7 @@ module RackWarden
     
     def self.setup_database(_settings, _attach_to=RackWarden)
     
-      puts "RW Rom.setup_database, settings: #{_settings}, attaching-to: #{_attach_to}"
+      _settings.logger.info "RW Rom.setup_database, settings: #{_settings}, attaching-to: #{_attach_to}" if !_settings.production?
 
       adapter = _settings.rom_adapter
       db_config = get_database_config(_settings)
