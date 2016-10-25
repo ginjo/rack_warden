@@ -185,11 +185,11 @@ module RackWarden
         App.logger.debug "RW Warden Strategy Omniauth 'authenticate!' using env['omniauth.auth']"
         #App.logger.debug env['omniauth.auth'].to_h.to_yaml
         identity = Identity.upsert_from_auth_hash(env['omniauth.auth'])
-        user = identity.user if identity
+        user = identity.user if identity.is_a?(Identity)
         #App.logger.debug env['omniauth.auth'].to_yaml
         #App.logger.debug env['omniauth.auth'].to_h.to_yaml
         #App.logger.debug identity.to_yaml
-        if (identity && user = identity.user)
+        if (identity && user)
           App.logger.debug "RW Warden Strategy Omniauth retrieved/created identity: #{identity}, guid:#{identity.guid}, self: #{self}"
           App.logger.info "RW warden omniauth authenticate! SUCCESS"
           # 'success()' is different from 'set_user()', but I'm not sure why the difference.

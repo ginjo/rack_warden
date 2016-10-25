@@ -56,11 +56,7 @@ module RackWarden
           root.query(*args)
         end
         
-        # I think rom-sql already does this as :by_pk,
-        # but how does it work?
-        # def by_primary_key(provider, uid, email)
-        #   identities.where(uid: uid, provider: provider, email: email).one
-        # end
+        # TODO: I think rom-sql has automatic :by_pk methods. Check that out.
         
         def ids
           root.ids

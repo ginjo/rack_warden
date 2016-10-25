@@ -36,7 +36,7 @@ module RackWarden
         end
         
         def upsert_from_auth_hash(auth_hash)
-          App.logger.debug "RW Rom upsert_from_auth_hash:"
+          App.logger.debug "RW Rom Identities Repo upsert_from_auth_hash:"
           auth_hash.email = auth_hash.info.email
           identity = locate_from_auth_hash(auth_hash)
           if identity
