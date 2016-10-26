@@ -1,4 +1,4 @@
-<h3>Login</h3>
+<h4>Login</h4>
 <form action="<%=url_for('/login')%>" method="post" class="rw">
 	<style scoped="scoped">    
 	  .rw label {font-size: .95em; color: grey; display: block;}
@@ -17,7 +17,7 @@
     </label>
   <% end %>
 
-  <input type="submit" value="Log In" />
+  <input class="button" type="submit" value="Log In">
 	<% if settings.allow_public_signup %>
 		or <a href="<%=url_for('/new')%>">Create a new account</a>
 	<% end %>
