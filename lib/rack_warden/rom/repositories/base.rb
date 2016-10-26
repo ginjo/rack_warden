@@ -15,9 +15,9 @@ module RackWarden
           cl
         end
               
-        def root
-          entity ? super.as(entity) : super
-        end
+        # def root
+        #   entity ? super.as(entity) : super
+        # end
         
         def initialize(_container, _entity=nil)
           _container = _container.is_a?(Proc) ? _container.call : _container

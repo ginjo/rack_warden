@@ -7,8 +7,14 @@ module RackWarden
               
         class << self
           attr_accessor :repository, :rom_container
+          
           def method_missing(*args)
-            repository.send(*args)
+            rslt = repository.send(*args)
+            case
+              when rslt.is_a?(ROM::Repository::RelationProxy); rslt.as(self)
+              when rslt.is_a?(ROM::Struct); self.new(rslt)
+              else rslt
+            end
           end
         end
         

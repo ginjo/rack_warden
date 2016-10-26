@@ -31,7 +31,7 @@ class Hash
   # end
   
   def __to_params__
-    map { |k,v| "#{k}=#{URI.escape(v)}" }.join('&')
+    map { |k,v| "#{k.to_s}=#{URI.escape(v.to_s)}" }.join('&')
   end
   
   ## Not currently used

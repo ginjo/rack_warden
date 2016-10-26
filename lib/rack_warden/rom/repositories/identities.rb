@@ -27,9 +27,7 @@ module RackWarden
         def create_from_auth_hash(auth_hash)
           App.logger.debug "RW ROM IdentityRepo.create_from_auth_hash"  # #{auth_hash.to_yaml}"
           auth_hash.email = auth_hash.info.email
-          # This might erase all references to the AuthHash class.
-          #Identity.new(create(auth_hash.merge({:email => auth_hash.info.email})))
-          Identity.new(create(auth_hash))
+          create(auth_hash)
           # rescue
           #   App.logger.info "RW create_from_auth_hash raised an exception: #{$!}"
           #   nil
@@ -41,9 +39,8 @@ module RackWarden
           identity = locate_from_auth_hash(auth_hash)
           if identity
             # Using save_attributes here doesn't seem to work.
-            #Identity.new(save_attributes(identity.id, auth_hash))
             auth_hash.email = auth_hash.info.email
-            Identity.new(update(identity.id, auth_hash))
+            update(identity.id, auth_hash)
           else
             create_from_auth_hash(auth_hash)
           end

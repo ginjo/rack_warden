@@ -18,7 +18,7 @@ module RackWarden
           if identity.email.to_s != ''
             new_rec = create(:email => identity.email, :username => identity.email)
             (identity.user_id = new_rec.id) #&& identity.save
-            RackWarden::User.new(new_rec)
+            new_rec
           else
             raise "RackWarden::UsersRepo.create_from_identity: email cannot be empty."
           end
@@ -65,7 +65,7 @@ module RackWarden
     	    first :activation_code => "#{decoded}"
     	  end    
     	  
-      end # Users
+      end # UsersClass
     end # Repositories
   end # Rom
 end # RackWarden
