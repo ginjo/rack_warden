@@ -1,2 +1,29 @@
 <h3>Identities</h3>
-<pre><%= RackWarden::Identity.identities.limit(100).to_a.to_yaml %></pre>
+<!-- <pre><%#= RackWarden::Identity.identities.limit(100).to_a.to_yaml %></pre> -->
+
+<table>
+  <thead>
+    <tr>
+      <th>id</th>
+      <th>user_id</th>
+      <th>email</th>
+      <th>provider</th>
+      <th>uid</th>
+      <th>created_at</th>
+      <th>updated_at</th>
+    </tr>
+  </thead>
+  <tbody>
+  <% RackWarden::Identity.query.limit(100).each do |i| %>
+    <tr>
+      <td><%= i.id %></td>
+      <td><%= i.user_id %></td>
+      <td><%= i.email %></td>
+      <td><%= i.provider %></td>
+      <td><%= i.uid %></td>
+      <td><%= i.created_at %></td>
+      <td><%= i.updated_at %></td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
