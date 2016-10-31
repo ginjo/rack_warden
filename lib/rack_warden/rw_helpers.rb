@@ -33,7 +33,7 @@ module RackWarden
   		  logger.debug "RW Getting current_identity with warden.session['identity']:  #{session['warden.user.default.session']}"
   		  if logged_in?(scope) && warden.session(scope)['identity']  #session['identity']
     		  identity = Identity.by_id(warden.session(scope)['identity'].to_s) rescue "RW UniversalHelpers.current_identity ERROR: #{$!}"
-    		  logger.debug "RW retrieved current_identity #{identity.guid}"
+    		  logger.debug "RW retrieved current_identity #{identity ? identity.guid : 'None found'}"
     		  identity
   		  end
 		  )
