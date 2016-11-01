@@ -214,7 +214,7 @@ module RackWarden
 					get '/admin' do
 					  require_authorization
 					  #erb :'rw_admin.html', :layout=>settings.layout
-					  nested_erb :'rw_index.html', :'rw_layout_admin.html', settings.layout
+					  nested_erb :'rw_admin.html', :'rw_layout_admin.html', settings.layout
 					  #respond_with :rw_admin
 					end
 					
