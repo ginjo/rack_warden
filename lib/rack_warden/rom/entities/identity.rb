@@ -43,6 +43,8 @@ module RackWarden
             # but I don't know why. So now just storing id.
             # See User model current_identity method.
             _user.current_identity = id   #self
+          else
+            App.logger.debug "RW Identity#user could not be located or created from identity"
           end
           _user
         end

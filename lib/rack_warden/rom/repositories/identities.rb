@@ -26,7 +26,7 @@ module RackWarden
         
         def create_from_auth_hash(auth_hash)
           App.logger.debug "RW ROM IdentityRepo.create_from_auth_hash"  # #{auth_hash.to_yaml}"
-          auth_hash.email = auth_hash.info.email
+          prep_auth_hash_for_identity auth_hash
           create(auth_hash)
           # rescue
           #   App.logger.info "RW create_from_auth_hash raised an exception: #{$!}"
@@ -34,12 +34,10 @@ module RackWarden
         end
         
         def upsert_from_auth_hash(auth_hash)
-          App.logger.debug "RW Rom Identities Repo upsert_from_auth_hash:"
-          auth_hash.email = auth_hash.info.email
+          App.logger.debug "RW Rom Identities Repo upsert_from_auth_hash"
           identity = locate_from_auth_hash(auth_hash)
           if identity
-            # Using save_attributes here doesn't seem to work.
-            auth_hash.email = auth_hash.info.email
+            prep_auth_hash_for_identity auth_hash
             update(identity.id, auth_hash)
           else
             create_from_auth_hash(auth_hash)
@@ -49,6 +47,11 @@ module RackWarden
           #   nil
         end
         
+        def prep_auth_hash_for_identity(auth_hash)
+          if auth_hash.info.email
+            auth_hash.email = auth_hash.info.email
+          end
+        end
         
         ###  Class methods from legacy Identity model  ###
         

@@ -17,7 +17,7 @@ module RackWarden
         def create_from_identity(identity)
           if identity.email.to_s != ''
             new_rec = create(:email => identity.email, :username => identity.email)
-            (identity.user_id = new_rec.id) #&& identity.save
+            (identity.user_id = new_rec.id) && identity.save
             new_rec
           else
             raise "RackWarden::UsersRepo.create_from_identity: email cannot be empty."
