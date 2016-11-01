@@ -17,6 +17,8 @@ module RackWarden
 			# Setup database.
 			
 			RackWarden::Rom.setup_database(settings)
+			
+			use Rack::MethodOverride
 	  		  	
 	    use Rack::Cookies
 	    

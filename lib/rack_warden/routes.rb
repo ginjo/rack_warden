@@ -246,6 +246,18 @@ module RackWarden
             content_type :text
             session.to_yaml
           end
+          
+          delete '/admin/identities/:id' do
+            # @identity = Identity.by_id params[:id]
+            # erb "<pre><%#= [request.request_method, params, @identity].to_yaml %></pre>"
+            Identity.delete(params[:id]) if params[:id] && authorized?
+            redirect back
+          end
+          
+          delete '/admin/users/:id' do
+            User.delete(params[:id]) if params[:id] && authorized?
+            redirect back
+          end
 				
 				end # namespace
 				

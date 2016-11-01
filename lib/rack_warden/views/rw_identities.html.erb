@@ -4,13 +4,14 @@
 <table>
   <thead>
     <tr>
-      <th>id</th>
-      <th>user_id</th>
-      <th>email</th>
-      <th>provider</th>
-      <th>uid</th>
-      <th>created_at</th>
-      <th>updated_at</th>
+      <th>ID</th>
+      <th>UserID</th>
+      <th>Email</th>
+      <th>Provider</th>
+      <th>UID</th>
+      <th>Created</th>
+      <th>Updated</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -23,6 +24,12 @@
       <td><%= i.uid %></td>
       <td><%= i.created_at %></td>
       <td><%= i.updated_at %></td>
+      <td style="color:red">
+        <form action="<%= url_for("/admin/identities/#{i.id}") %>" method="post">
+          <input type="hidden" name="_method" value="DELETE">
+          <input type="submit" value="delete">
+        </form>
+      </td>
     </tr>
   <% end %>
   </tbody>
