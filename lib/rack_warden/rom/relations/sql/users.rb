@@ -61,6 +61,12 @@ module RackWarden
           rescue
             App.logger.warn "RackWarden trouble creating '#{table}' table: #{$!}"
           end
+          
+          def query_for_authenticate(login)
+            # hides records with a nil activated_at
+            query('username = :login and activated_at > :time', :login=>login, :time=>Time.new('1970-01-01 00:00:00')).union \
+  		      query('email like :login and activated_at > :time', :login=>"#{login}%", :time=>Time.new('1970-01-01 00:00:00'))
+          end
                   
         end # Users
         

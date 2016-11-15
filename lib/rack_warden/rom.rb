@@ -43,7 +43,7 @@ module RackWarden
         # Initialize database tables.
         # TODO: methodize this like in SlackSpace.
         %w(identities users).each do |name|
-          if ENV['RACK_ENV'].to_s[/test/i]
+          if ENV['RACK_ENV'].to_s[/test/i] or ENV['RACK_WARDEN_DROP_TABLES']
             RomContainer.relation(name).drop_table
           end
           RomContainer.relation(name).create_table

@@ -32,20 +32,12 @@ module RackWarden
         ###  Class methods from legacy Identity model  ###
         
     	  # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
-    	  # This is not currently used in RackWarden (has it's own auth logic section). WHAT?!?! Yes it is used in current RW.
+    	  # This is not currently used in RackWarden (has it's own auth logic section). WHAT?!?! Yes it is used in current RW. Why did I write this?
+    	  # TODO: The query logic/language of this method needs to be database-agnostic,
+    	  #       so it needs to be handled at the relation level.
     	  def authenticate(login, password)
-    	    # hides records with a nil activated_at
-    	    #if repository.adapter.to_s[/filemaker/i]
-    		    # FMP
-    		    #u = first(:username=>"=#{login}", :activated_at=>'>1/1/1980') || first(:email=>"=#{login}", :activated_at=>'>1/1/1980')
-    		    u = query('username = :login and activated_at > :time', :login=>login, :time=>Time.new('1970-01-01 00:00:00')).union \
-    		      query('email like :login and activated_at > :time', :login=>"#{login}%", :time=>Time.new('1970-01-01 00:00:00'))
-    		    App.logger.debug "USER.authenticate #{u.inspect}"
-    		    u = u.respond_to?(:first) ? u.first : u
-    		  #else
-    		    # SQL
-    		    #u = first(:conditions => ['(username = ? or email = ?) and activated_at IS NOT NULL', login, login])
-    			#end
+  		    u = users.query_for_authenticate(login).as(entity).one
+  		    App.logger.debug "RW users-repo.authenticate, user: #{u}"
     	    if u && u.authenticate(password)
     	    	# This bit clears a password_reset_code (this assumes it's not needed, cuz user just authenticated successfully).
     	    	(u.password_reset_code = nil; u.save) if u.password_reset_code

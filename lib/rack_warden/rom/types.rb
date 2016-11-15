@@ -21,7 +21,8 @@ module RackWarden
       
       BCryptString = Dry::Types::Definition.new(String).constructor do |dat|
         #puts "\nBCryptString constructor with data: #{dat}"
-        ensure_bcrypt(dat).to_s
+        rslt = ensure_bcrypt(dat).to_s
+        rslt == '' ? nil : rslt
       end
       
       ToYaml = Dry::Types::Definition.new(String).constructor do |dat|
