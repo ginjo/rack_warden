@@ -54,7 +54,8 @@ module RackWarden
         # initialize_attributes(RomContainer.relation(:users).schema.attributes.tap{|a| a.delete(:encrypted_password)}) do
         #   {:encrypted_password => Types::BCryptString}
         # end
-        def self.initialize_attributes(_attributes = repository.root.schema.attributes.clone)  #default used to be Hash.new
+        # TODO: Fix this so you don't need to use an inline rescue.
+        def self.initialize_attributes(_attributes = (repository.root.schema.attributes.clone rescue Hash.new))  #default used to be Hash.new
           _extra = block_given? ? yield : Hash.new
           _attributes.merge!(_extra)
           App.logger.debug "RW initializing attributes for model: #{self}, ancestors: #{self.ancestors}, attributes: #{_attributes}"
