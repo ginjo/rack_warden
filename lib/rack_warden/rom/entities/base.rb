@@ -21,7 +21,7 @@ module RackWarden
         def repository; self.class.repository; end
         
         # Pass in a repository class when you sublcass Base.
-        def self.[](repo, container=Proc.new{RomContainer})
+        def self.[](repo, container=Proc.new{Rom::Container})
           # Need interim subclass to set repo with.
           interim_class = clone
           interim_class.repository = repo
@@ -51,7 +51,7 @@ module RackWarden
         #   Pass param of attrbibutes from somewhere else (like schema)
         #   Pass a block of extra attributes, as a hash, to be (destructively) merged.
         # Example:
-        # initialize_attributes(RomContainer.relation(:users).schema.attributes.tap{|a| a.delete(:encrypted_password)}) do
+        # initialize_attributes(Rom::Container.relation(:users).schema.attributes.tap{|a| a.delete(:encrypted_password)}) do
         #   {:encrypted_password => Types::BCryptString}
         # end
         # TODO: Fix this so you don't need to use an inline rescue.

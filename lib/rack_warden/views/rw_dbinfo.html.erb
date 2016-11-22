@@ -3,5 +3,5 @@
 <pre>
 	<%#= DataMapper.repository.adapter.select('select * from SQLITE_MASTER').to_yaml.to_html %>
 	<%#= DataMapper.repository.adapter.to_yaml.gsub(/\n|\r/, '<br>') %>
-	<%= RackWarden::RomContainer.gateways[:default].connection.opts.to_yaml %>
+	<%= RackWarden::Rom::Container.gateways[:default].connection.opts.to_yaml %>
 </pre>

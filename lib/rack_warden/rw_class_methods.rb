@@ -14,8 +14,6 @@ module RackWarden
 	  	initialize_config_files
 	  	initialize_logging  # again, in case log settings changed in config files.
 	  	
-			# Setup database.
-			
 			RackWarden::Rom.setup_database(settings)
 			
 			use Rack::MethodOverride
