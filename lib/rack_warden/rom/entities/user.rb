@@ -5,7 +5,7 @@ module RackWarden
   module Rom
     module Entities
   
-      class User < Base[Proc.new{Repositories::UsersClass}]
+      class User < Base[Proc.new{Repositories::UsersRepo}]
         attr_accessor :password, :password_confirmation, :current_identity
         
         # Use schema attributes from base relation, put overrides in the block.

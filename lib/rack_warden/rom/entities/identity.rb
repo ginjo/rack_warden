@@ -7,7 +7,7 @@ module RackWarden
   
       # TODO: Make sure OmniAuth classes are loaded before loading auth_hash yaml.
   
-      class Identity < Base[Proc.new{Repositories::IdentitiesClass}]
+      class Identity < Base[Proc.new{Repositories::IdentitiesRepo}]
       
         # I don't think this is used anymore (was in old rw identity model).
         #attr_accessor :auth_hash  #, :user_id

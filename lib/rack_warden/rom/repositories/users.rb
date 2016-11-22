@@ -3,7 +3,7 @@ require_relative 'base'
 module RackWarden
   module Rom
     module Repositories
-      class UsersClass < Base[:users]
+      class UsersRepo < Base[:users]
         
         #relations :users
         #root :users
@@ -57,7 +57,7 @@ module RackWarden
     	    first :activation_code => "#{decoded}"
     	  end    
     	  
-      end # UsersClass
+      end # UsersRepo
     end # Repositories
   end # Rom
 end # RackWarden

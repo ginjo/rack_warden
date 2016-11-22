@@ -3,7 +3,7 @@ require_relative 'base'
 module RackWarden
   module Rom
     module Repositories
-      class IdentitiesClass < Base[:identities]
+      class IdentitiesRepo < Base[:identities]
         
         #relations :identities
         #root :identities
