@@ -26,17 +26,17 @@ module RackWarden
           interim_class = clone
           interim_class.repository = repo
           interim_class.rom_container = container
-          App.logger.info "RW set repository for interim_class #{interim_class} to #{repo}"
+          App.logger.debug "RW set repository for interim_class #{interim_class} to #{repo}"
           # Return interim_class to entity class setup. The new entity class inherits from interim_class
           interim_class
         end
         
         # This helps set the repo of the entity from the interim_class
         def self.inherited(entity)
-          App.logger.info "RW #{self} inherited by entity #{entity} with repository class #{@repository}"
+          App.logger.debug "RW #{self} inherited by entity #{entity} with repository class #{@repository}"
           repo_class = repository.is_a?(Proc) ? repository.call : repository
           entity.repository = repo_class.new(rom_container, entity)  
-          App.logger.info "RW entity #{entity} set repository with #{entity.repository}"
+          App.logger.debug "RW entity #{entity} set repository with #{entity.repository}"
           # Dry::Struct::ClassInterface has a 'inherited' method,
           # so this 'super' is absolutely necessary, or that method will be clobbered.
           super

@@ -22,7 +22,7 @@ module RackWarden
 				
         
         ###  OMNIAUTH NAMESPACE  ###
-        logger.info "RW Routes setting up omniauth namespace for #{settings} at #{settings.omniauth_prefix}"
+        logger.debug "RW Routes setting up omniauth namespace for #{settings} at #{settings.omniauth_prefix}"
 				namespace settings.omniauth_prefix do
 
     		  # Omniauth callback
@@ -64,7 +64,7 @@ module RackWarden
 				
         
         ###  RW NAMESPACE  ###
-        logger.info "RW Routes setting up rw namespace for #{settings} at #{settings.rw_prefix}"
+        logger.debug "RW Routes setting up rw namespace for #{settings} at #{settings.rw_prefix}"
 				namespace settings.rw_prefix do
 				
 					# This is necessary for sinatra-namespace to do nested stuff,

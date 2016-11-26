@@ -7,8 +7,9 @@ module RackWarden
   module Rom    
     
     def self.setup_database(_settings=App.settings, _attach_to=RackWarden)
-    
-      _settings.logger.info "RW Rom.setup_database, settings: #{_settings}, attaching-to: #{_attach_to}" if !_settings.production?
+      
+      _settings.logger.info "RW Rom.setup_database #{_settings.database_config}"
+      _settings.logger.debug "RW Rom.setup_database, settings: #{_settings}, attaching-to: #{_attach_to}" if !_settings.production?
 
       rom_adapter = _settings.rom_adapter
       db_config = get_database_config(_settings)
@@ -65,7 +66,7 @@ module RackWarden
   	    when (_settings.database_config.to_s[/\:\/\//] || _settings.database_config.is_a?(Hash)); _settings.database_config
 	    end
 	    raise "RackWarden could not find an existing database configuration" unless conf
-	    _settings.logger.info "RW get_database_config initial conf: #{conf}"
+	    _settings.logger.debug "RW get_database_config initial conf: #{conf}"
 	    
 	    # Handle rack-env (the environment).
 	    conf = conf.is_a?(Hash) && conf[_settings.environment.to_s] || conf
@@ -90,7 +91,7 @@ module RackWarden
         conf.last[:adapter].gsub!(/mysql2/, 'mysql')
 	    end
 	    
-	    _settings.logger.info "RW get_database_config rslt: #{conf.inspect}"
+	    _settings.logger.debug "RW get_database_config rslt: #{conf.inspect}"
 	    
 	    return *conf
 	  end

@@ -72,11 +72,11 @@ module RackWarden
       @template_cache = Tilt::Cache.new
       
       if @app && !settings.initialized
-        logger.info "RW #{self.class}#initialize, self: #{self}, args:#{args}, block? #{block_given?}"
+        logger.debug "RW #{self.class}#initialize, self: #{self}, args:#{args}, block? #{block_given?}"
         block = Proc.new if block_given?
         settings.initialize_settings_from_instance(@app, self, *args[1..-1], &block)
         #logger.debug "RW about to call problem 'super', ancestors: #{self.class.ancestors}"
-        logger.info "RW initialization complete for app: #{@app}"
+        logger.info "RW initialized with @app: #{@app}"
       end
       #super(@app, &block)
       self

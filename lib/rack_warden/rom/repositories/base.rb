@@ -21,7 +21,7 @@ module RackWarden
         
         def initialize(_container, _entity=nil)
           _container = _container.is_a?(Proc) ? _container.call : _container
-          App.logger.info "RW #{self} initializing with rom-container: #{_container}, entity: #{_entity}"
+          App.logger.debug "RW repo #{self} initializing with rom-container: #{_container}, entity: #{_entity}"
           super(_container)
           @entity = _entity
           self
