@@ -62,33 +62,33 @@ module RackWarden
   # for example, a rack app with multiple rack or sinatra endpoints.
   # To pass settings to each instance of rw, pass them with the 'use' method:
   # Usage: class MyApp; use RackWarden, :require_login=>false; ... end; class OtherApp; use RackWarden, :require_login => /protected.*/; end
-	def self.new(*args)
+  def self.new(*args)
     block = Proc.new if block_given?
     App.logger.debug "RW RackWarden.new with args: #{args}, block_given? #{block_given?}"
     Class.new(App).new(*args, &block)
-	end
-	
-	# Utility to get middleware stack. Maybe temporary.
-	def self.middleware_classes(app=nil)                                                                                                                                              
-	  r = [app || Rack::Builder.parse_file(File.join(Dir.pwd, 'config.ru')).first]
-	  while ((next_app = r.last.instance_variable_get(:@app)) != nil)
-	    r << next_app
-	  end
-	  r.map{|e| e.instance_variable_defined?(:@app) ? e.class : e }
-	end
-	#app = Rack::Builder.parse_file('config.ru').first
-	#puts middleware_classes(app).inspect
-	
-	# Shortcut/sugar to app
-	def self.settings
-		App.settings
-	end
-	
-	
-	#Loads the App class, as soon as this module loads.
-	App
-	
-	# Enable this for automatic sinatra top-level registration.
-	#Sinatra.register self
+  end
+  
+  # Utility to get middleware stack. Maybe temporary.
+  def self.middleware_classes(app=nil)                                                                                                                                              
+    r = [app || Rack::Builder.parse_file(File.join(Dir.pwd, 'config.ru')).first]
+    while ((next_app = r.last.instance_variable_get(:@app)) != nil)
+      r << next_app
+    end
+    r.map{|e| e.instance_variable_defined?(:@app) ? e.class : e }
+  end
+  #app = Rack::Builder.parse_file('config.ru').first
+  #puts middleware_classes(app).inspect
+  
+  # Shortcut/sugar to app
+  def self.settings
+    App.settings
+  end
+  
+  
+  #Loads the App class, as soon as this module loads.
+  App
+  
+  # Enable this for automatic sinatra top-level registration.
+  #Sinatra.register self
   
 end

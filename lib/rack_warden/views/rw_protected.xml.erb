@@ -1,10 +1,10 @@
 <blockquote>
 <xml>
-	<% RackWarden::User.all.each do |user| %>
-	<user>
-		<name><%=user.username%></name>
-		<password><%=user.encrypted_password%></name>
-	</user>
-	<% end %>
+  <% RackWarden::User.all.each do |user| %>
+  <user>
+    <name><%=user.username%></name>
+    <password><%=user.encrypted_password%></name>
+  </user>
+  <% end %>
 </xml>
 </blockquote>

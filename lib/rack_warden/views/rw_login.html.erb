@@ -1,41 +1,41 @@
 <h4>Login</h4>
 <form action="<%=url_for('/login')%>" method="post" class="rw">
-	<style scoped="scoped">    
-	  .rw label {font-size: .95em; color: grey; display: block;}
-	  .rw input {font-size: 1.15em; margin-bottom: 20px; padding:7px;}
-	</style>
-	
-	<label for="user_username">Username or Email</label>
-	<input type="text" name="user[username]" id="user_username"/>
+  <style scoped="scoped">    
+    .rw label {font-size: .95em; color: grey; display: block;}
+    .rw input {font-size: 1.15em; margin-bottom: 20px; padding:7px;}
+  </style>
+  
+  <label for="user_username">Username or Email</label>
+  <input type="text" name="user[username]" id="user_username"/>
 
   <label for="user_password">Password</label>
   <input type="password" name="user[password]" id="user_password" />
 
   <% if settings.allow_remember_me %>
     <label for="user_remember_me">Remember me
-    	<input name="user[remember_me]" type="checkbox" value="1" id="user_remember_me" />
+      <input name="user[remember_me]" type="checkbox" value="1" id="user_remember_me" />
     </label>
   <% end %>
 
   <input class="button" type="submit" value="Log In">
-	<% if settings.allow_public_signup %>
-		or <a href="<%=url_for('/new')%>">Create a new account</a>
-	<% end %>
-	
-	<!-- OMNIAUTH CODE -->
-	
+  <% if settings.allow_public_signup %>
+    or <a href="<%=url_for('/new')%>">Create a new account</a>
+  <% end %>
+  
+  <!-- OMNIAUTH CODE -->
+  
     <p>
-  	OR login with any of these oAuth services
-  	</p>
-  	<ul>
+    OR login with any of these oAuth services
+    </p>
+    <ul>
       <% if settings.development? %>
         <li><a href='/auth/developer'>Sign in with Developer (demo strategy)</a></li>
       <% end %>
-    	<% settings.omniauth_adapters.each do |a|
-    	   s = a.split(/^[^-]*-/)[1]
-    	   next if (s.to_s.empty? || s.to_s == 'oauth2')
-    	   s = s.gsub(/-/, '_')
-    	 %>
+      <% settings.omniauth_adapters.each do |a|
+         s = a.split(/^[^-]*-/)[1]
+         next if (s.to_s.empty? || s.to_s == 'oauth2')
+         s = s.gsub(/-/, '_')
+       %>
       <li><a href='/auth/<%=s%>'>Sign in with <%=s.upcase%></a></li>
     <% end %>
     </ul>

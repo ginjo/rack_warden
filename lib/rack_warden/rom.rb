@@ -56,45 +56,45 @@ module RackWarden
     
     
     # Best guess at framework database settings.
-	  def self.get_database_config(_settings=App.settings)
-	  	#settings.logger.debug ActiveRecord::Base.configurations[(RackWarden::settings.environment || :development).to_s].to_yaml
-	    conf = case
-  	    when _settings.database_config.to_s.downcase[/existing|auto/];
-  		    (ActiveRecord::Base.connection_config rescue nil) ||
-  		    (ActiveRecord::Base.configurations rescue nil) ||
-  		    (DataMapper.repository(:default).adapter[:options] rescue nil)
-  	    when (_settings.database_config.to_s[/\:\/\//] || _settings.database_config.is_a?(Hash)); _settings.database_config
-	    end
-	    raise "RackWarden could not find an existing database configuration" unless conf
-	    _settings.logger.debug "RW get_database_config initial conf: #{conf}"
-	    
-	    # Handle rack-env (the environment).
-	    conf = conf.is_a?(Hash) && conf[_settings.environment.to_s] || conf
-	    
-	    # If conf is a hash that looks like:  {'proc' => 'string-of-code to eval'}
-	    if conf.is_a?(Hash) && conf['proc']
+    def self.get_database_config(_settings=App.settings)
+      #settings.logger.debug ActiveRecord::Base.configurations[(RackWarden::settings.environment || :development).to_s].to_yaml
+      conf = case
+        when _settings.database_config.to_s.downcase[/existing|auto/];
+          (ActiveRecord::Base.connection_config rescue nil) ||
+          (ActiveRecord::Base.configurations rescue nil) ||
+          (DataMapper.repository(:default).adapter[:options] rescue nil)
+        when (_settings.database_config.to_s[/\:\/\//] || _settings.database_config.is_a?(Hash)); _settings.database_config
+      end
+      raise "RackWarden could not find an existing database configuration" unless conf
+      _settings.logger.debug "RW get_database_config initial conf: #{conf}"
+      
+      # Handle rack-env (the environment).
+      conf = conf.is_a?(Hash) && conf[_settings.environment.to_s] || conf
+      
+      # If conf is a hash that looks like:  {'proc' => 'string-of-code to eval'}
+      if conf.is_a?(Hash) && conf['proc']
         conf = eval(conf['proc'])
       end
-	    
-	    # Force into uri format required by ROM (and supposedly the 'industry standard' now).
-	    if conf.is_a?(Hash) && conf[:adapter] && conf[:database]
+      
+      # Force into uri format required by ROM (and supposedly the 'industry standard' now).
+      if conf.is_a?(Hash) && conf[:adapter] && conf[:database]
         conf = "#{conf[:adapter]}://#{conf[:database]}", conf
-	    end
-	    
-	    # Convert sqlite3/mysql2 to sqlite/mysql
-	    if conf.is_a?(Array) && conf[0].is_a?(String)
+      end
+      
+      # Convert sqlite3/mysql2 to sqlite/mysql
+      if conf.is_a?(Array) && conf[0].is_a?(String)
         conf[0].gsub!(/^sqlite3/, 'sqlite')
         conf[0].gsub!(/^mysql2/, 'mysql')
-	    end
-	    if conf.is_a?(Array) && conf.last.is_a?(Hash) && conf.last[:adapter]
+      end
+      if conf.is_a?(Array) && conf.last.is_a?(Hash) && conf.last[:adapter]
         conf.last[:adapter].gsub!(/sqlite3/, 'sqlite')
         conf.last[:adapter].gsub!(/mysql2/, 'mysql')
-	    end
-	    
-	    _settings.logger.debug "RW get_database_config rslt: #{conf.inspect}"
-	    
-	    return *conf
-	  end
+      end
+      
+      _settings.logger.debug "RW get_database_config rslt: #{conf.inspect}"
+      
+      return *conf
+    end
         
   end # Rom
 end # RackWarden

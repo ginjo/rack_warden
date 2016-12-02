@@ -2,14 +2,14 @@ require 'forwardable'
 
 module RackWarden
 
-	###  OMNIAUTH CODE  ###
-	###  See http://www.rubydoc.info/github/intridea/omniauth/OmniAuth/Builder
-	###    		
-	
-	# Tried this to fix slack csrf error, but it didn't help,
-	# and it broke the other providers.
-	#OmniAuth.config.full_host = ENV['OMNIAUTH_HOST_NAME']
-	
+  ###  OMNIAUTH CODE  ###
+  ###  See http://www.rubydoc.info/github/intridea/omniauth/OmniAuth/Builder
+  ###       
+  
+  # Tried this to fix slack csrf error, but it didn't help,
+  # and it broke the other providers.
+  #OmniAuth.config.full_host = ENV['OMNIAUTH_HOST_NAME']
+  
   # use OmniAuth::Strategies::Developer
   # use OmniAuth::Builder do
   #   App.logger.debug "RW setting up omniauth providers within #{self}"
@@ -41,12 +41,12 @@ module RackWarden
   #       #path_prefix: '/some_other_prefix'  #Make sure RackWarden 'rw_prefix' is in tune with this setting.
   #   end
   # end
-	###  END OMNIAUTH CODE  ###
-	
-	# There is a looping paradox here:
-	# You need WardenConfig to exist so that user can customize it before loading RW.
-	# But WardenConfig needs to know which RW app dup it'w being setup from.
-	# This solution handles that situation correctly.
+  ###  END OMNIAUTH CODE  ###
+  
+  # There is a looping paradox here:
+  # You need WardenConfig to exist so that user can customize it before loading RW.
+  # But WardenConfig needs to know which RW app dup it'w being setup from.
+  # This solution handles that situation correctly.
 
   # To customize warden for the endpoint app, create a new WardenConfig,
   # and manipulate it according to your needs. Then 'use Warden::Manager, my_customized_warden_config'.
@@ -92,28 +92,28 @@ module RackWarden
         env['REQUEST_METHOD'] = 'POST'
       end
   
-  		config.after_authentication  do |user, auth, opts|
-      	if user.is_a?(User) && (!user.remember_token.to_s.empty? || (auth.params['user'] && auth.params['user']['remember_me'] == '1'))
-      		rw_app.logger.info "RW warden after_authenticate, user.remember_me '#{user.username}'"
-      		user.remember_me
-  				
-  				# We have no path to response object here :(
-  				#auth.response.set_cookie 'rack_warden_remember_me', :value => user.remember_token , :expires => user.remember_token_expires_at
-  				# So we have to do this
-  		  	auth.env.remember_token = { :value => user.remember_token , :expires => user.remember_token_expires_at.to_time }   #user.remember_me # sets its remember_token attribute to some large random value and returns the value.
-  				rw_app.logger.debug {"RW cookie set auth.env.remember_token: #{auth.env.remember_token}"}
-  			end
-  		end
-  		
-  		config.before_logout(:scope=>:default) do |user, auth, opts|  			
-  			user && user.forget_me
-  		  
-  		  #auth.response.set_cookie 'rack_warden_remember_me', nil  ## doesn't work, there is no auth.response object !!!
-  		  rw_app.logger.debug {"RW cookie unset 'rack_warden_remember_token': #{auth.env.remember_token}"}
-  		  auth.env.remember_token = nil
-  		end
-  		
-  		rw_app.logger.debug {config}
+      config.after_authentication  do |user, auth, opts|
+        if user.is_a?(User) && (!user.remember_token.to_s.empty? || (auth.params['user'] && auth.params['user']['remember_me'] == '1'))
+          rw_app.logger.info "RW warden after_authenticate, user.remember_me '#{user.username}'"
+          user.remember_me
+          
+          # We have no path to response object here :(
+          #auth.response.set_cookie 'rack_warden_remember_me', :value => user.remember_token , :expires => user.remember_token_expires_at
+          # So we have to do this
+          auth.env.remember_token = { :value => user.remember_token , :expires => user.remember_token_expires_at.to_time }   #user.remember_me # sets its remember_token attribute to some large random value and returns the value.
+          rw_app.logger.debug {"RW cookie set auth.env.remember_token: #{auth.env.remember_token}"}
+        end
+      end
+      
+      config.before_logout(:scope=>:default) do |user, auth, opts|        
+        user && user.forget_me
+        
+        #auth.response.set_cookie 'rack_warden_remember_me', nil  ## doesn't work, there is no auth.response object !!!
+        rw_app.logger.debug {"RW cookie unset 'rack_warden_remember_token': #{auth.env.remember_token}"}
+        auth.env.remember_token = nil
+      end
+      
+      rw_app.logger.debug {config}
       config   
     end # new_with_defaults
   end # WardenConfig
@@ -121,61 +121,61 @@ module RackWarden
 
   module Warden::Strategies
   
-  	# TODO: Add basic-auth stragety.
-  	# From Rack documentation - this is all you need for basic auth in Sinatra.
-  	# use Rack::Auth::Basic, "Protected Area" do |username, password|
-  	#   username == 'foo' && password == 'bar'
-  	# end
+    # TODO: Add basic-auth stragety.
+    # From Rack documentation - this is all you need for basic auth in Sinatra.
+    # use Rack::Auth::Basic, "Protected Area" do |username, password|
+    #   username == 'foo' && password == 'bar'
+    # end
 
     add(:password) do
-    	#App.logger.debug "RW WardenStrategies.add(password) self #{self.class}"
-    	
+      #App.logger.debug "RW WardenStrategies.add(password) self #{self.class}"
+      
       def valid?
         params['user'] && params['user']['username'] && params['user']['password']
       end
 
       def authenticate!
-      	# User-class based authenticator. See below for old local-based authenticator
-      	App.logger.debug {"RW authenticate! method self #{self.class}"}
-      	App.logger.debug {"RW authenticating with password"}
-      	user = User.authenticate(params['user']['username'], params['user']['password'])
-      	if user.is_a? User
-      		success!(user)
-        	App.logger.info "RW warden password-user logged in '#{user.username}'"
+        # User-class based authenticator. See below for old local-based authenticator
+        App.logger.debug {"RW authenticate! method self #{self.class}"}
+        App.logger.debug {"RW authenticating with password"}
+        user = User.authenticate(params['user']['username'], params['user']['password'])
+        if user.is_a? User
+          success!(user)
+          App.logger.info "RW warden password-user logged in '#{user.username}'"
         else
           fail!("Could not login")
-          App.logger.info "RW warden password-user failed regular login '#{params['user']['username']}'"		        	
+          App.logger.info "RW warden password-user failed regular login '#{params['user']['username']}'"              
         end
       rescue Exception => error
         App.logger.warn "RW strategy for :password has raised an exception."
         App.logger.warn "RW #{error}"
         fail!("Could not authenticate :password user, exception raised: #{$! if ENV['RACK_ENV'] != 'production'}")
       end # authenticate!
-    end	# password strategy
+    end # password strategy
   
-		add(:remember_me) do
-		  def valid?
-		  	App.logger.debug {"RW checking existence of remember_token cookie: #{env['rack.request.cookie_hash']['rack_warden_remember_me']}"}
-		    #env['rack.cookies']['rack_warden_remember_me']
-		    #env['rack.request.cookie_hash']['rack_warden_remember_me']
-		    env.remember_token.to_s != ''
-		  end
-		
+    add(:remember_me) do
+      def valid?
+        App.logger.debug {"RW checking existence of remember_token cookie: #{env['rack.request.cookie_hash']['rack_warden_remember_me']}"}
+        #env['rack.cookies']['rack_warden_remember_me']
+        #env['rack.request.cookie_hash']['rack_warden_remember_me']
+        env.remember_token.to_s != ''
+      end
+    
       def authenticate!
-      	App.logger.debug {"RW authenticate!(:remember_me) self #{self.class}"}
-      	App.logger.debug {"RW authenticating with rack_warden_remember_me token: #{env.remember_token}"}
-      	user = User.query(:remember_token => env.remember_token).first
-      	if user.is_a?(User) && !user.remember_token.to_s.empty?
-					rslt = success!(user)
-      		App.logger.info "RW warden remember-me-user logged in with remember_me token '#{user.username}'"
-      		rslt
-      	else
+        App.logger.debug {"RW authenticate!(:remember_me) self #{self.class}"}
+        App.logger.debug {"RW authenticating with rack_warden_remember_me token: #{env.remember_token}"}
+        user = User.query(:remember_token => env.remember_token).first
+        if user.is_a?(User) && !user.remember_token.to_s.empty?
+          rslt = success!(user)
+          App.logger.info "RW warden remember-me-user logged in with remember_me token '#{user.username}'"
+          rslt
+        else
           App.logger.debug {"RW warden remember-me-user failed remember_me token login '#{env.remember_token}'"}
-          nil	        	
+          nil           
         end
       end # authenticate!
-		end # remember_me strategy
-		
+    end # remember_me strategy
+    
     add(:omniauth) do
       def valid?
         env['omniauth.auth'].is_a?(Hash) || env['omniauth.auth'].is_a?(OmniAuth::AuthHash)
@@ -209,8 +209,8 @@ module RackWarden
         #raise $!
       end # authenticate!
     end # omniauth strategy
-		
-	end # Warden::Strategies
+    
+  end # Warden::Strategies
 
 end # RackWarden
 

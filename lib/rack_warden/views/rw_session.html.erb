@@ -1,32 +1,32 @@
 <h5>Session info</h5>
 
 <p>
-	<b>Ruby Process:</b><br>
-	<%= $0 %>
-	<br><br>
+  <b>Ruby Process:</b><br>
+  <%= $0 %>
+  <br><br>
 
 
-	<b>Middleware:</b><br>
-	<%#= TopApp.middleware %><br>
-	<%#= InnerApp.middleware %>
-	<%= settings.middleware %>
-	<br><br>
-	
-	<b>Session:</b><br>
-	<%= session.to_hash.to_yaml.to_html %>
-	<br><br>
-	
-	<b>Cookies:</b><br>
-	<%= env['rack.cookies'].to_yaml.to_html %>
-	<br><br>
-	
-	<b>Ruby ENV:</b><br>
-	<%= ENV.to_hash.to_yaml.to_html %>
-	<br><br>
-	
-	<b>Request env object:</b><br>
+  <b>Middleware:</b><br>
+  <%#= TopApp.middleware %><br>
+  <%#= InnerApp.middleware %>
+  <%= settings.middleware %>
+  <br><br>
+  
+  <b>Session:</b><br>
+  <%= session.to_hash.to_yaml.to_html %>
+  <br><br>
+  
+  <b>Cookies:</b><br>
+  <%= env['rack.cookies'].to_yaml.to_html %>
+  <br><br>
+  
+  <b>Ruby ENV:</b><br>
+  <%= ENV.to_hash.to_yaml.to_html %>
+  <br><br>
+  
+  <b>Request env object:</b><br>
     <pre><%#= request.env.inspect %></pre>
-	<br><br>		
+  <br><br>    
 
 </p>
 <br>

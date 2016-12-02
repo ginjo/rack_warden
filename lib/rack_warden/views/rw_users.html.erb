@@ -1,30 +1,30 @@
 <h5>Users</h5>
-	<table>
-		<thead>
-			<tr>
-				<th>ID</th>
-				<th>User</th>
-				<th>Email</th>
-				<th>Activated</th>
-				<th>Actions</th>
-			</tr>
-		<tbody>
-			<% RackWarden::User.users.limit(100).each do |user| %>
-				<tr>
-					<td><%=user.id%></td>
-					<td><%=user.username%></td>
-					<td><%=user.email%></td>
-					<td><%=user.activated_at%></td>
-					<td>
-    				<form action="<%= url_for("/admin/users/#{user.id}") %>" method="post">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Email</th>
+        <th>Activated</th>
+        <th>Actions</th>
+      </tr>
+    <tbody>
+      <% RackWarden::User.users.limit(100).each do |user| %>
+        <tr>
+          <td><%=user.id%></td>
+          <td><%=user.username%></td>
+          <td><%=user.email%></td>
+          <td><%=user.activated_at%></td>
+          <td>
+            <form action="<%= url_for("/admin/users/#{user.id}") %>" method="post">
               <input type="hidden" name="_method" value="DELETE">
               <input type="submit" value="delete">
             </form>
-					</td>
-				</tr>
-			<% end %>
-		</tbody>
-	</table>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
 </p>
 
 

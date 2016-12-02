@@ -1,7 +1,7 @@
 <h5>Database info</h5>
 
 <pre>
-	<%#= DataMapper.repository.adapter.select('select * from SQLITE_MASTER').to_yaml.to_html %>
-	<%#= DataMapper.repository.adapter.to_yaml.gsub(/\n|\r/, '<br>') %>
-	<%= RackWarden::Rom::Container.gateways[:default].connection.opts.to_yaml %>
+  <%#= DataMapper.repository.adapter.select('select * from SQLITE_MASTER').to_yaml.to_html %>
+  <%#= DataMapper.repository.adapter.to_yaml.gsub(/\n|\r/, '<br>') %>
+  <%= RackWarden::Rom::Container.gateways[:default].connection.opts.to_yaml %>
 </pre>

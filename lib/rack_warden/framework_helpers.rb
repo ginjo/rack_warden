@@ -3,7 +3,7 @@ module RackWarden
   # Helper methods to be included in main app controllers.
   # Do not include this module, but rather, include the
   # specific framework module for your framework controller(s)
-	module FrameworkHelpers
+  module FrameworkHelpers
 
     extend Forwardable
     
@@ -22,9 +22,9 @@ module RackWarden
     
     def_delegators :rack_warden, *HelperMethods
 
-	  def rack_warden
-	  	request.env['rack_warden_instance']
-	  end
-	
-	end # FrameworkHelpers
+    def rack_warden
+      request.env['rack_warden_instance']
+    end
+  
+  end # FrameworkHelpers
 end

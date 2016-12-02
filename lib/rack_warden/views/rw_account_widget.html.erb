@@ -1,8 +1,8 @@
 <span class="rw-account-widget">
-	<% if logged_in? %>
-		Logged in as <b><a href="<%=url_for('/account')%>"><%=current_user.username%></a></b> | 
-		<a href="<%=url_for('/logout')%>">Logout</a>
-	<% else %>
-		<a href="<%=url_for('/login')%>">Login</a>
-	<% end %>
+  <% if logged_in? %>
+    Logged in as <b><a href="<%=url_for('/account')%>"><%=current_user.username%></a></b> | 
+    <a href="<%=url_for('/logout')%>">Logout</a>
+  <% else %>
+    <a href="<%=url_for('/login')%>">Login</a>
+  <% end %>
 </span>

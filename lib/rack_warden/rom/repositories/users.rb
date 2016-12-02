@@ -31,32 +31,32 @@ module RackWarden
         
         ###  Class methods from legacy Identity model  ###
         
-    	  # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
-    	  # This is not currently used in RackWarden (has it's own auth logic section). WHAT?!?! Yes it is used in current RW. Why did I write this?
-    	  # TODO: The query logic/language of this method needs to be database-agnostic,
-    	  #       so it needs to be handled at the relation level.
-    	  def authenticate(login, password)
-  		    u = users.query_for_authenticate(login).as(entity).one
-  		    App.logger.debug "RW users-repo.authenticate, user: #{u}"
-    	    if u && u.authenticate(password)
-    	    	# This bit clears a password_reset_code (this assumes it's not needed, cuz user just authenticated successfully).
-    	    	(u.password_reset_code = nil; u.save) if u.password_reset_code
-    	    	u
-    	    else
-    	    	nil
-    	    end
-    	  end
+        # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
+        # This is not currently used in RackWarden (has it's own auth logic section). WHAT?!?! Yes it is used in current RW. Why did I write this?
+        # TODO: The query logic/language of this method needs to be database-agnostic,
+        #       so it needs to be handled at the relation level.
+        def authenticate(login, password)
+          u = users.query_for_authenticate(login).as(entity).one
+          App.logger.debug "RW users-repo.authenticate, user: #{u}"
+          if u && u.authenticate(password)
+            # This bit clears a password_reset_code (this assumes it's not needed, cuz user just authenticated successfully).
+            (u.password_reset_code = nil; u.save) if u.password_reset_code
+            u
+          else
+            nil
+          end
+        end
     
-    	  def find_for_forget(email) #, question, answer)
-    	    first(:conditions => ['email = ? AND (activation_code IS NOT NULL or activated_at IS NOT NULL)', email])
-    	  end
-    	  
-    	  def find_for_activate(code)
-    	  	decoded = App.uri_decode(code)
-    	  	App.logger.debug "RW find_for_activate with #{decoded}"
-    	    first :activation_code => "#{decoded}"
-    	  end    
-    	  
+        def find_for_forget(email) #, question, answer)
+          first(:conditions => ['email = ? AND (activation_code IS NOT NULL or activated_at IS NOT NULL)', email])
+        end
+        
+        def find_for_activate(code)
+          decoded = App.uri_decode(code)
+          App.logger.debug "RW find_for_activate with #{decoded}"
+          first :activation_code => "#{decoded}"
+        end    
+        
       end # UsersRepo
     end # Repositories
   end # Rom

@@ -1,14 +1,14 @@
 <h4>Create Account</h4>
 <!-- <p><%#= @user.errors.to_yaml if @user && @user.errors %></p> -->
 <form action="<%=url_for('/create')%>" method="post" class="rw">
-	<style scoped="scoped">    
-	  .rw label {font-size: .95em; color: grey; display: block;}
-	  .rw input {font-size: 1.15em; margin-bottom: 20px; padding:7px;}
-	  .rw .g-recaptcha {margin-bottom: 20px;}
-	</style>
-	
-	<label for="user_email">Email</label>
-	<input type="text" name="user[email]" id="user_email" />
+  <style scoped="scoped">    
+    .rw label {font-size: .95em; color: grey; display: block;}
+    .rw input {font-size: 1.15em; margin-bottom: 20px; padding:7px;}
+    .rw .g-recaptcha {margin-bottom: 20px;}
+  </style>
+  
+  <label for="user_email">Email</label>
+  <input type="text" name="user[email]" id="user_email" />
   
   <label for="user_username">Username</label>
   <input type="text" name="user[username]" id="user_username" />
@@ -20,7 +20,7 @@
   <input type="password" name="user[password_confirmation]" id="user_password_confirmation" />
   
   <% if recaptcha_sitekey && RackWarden::User.count > 0 %>
-	  <div class="g-recaptcha control text-control" data-sitekey="<%=recaptcha_sitekey%>"></div>
+    <div class="g-recaptcha control text-control" data-sitekey="<%=recaptcha_sitekey%>"></div>
   <% end %>
   
   <input type="submit" value="Create" />

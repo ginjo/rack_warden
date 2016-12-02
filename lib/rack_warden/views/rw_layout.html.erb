@@ -5,32 +5,32 @@
     <title>Rack Warden</title>
 
     <style>
-	    body {
-	      margin: 10px auto;
-	      width: 800px;
-	    }
+      body {
+        margin: 10px auto;
+        width: 800px;
+      }
     </style>
     
     <script src='https://www.google.com/recaptcha/api.js'></script>
   </head>
   <body>
-  	<br>
+    <br>
     <h1>Rack Warden</h1>
 
     <p>
-			<a href="<%=url('/', false)%>">Main Site</a> |
-			<a href="<%=url_for('/protected')%>">Test Protected Page</a> |
-			<%= erb :'rw_account_widget.html', :layout=>false %>
-		</p>
+      <a href="<%=url('/', false)%>">Main Site</a> |
+      <a href="<%=url_for('/protected')%>">Test Protected Page</a> |
+      <%= erb :'rw_account_widget.html', :layout=>false %>
+    </p>
 
-		<%= erb :'rw_flash_widget.html', :layout=>false %>
+    <%= erb :'rw_flash_widget.html', :layout=>false %>
 
-		<div id="content">
-			<br>
-			<br>
-	    <%= yield if block_given? %>
-	    <br>
-	    <br>
-		</div>
+    <div id="content">
+      <br>
+      <br>
+      <%= yield if block_given? %>
+      <br>
+      <br>
+    </div>
   </body>
 </html>

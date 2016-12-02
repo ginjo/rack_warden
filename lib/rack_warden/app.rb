@@ -57,10 +57,10 @@ module RackWarden
     set :omniauth_adapters, Gem.loaded_specs.keys.select{|k| k =~ /omniauth/ && k}
     set :omniauth_config, nil # must be a hash containing a proc at key :proc. Example: {:proc=>some_omniauth_config_proc}.
     set :mail_options,
-    		:delivery_method => :test,
-    		:delivery_options => {:from => 'my@email.com'} #, :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE
-	  
-	  
+        :delivery_method => :test,
+        :delivery_options => {:from => 'my@email.com'} #, :openssl_verify_mode => OpenSSL::SSL::VERIFY_NONE
+    
+    
     def self.inherited(subclass)
       Subclasses  << subclass
       super
@@ -82,61 +82,61 @@ module RackWarden
       self
     end    
     
-  	
-		# Store this app instance in the env.
-		# NOTE: Up to this point, the app instance is the same for every call,
-		#       since that's what rack does. However, once super(env) is run
-		#       at the end of this override method, Sinatra kicks in and creates
-		#       a dup rw app instance. That's how sinatra works (dup app instance for each request).
-		alias_method :call_orig, :call
-		def call(env)
-			logger.debug "RW App#call self: #{self}, parent app: #{@app}"
-			env.extend RackEnv			
-			
-      # 	# Initialize if not already (may only be usefull for stand-alone mode (no parent app)).
-      # 	if !settings.initialized
-      # 	  logger.debug "RW App#call self: #{self}, calling initialize_settings_from_instance"
-      # 		settings.initialize_settings_from_instance(@app, self)
-      # 	else
-      # 	  logger.debug "RW App#call self: #{self}, not calling initialize_settings_from_instance"
-      # 	end
-		  
-		  # Dupe this rw app inst, and store in env, so you can access the rw app instance from the endpoint app.
-		  # The super 'call' also dupes the inst, but so far it isn't causing problems.
-		  new_inst = self.dup
-		  new_inst.instance_eval do
-  		  self.request = Rack::Request.new(env)
-  		  
-  		  unless env.rack_warden
-    		  logger.debug "RW App#call storing rw app new_inst #{self} in env['rack_warden_instance']"
-    		  env.rack_warden = self
-  		  end
-  		    		  
-  		  logger.debug "RW App#call request.path_info: #{request.path_info}"
-  		  logger.debug "RW App#call session: #{session.inspect}"
-  			
-  			# Authenticate here-and-now, against path_info, with regexp.
-  			# TODO: This might be broken.
-  			# TODO: Change this name to Authorize here-and-now ??
-  			prefix_regex = Regexp.new("^#{settings.rw_prefix}")  
-  		  if settings.rack_authentication && !request.script_name.to_s[prefix_regex] && !request.path_info.to_s[prefix_regex]   # /^\/auth/
-  			  logger.debug "RW App#call rack_authentication for path_info: #{request.path_info}"
-  			  Array(settings.rack_authentication).each do |rule|
-  			  	logger.debug "RW App#call rack_authentication rule #{rule}"
-  			  	(new_inst.require_login) if rule && request.path_info.to_s.match(Regexp.new rule.to_s)
-  			  end
-  		  end
-  		  
-  		  logger.debug "RW App#call env.object_id: #{env.object_id}"
-        logger.debug "RW App#call warden: #{env['warden'].inspect}"  		  
+    
+    # Store this app instance in the env.
+    # NOTE: Up to this point, the app instance is the same for every call,
+    #       since that's what rack does. However, once super(env) is run
+    #       at the end of this override method, Sinatra kicks in and creates
+    #       a dup rw app instance. That's how sinatra works (dup app instance for each request).
+    alias_method :call_orig, :call
+    def call(env)
+      logger.debug "RW App#call self: #{self}, parent app: #{@app}"
+      env.extend RackEnv      
+      
+      #   # Initialize if not already (may only be usefull for stand-alone mode (no parent app)).
+      #   if !settings.initialized
+      #     logger.debug "RW App#call self: #{self}, calling initialize_settings_from_instance"
+      #     settings.initialize_settings_from_instance(@app, self)
+      #   else
+      #     logger.debug "RW App#call self: #{self}, not calling initialize_settings_from_instance"
+      #   end
+      
+      # Dupe this rw app inst, and store in env, so you can access the rw app instance from the endpoint app.
+      # The super 'call' also dupes the inst, but so far it isn't causing problems.
+      new_inst = self.dup
+      new_inst.instance_eval do
+        self.request = Rack::Request.new(env)
+        
+        unless env.rack_warden
+          logger.debug "RW App#call storing rw app new_inst #{self} in env['rack_warden_instance']"
+          env.rack_warden = self
+        end
+                
+        logger.debug "RW App#call request.path_info: #{request.path_info}"
+        logger.debug "RW App#call session: #{session.inspect}"
+        
+        # Authenticate here-and-now, against path_info, with regexp.
+        # TODO: This might be broken.
+        # TODO: Change this name to Authorize here-and-now ??
+        prefix_regex = Regexp.new("^#{settings.rw_prefix}")  
+        if settings.rack_authentication && !request.script_name.to_s[prefix_regex] && !request.path_info.to_s[prefix_regex]   # /^\/auth/
+          logger.debug "RW App#call rack_authentication for path_info: #{request.path_info}"
+          Array(settings.rack_authentication).each do |rule|
+            logger.debug "RW App#call rack_authentication rule #{rule}"
+            (new_inst.require_login) if rule && request.path_info.to_s.match(Regexp.new rule.to_s)
+          end
+        end
+        
+        logger.debug "RW App#call env.object_id: #{env.object_id}"
+        logger.debug "RW App#call warden: #{env['warden'].inspect}"       
         #logger.debug "RW App#call env['rack.session']: #{env['rack.session'].to_h.to_yaml}"
-  		  
-  		  # Send to super, then build & process response.
-  			# resp = Rack::Response.new *super(env).tap{|e| e.unshift e.pop}
-  			# #resp.set_cookie :wbr_cookie, :value=>"Yay!", :expires=>Time.now+60*10
-  			# logger.debug "App.call: #{resp.finish}"
-  			# resp.finish
-  			#
+        
+        # Send to super, then build & process response.
+        # resp = Rack::Response.new *super(env).tap{|e| e.unshift e.pop}
+        # #resp.set_cookie :wbr_cookie, :value=>"Yay!", :expires=>Time.now+60*10
+        # logger.debug "App.call: #{resp.finish}"
+        # resp.finish
+        #
         # logger.debug "RW App#call super(env), self: #{self}"
         # super
         #logger.debug "RW App#call super(env), self: #{self}"
@@ -144,21 +144,21 @@ module RackWarden
         logger.debug "RW App#call call_orig(env), self: #{self}"
         call_orig(env)
       end # inst-eval
-		end # call
-		
-		# Only initialize app after all above have loaded.
-		#initialize_app_class
-		register RackWardenClassMethods
-		
-		before do
-		  logger.debug "RW before-request self: #{self}, settings: #{settings}, self.class: #{self.class}"
-		end
-		
-  	after do
+    end # call
+    
+    # Only initialize app after all above have loaded.
+    #initialize_app_class
+    register RackWardenClassMethods
+    
+    before do
+      logger.debug "RW before-request self: #{self}, settings: #{settings}, self.class: #{self.class}"
+    end
+    
+    after do
       logger.debug "RW after-request session: #{session.inspect}"
       logger.debug "RW after-request params: #{params}"
       #logger.debug "SS after-request env['warden'].session: #{env['warden'].session.inspect}" if env['warden'].authenticated?
-  	end
+    end
 
 
   end # App
